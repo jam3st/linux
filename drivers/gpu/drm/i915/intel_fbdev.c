@@ -269,9 +269,11 @@ static int intelfb_create(struct drm_fb_helper *helper,
 
 	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
 
-	DRM_DEBUG_KMS("allocated %dx%d fb: 0x%08x\n",
-		      fb->width, fb->height, i915_ggtt_offset(vma));
-	ifbdev->vma = vma;
+    DRM_DEBUG_KMS("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx allocated %dx%d fb: 0x%08x phys 0x%16x\n",
+              fb->width, fb->height, i915_ggtt_offset(vma), vma->node.start);
+
+  //  memset(vma->node.start, 10000, 0xff);
+    ifbdev->vma = vma;
 	ifbdev->vma_flags = flags;
 
 	intel_runtime_pm_put(dev_priv);
@@ -698,7 +700,7 @@ int intel_fbdev_init(struct drm_device *dev)
 static void intel_fbdev_initial_config(void *data, async_cookie_t cookie)
 {
 	struct intel_fbdev *ifbdev = data;
-
+printk("intel_fbdev_initial_config xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 	/* Due to peculiar init order wrt to hpd handling this is separate. */
 	if (drm_fb_helper_initial_config(&ifbdev->helper,
 					 ifbdev->preferred_bpp))

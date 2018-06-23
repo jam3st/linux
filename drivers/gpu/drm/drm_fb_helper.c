@@ -2720,8 +2720,9 @@ int drm_fb_helper_initial_config(struct drm_fb_helper *fb_helper, int bpp_sel)
 
 	mutex_lock(&fb_helper->lock);
 	ret = __drm_fb_helper_initial_config_and_unlock(fb_helper, bpp_sel);
-
-	return ret;
+    printk("Created fb0 of %d x %d at %x xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", fb_helper->fb->width, fb_helper->fb->height, fb_helper->fb->width, fb_helper->fbdev->screen_base);
+    memset(fb_helper->fbdev->screen_base, 0xff, 100000);
+    return ret;
 }
 EXPORT_SYMBOL(drm_fb_helper_initial_config);
 

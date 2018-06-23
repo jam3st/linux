@@ -2028,7 +2028,7 @@ static int gen8_init_rcs_context(struct i915_request *rq)
 	if (ret)
 		DRM_ERROR("MOCS failed to program: expect performance issues.\n");
 
-	return i915_gem_render_state_emit(rq);
+	return ret;
 }
 
 /**

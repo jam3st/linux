@@ -603,10 +603,6 @@ static int intel_rcs_ctx_init(struct i915_request *rq)
 	if (ret != 0)
 		return ret;
 
-	ret = i915_gem_render_state_emit(rq);
-	if (ret)
-		return ret;
-
 	return 0;
 }
 

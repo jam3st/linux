@@ -38,7 +38,6 @@
 #include <drm/i915_drm.h>
 #include "i915_drv.h"
 #include "i915_gem_clflush.h"
-#include "intel_dsi.h"
 #include "i915_trace.h"
 #include <drm/drm_atomic.h>
 #include <drm/drm_atomic_helper.h>
@@ -9170,54 +9169,6 @@ static bool hsw_get_transcoder_state(struct intel_crtc *crtc,
 	return tmp & PIPECONF_ENABLE;
 }
 
-static bool bxt_get_dsi_transcoder_state(struct intel_crtc *crtc,
-					 struct intel_crtc_state *pipe_config,
-					 u64 *power_domain_mask)
-{
-	struct drm_device *dev = crtc->base.dev;
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	enum intel_display_power_domain power_domain;
-	enum port port;
-	enum transcoder cpu_transcoder;
-	u32 tmp;
-
-	for_each_port_masked(port, BIT(PORT_A) | BIT(PORT_C)) {
-		if (port == PORT_A)
-			cpu_transcoder = TRANSCODER_DSI_A;
-		else
-			cpu_transcoder = TRANSCODER_DSI_C;
-
-		power_domain = POWER_DOMAIN_TRANSCODER(cpu_transcoder);
-		if (!intel_display_power_get_if_enabled(dev_priv, power_domain))
-			continue;
-		*power_domain_mask |= BIT_ULL(power_domain);
-
-		/*
-		 * The PLL needs to be enabled with a valid divider
-		 * configuration, otherwise accessing DSI registers will hang
-		 * the machine. See BSpec North Display Engine
-		 * registers/MIPI[BXT]. We can break out here early, since we
-		 * need the same DSI PLL to be enabled for both DSI ports.
-		 */
-		if (!intel_dsi_pll_is_enabled(dev_priv))
-			break;
-
-		/* XXX: this works for video mode only */
-		tmp = I915_READ(BXT_MIPI_PORT_CTRL(port));
-		if (!(tmp & DPI_ENABLE))
-			continue;
-
-		tmp = I915_READ(MIPI_CTRL(port));
-		if ((tmp & BXT_PIPE_SELECT_MASK) != BXT_PIPE_SELECT(crtc->pipe))
-			continue;
-
-		pipe_config->cpu_transcoder = cpu_transcoder;
-		break;
-	}
-
-	return transcoder_is_dsi(pipe_config->cpu_transcoder);
-}
-
 static void haswell_get_ddi_port_state(struct intel_crtc *crtc,
 				       struct intel_crtc_state *pipe_config)
 {
@@ -9280,12 +9231,6 @@ static bool haswell_get_pipe_config(struct intel_crtc *crtc,
 	pipe_config->shared_dpll = NULL;
 
 	active = hsw_get_transcoder_state(crtc, pipe_config, &power_domain_mask);
-
-	if (IS_GEN9_LP(dev_priv) &&
-	    bxt_get_dsi_transcoder_state(crtc, pipe_config, &power_domain_mask)) {
-		WARN_ON(active);
-		active = true;
-	}
 
 	if (!active)
 		goto out;
@@ -13724,7 +13669,6 @@ static void intel_setup_outputs(struct drm_i915_private *dev_priv)
 		intel_ddi_init(dev_priv, PORT_B);
 		intel_ddi_init(dev_priv, PORT_C);
 
-		intel_dsi_init(dev_priv);
 	} else if (HAS_DDI(dev_priv)) {
 		int found;
 
@@ -13830,7 +13774,6 @@ static void intel_setup_outputs(struct drm_i915_private *dev_priv)
 				intel_hdmi_init(dev_priv, CHV_HDMID, PORT_D);
 		}
 
-		intel_dsi_init(dev_priv);
 	} else if (!IS_GEN2(dev_priv) && !IS_PINEVIEW(dev_priv)) {
 		bool found = false;
 

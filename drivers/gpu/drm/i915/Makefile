@@ -115,7 +115,6 @@ i915-y +=  \
 	  intel_psr.o \
 	  intel_sideband.o \
 	  intel_sprite.o
-i915-$(CONFIG_ACPI)		+= intel_acpi.o intel_opregion.o
 i915-$(CONFIG_DRM_FBDEV_EMULATION)	+= intel_fbdev.o
 
 # modesetting output/encoder code

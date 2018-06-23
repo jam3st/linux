@@ -1906,8 +1906,6 @@ static void i915_pipestat_irq_handler(struct drm_i915_private *dev_priv,
 			intel_cpu_fifo_underrun_irq_handler(dev_priv, pipe);
 	}
 
-	if (blc_event || (iir & I915_ASLE_INTERRUPT))
-		intel_opregion_asle_intr(dev_priv);
 }
 
 static void i965_pipestat_irq_handler(struct drm_i915_private *dev_priv,
@@ -1930,8 +1928,6 @@ static void i965_pipestat_irq_handler(struct drm_i915_private *dev_priv,
 			intel_cpu_fifo_underrun_irq_handler(dev_priv, pipe);
 	}
 
-	if (blc_event || (iir & I915_ASLE_INTERRUPT))
-		intel_opregion_asle_intr(dev_priv);
 
 	if (pipe_stats[0] & PIPE_GMBUS_INTERRUPT_STATUS)
 		gmbus_irq_handler(dev_priv);
@@ -2385,8 +2381,6 @@ static void ilk_display_irq_handler(struct drm_i915_private *dev_priv,
 	if (de_iir & DE_AUX_CHANNEL_A)
 		dp_aux_irq_handler(dev_priv);
 
-	if (de_iir & DE_GSE)
-		intel_opregion_asle_intr(dev_priv);
 
 	if (de_iir & DE_POISON)
 		DRM_ERROR("Poison interrupt\n");
@@ -2434,8 +2428,6 @@ static void ivb_display_irq_handler(struct drm_i915_private *dev_priv,
 	if (de_iir & DE_AUX_CHANNEL_A_IVB)
 		dp_aux_irq_handler(dev_priv);
 
-	if (de_iir & DE_GSE_IVB)
-		intel_opregion_asle_intr(dev_priv);
 
 	for_each_pipe(dev_priv, pipe) {
 		if (de_iir & (DE_PIPE_VBLANK_IVB(pipe)))
@@ -2562,10 +2554,6 @@ gen8_de_irq_handler(struct drm_i915_private *dev_priv, u32 master_ctl)
 		if (iir) {
 			I915_WRITE(GEN8_DE_MISC_IIR, iir);
 			ret = IRQ_HANDLED;
-			if (iir & GEN8_DE_MISC_GSE)
-				intel_opregion_asle_intr(dev_priv);
-			else
-				DRM_ERROR("Unexpected DE Misc interrupt\n");
 		}
 		else
 			DRM_ERROR("The master control interrupt lied (DE MISC)!\n");

@@ -220,12 +220,7 @@ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
 
 	dev_priv->vbt.lvds_dither = lvds_options->pixel_dither;
 
-	ret = intel_opregion_get_panel_type(dev_priv);
-	if (ret >= 0) {
-		WARN_ON(ret > 0xf);
-		panel_type = ret;
-		DRM_DEBUG_KMS("Panel type: %d (OpRegion)\n", panel_type);
-	} else {
+	{
 		if (lvds_options->panel_type > 0xf) {
 			DRM_DEBUG_KMS("Invalid VBT panel type 0x%x\n",
 				      lvds_options->panel_type);

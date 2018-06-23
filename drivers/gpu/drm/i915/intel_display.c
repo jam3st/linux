@@ -5292,7 +5292,6 @@ static void intel_encoders_enable(struct drm_crtc *crtc,
 			continue;
 
 		encoder->enable(encoder, crtc_state, conn_state);
-		intel_opregion_notify_encoder(encoder, true);
 	}
 }
 
@@ -5311,7 +5310,6 @@ static void intel_encoders_disable(struct drm_crtc *crtc,
 		if (old_conn_state->crtc != crtc)
 			continue;
 
-		intel_opregion_notify_encoder(encoder, false);
 		encoder->disable(encoder, old_crtc_state, old_conn_state);
 	}
 }
@@ -15424,7 +15422,6 @@ void intel_modeset_cleanup(struct drm_device *dev)
 	/* poll work can call into fbdev, hence clean that up afterwards */
 	intel_fbdev_fini(dev_priv);
 
-	intel_unregister_dsm_handler();
 
 	intel_fbc_global_disable(dev_priv);
 

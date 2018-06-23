@@ -670,7 +670,6 @@ static int i915_load_modeset_init(struct drm_device *dev)
 	if (ret && ret != -ENODEV)
 		goto out;
 
-	intel_register_dsm_handler();
 
 	ret = vga_switcheroo_register_client(pdev, &i915_switcheroo_ops, false);
 	if (ret)
@@ -1167,7 +1166,6 @@ static int i915_driver_init_hw(struct drm_i915_private *dev_priv)
 
 	intel_uncore_sanitize(dev_priv);
 
-	intel_opregion_setup(dev_priv);
 
 	i915_gem_load_init_fences(dev_priv);
 
@@ -1247,12 +1245,6 @@ static void i915_driver_register(struct drm_i915_private *dev_priv)
 	} else
 		DRM_ERROR("Failed to register driver for userspace access!\n");
 
-	if (INTEL_INFO(dev_priv)->num_pipes) {
-		/* Must be done after probing outputs */
-		intel_opregion_register(dev_priv);
-		acpi_video_register();
-	}
-
 	if (IS_GEN5(dev_priv))
 		intel_gpu_ips_init(dev_priv);
 
@@ -1291,7 +1283,6 @@ static void i915_driver_unregister(struct drm_i915_private *dev_priv)
 
 	intel_gpu_ips_teardown();
 	acpi_video_unregister();
-	intel_opregion_unregister(dev_priv);
 
 
 	i915_teardown_sysfs(dev_priv);
@@ -1587,10 +1578,7 @@ static int i915_drm_suspend(struct drm_device *dev)
 	i915_save_state(dev_priv);
 
 	opregion_target_state = suspend_to_idle(dev_priv) ? PCI_D1 : PCI_D3cold;
-	intel_opregion_notify_adapter(dev_priv, opregion_target_state);
-
 	intel_uncore_suspend(dev_priv);
-	intel_opregion_unregister(dev_priv);
 
 	intel_fbdev_set_suspend(dev, FBINFO_STATE_SUSPENDED, true);
 
@@ -1707,7 +1695,6 @@ static int i915_drm_resume(struct drm_device *dev)
 
 	i915_restore_state(dev_priv);
 	intel_pps_unlock_regs_wa(dev_priv);
-	intel_opregion_setup(dev_priv);
 
 	intel_init_pch_refclk(dev_priv);
 
@@ -1749,7 +1736,6 @@ static int i915_drm_resume(struct drm_device *dev)
 	 * */
 	intel_hpd_init(dev_priv);
 
-	intel_opregion_register(dev_priv);
 
 	intel_fbdev_set_suspend(dev, FBINFO_STATE_RUNNING, false);
 
@@ -1757,7 +1743,6 @@ static int i915_drm_resume(struct drm_device *dev)
 	dev_priv->modeset_restore = MODESET_DONE;
 	mutex_unlock(&dev_priv->modeset_restore_lock);
 
-	intel_opregion_notify_adapter(dev_priv, PCI_D0);
 
 	enable_rpm_wakeref_asserts(dev_priv);
 
@@ -2611,29 +2596,6 @@ static int intel_runtime_suspend(struct device *kdev)
 
 	dev_priv->runtime_pm.suspended = true;
 
-	/*
-	 * FIXME: We really should find a document that references the arguments
-	 * used below!
-	 */
-	if (IS_BROADWELL(dev_priv)) {
-		/*
-		 * On Broadwell, if we use PCI_D1 the PCH DDI ports will stop
-		 * being detected, and the call we do at intel_runtime_resume()
-		 * won't be able to restore them. Since PCI_D3hot matches the
-		 * actual specification and appears to be working, use it.
-		 */
-		intel_opregion_notify_adapter(dev_priv, PCI_D3hot);
-	} else {
-		/*
-		 * current versions of firmware which depend on this opregion
-		 * notification have repurposed the D1 definition to mean
-		 * "runtime suspended" vs. what you would normally expect (D3)
-		 * to distinguish it from notifications that might be sent via
-		 * the suspend path.
-		 */
-		intel_opregion_notify_adapter(dev_priv, PCI_D1);
-	}
-
 	assert_forcewakes_inactive(dev_priv);
 
 	if (!IS_VALLEYVIEW(dev_priv) && !IS_CHERRYVIEW(dev_priv))
@@ -2658,7 +2620,6 @@ static int intel_runtime_resume(struct device *kdev)
 	WARN_ON_ONCE(atomic_read(&dev_priv->runtime_pm.wakeref_count));
 	disable_rpm_wakeref_asserts(dev_priv);
 
-	intel_opregion_notify_adapter(dev_priv, PCI_D0);
 	dev_priv->runtime_pm.suspended = false;
 	if (intel_uncore_unclaimed_mmio(dev_priv))
 		DRM_DEBUG_DRIVER("Unclaimed access during suspend, bios?\n");

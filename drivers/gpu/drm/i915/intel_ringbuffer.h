@@ -9,7 +9,6 @@
 
 #include "i915_pmu.h"
 #include "i915_request.h"
-#include "i915_selftest.h"
 
 struct drm_printer;
 
@@ -374,7 +373,6 @@ struct intel_engine_cs {
 		unsigned int irq_enabled;
 
 		bool irq_armed : 1;
-		I915_SELFTEST_DECLARE(bool mock : 1);
 	} breadcrumbs;
 
 	struct {

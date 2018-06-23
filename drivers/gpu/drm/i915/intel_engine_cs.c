@@ -1552,8 +1552,6 @@ bool intel_engine_is_idle(struct intel_engine_cs *engine)
 			       intel_engine_last_submit(engine)))
 		return false;
 
-	if (I915_SELFTEST_ONLY(engine->breadcrumbs.mock))
-		return true;
 
 	/* Waiting to drain ELSP? */
 	if (READ_ONCE(engine->execlists.active))

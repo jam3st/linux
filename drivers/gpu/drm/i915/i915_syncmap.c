@@ -27,7 +27,6 @@
 #include "i915_syncmap.h"
 
 #include "i915_gem.h" /* GEM_BUG_ON() */
-#include "i915_selftest.h"
 
 #define SHIFT ilog2(KSYNCMAP)
 #define MASK (KSYNCMAP - 1)

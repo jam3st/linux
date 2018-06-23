@@ -301,16 +301,6 @@ static bool __intel_breadcrumbs_enable_irq(struct intel_breadcrumbs *b)
 	 */
 	b->irq_armed = true;
 
-	if (I915_SELFTEST_ONLY(b->mock)) {
-		/* For our mock objects we want to avoid interaction
-		 * with the real hardware (which is not set up). So
-		 * we simply pretend we have enabled the powerwell
-		 * and the irq, and leave it up to the mock
-		 * implementation to call intel_engine_wakeup()
-		 * itself when it wants to simulate a user interrupt,
-		 */
-		return true;
-	}
 
 	/* Since we are waiting on a request, the GPU should be busy
 	 * and should have its own rpm reference. This is tracked

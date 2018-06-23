@@ -27,7 +27,6 @@
 #include <linux/vga_switcheroo.h>
 
 #include "i915_drv.h"
-#include "i915_selftest.h"
 
 #define PLATFORM(x) .platform = (x), .platform_mask = BIT(x)
 #define GEN(x) .gen = (x), .gen_mask = BIT((x) - 1)
@@ -710,14 +709,6 @@ static int i915_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	if (err)
 		return err;
 
-	err = i915_live_selftests(pdev);
-	if (err) {
-        printk("Self tests failed xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-
-		i915_pci_remove(pdev);
-		return err > 0 ? -ENOTTY : err;
-	}
-
 	return 0;
 }
 
@@ -726,17 +717,12 @@ static struct pci_driver i915_pci_driver = {
 	.id_table = pciidlist,
 	.probe = i915_pci_probe,
 	.remove = i915_pci_remove,
-	.driver.pm = &i915_pm_ops,
+    .driver.pm = NULL,
 };
 
 static int __init i915_init(void)
 {
 	bool use_kms = true;
-	int err;
-
-	err = i915_mock_selftests();
-	if (err)
-		return err > 0 ? 0 : err;
 
 	/*
 	 * Enable KMS by default, unless explicitly overriden by

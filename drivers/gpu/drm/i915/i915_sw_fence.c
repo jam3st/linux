@@ -13,7 +13,6 @@
 #include <linux/reservation.h>
 
 #include "i915_sw_fence.h"
-#include "i915_selftest.h"
 
 #define I915_SW_FENCE_FLAG_ALLOC BIT(3) /* after WQ_FLAG_* for safety */
 

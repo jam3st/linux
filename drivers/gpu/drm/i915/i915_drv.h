@@ -2955,7 +2955,6 @@ extern long i915_compat_ioctl(struct file *filp, unsigned int cmd,
 #else
 #define i915_compat_ioctl NULL
 #endif
-extern const struct dev_pm_ops i915_pm_ops;
 
 extern int i915_driver_load(struct pci_dev *pdev,
 			    const struct pci_device_id *ent);

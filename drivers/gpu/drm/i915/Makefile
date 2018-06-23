@@ -36,7 +36,6 @@ i915-y := i915_drv.o \
 	  i915_mm.o \
 	  i915_params.o \
 	  i915_pci.o \
-          i915_suspend.o \
 	  i915_syncmap.o \
 	  i915_sw_fence.o \
 	  intel_csr.o \

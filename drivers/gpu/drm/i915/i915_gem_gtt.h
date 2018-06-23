@@ -41,7 +41,6 @@
 #include "i915_gem_timeline.h"
 
 #include "i915_request.h"
-#include "i915_selftest.h"
 
 #define I915_GTT_PAGE_SIZE_4K BIT(12)
 #define I915_GTT_PAGE_SIZE_64K BIT(16)
@@ -343,7 +342,6 @@ struct i915_address_space {
 	int (*set_pages)(struct i915_vma *vma);
 	void (*clear_pages)(struct i915_vma *vma);
 
-	I915_SELFTEST_DECLARE(struct fault_attr fault_attr);
 };
 
 #define i915_is_ggtt(V) (!(V)->file)

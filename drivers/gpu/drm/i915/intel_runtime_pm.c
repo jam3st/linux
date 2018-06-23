@@ -174,10 +174,8 @@ static void intel_power_well_put(struct drm_i915_private *dev_priv,
 {
 	WARN(!power_well->count, "Use count on power well %s is already zero",
 	     power_well->name);
-printk("XXXXXXXXXXXX intel_power_well_disable ????????????????????");
     if (!--power_well->count) {
-        printk("XXXXXXXXXXXX intel_power_well_disable ");
-        intel_power_well_enable(dev_priv, power_well);
+        intel_power_well_disable(dev_priv, power_well);
     }
 }
 

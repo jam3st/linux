@@ -18,7 +18,6 @@
 #include <linux/err.h>
 #include <linux/export.h>
 
-#include <drm/drm_sysfs.h>
 #include <drm/drmP.h>
 #include "drm_internal.h"
 
@@ -66,18 +65,6 @@ int drm_sysfs_init(void)
 {
 	int err;
 
-	drm_class = class_create(THIS_MODULE, "drm");
-	if (IS_ERR(drm_class))
-		return PTR_ERR(drm_class);
-
-	err = class_create_file(drm_class, &class_attr_version.attr);
-	if (err) {
-		class_destroy(drm_class);
-		drm_class = NULL;
-		return err;
-	}
-
-	drm_class->devnode = drm_devnode;
 	return 0;
 }
 
@@ -88,10 +75,6 @@ int drm_sysfs_init(void)
  */
 void drm_sysfs_destroy(void)
 {
-	if (IS_ERR_OR_NULL(drm_class))
-		return;
-	class_remove_file(drm_class, &class_attr_version.attr);
-	class_destroy(drm_class);
 	drm_class = NULL;
 }
 
@@ -102,42 +85,8 @@ static ssize_t status_store(struct device *device,
 			   struct device_attribute *attr,
 			   const char *buf, size_t count)
 {
-	struct drm_connector *connector = to_drm_connector(device);
-	struct drm_device *dev = connector->dev;
-	enum drm_connector_force old_force;
-	int ret;
 
-	ret = mutex_lock_interruptible(&dev->mode_config.mutex);
-	if (ret)
-		return ret;
-
-	old_force = connector->force;
-
-	if (sysfs_streq(buf, "detect"))
-		connector->force = 0;
-	else if (sysfs_streq(buf, "on"))
-		connector->force = DRM_FORCE_ON;
-	else if (sysfs_streq(buf, "on-digital"))
-		connector->force = DRM_FORCE_ON_DIGITAL;
-	else if (sysfs_streq(buf, "off"))
-		connector->force = DRM_FORCE_OFF;
-	else
-		ret = -EINVAL;
-
-	if (old_force != connector->force || !connector->force) {
-		DRM_DEBUG_KMS("[CONNECTOR:%d:%s] force updated from %d to %d or reprobing\n",
-			      connector->base.id,
-			      connector->name,
-			      old_force, connector->force);
-
-		connector->funcs->fill_modes(connector,
-					     dev->mode_config.max_width,
-					     dev->mode_config.max_height);
-	}
-
-	mutex_unlock(&dev->mode_config.mutex);
-
-	return ret ? ret : count;
+	return 0;
 }
 
 static ssize_t status_show(struct device *device,

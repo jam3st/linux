@@ -2081,94 +2081,6 @@ static int i915_pm_suspend_late(struct device *kdev)
 	return i915_drm_suspend_late(dev, false);
 }
 
-static int i915_pm_poweroff_late(struct device *kdev)
-{
-	struct drm_device *dev = &kdev_to_i915(kdev)->drm;
-
-	if (dev->switch_power_state == DRM_SWITCH_POWER_OFF)
-		return 0;
-
-	return i915_drm_suspend_late(dev, true);
-}
-
-static int i915_pm_resume_early(struct device *kdev)
-{
-	struct drm_device *dev = &kdev_to_i915(kdev)->drm;
-
-	if (dev->switch_power_state == DRM_SWITCH_POWER_OFF)
-		return 0;
-
-	return i915_drm_resume_early(dev);
-}
-
-static int i915_pm_resume(struct device *kdev)
-{
-	struct drm_device *dev = &kdev_to_i915(kdev)->drm;
-
-	if (dev->switch_power_state == DRM_SWITCH_POWER_OFF)
-		return 0;
-
-	return i915_drm_resume(dev);
-}
-
-/* freeze: before creating the hibernation_image */
-static int i915_pm_freeze(struct device *kdev)
-{
-	struct drm_device *dev = &kdev_to_i915(kdev)->drm;
-	int ret;
-
-	if (dev->switch_power_state != DRM_SWITCH_POWER_OFF) {
-		ret = i915_drm_suspend(dev);
-		if (ret)
-			return ret;
-	}
-
-	ret = i915_gem_freeze(kdev_to_i915(kdev));
-	if (ret)
-		return ret;
-
-	return 0;
-}
-
-static int i915_pm_freeze_late(struct device *kdev)
-{
-	struct drm_device *dev = &kdev_to_i915(kdev)->drm;
-	int ret;
-
-	if (dev->switch_power_state != DRM_SWITCH_POWER_OFF) {
-		ret = i915_drm_suspend_late(dev, true);
-		if (ret)
-			return ret;
-	}
-
-	ret = i915_gem_freeze_late(kdev_to_i915(kdev));
-	if (ret)
-		return ret;
-
-	return 0;
-}
-
-/* thaw: called after creating the hibernation image, but before turning off. */
-static int i915_pm_thaw_early(struct device *kdev)
-{
-	return i915_pm_resume_early(kdev);
-}
-
-static int i915_pm_thaw(struct device *kdev)
-{
-	return i915_pm_resume(kdev);
-}
-
-/* restore: called after loading the hibernation image. */
-static int i915_pm_restore_early(struct device *kdev)
-{
-	return i915_pm_resume_early(kdev);
-}
-
-static int i915_pm_restore(struct device *kdev)
-{
-	return i915_pm_resume(kdev);
-}
 
 /*
  * Save all Gunit registers that may be lost after a D3 and a subsequent
@@ -2664,44 +2576,6 @@ static int intel_runtime_resume(struct device *kdev)
 	return ret;
 }
 
-const struct dev_pm_ops i915_pm_ops = {
-	/*
-	 * S0ix (via system suspend) and S3 event handlers [PMSG_SUSPEND,
-	 * PMSG_RESUME]
-	 */
-	.suspend = i915_pm_suspend,
-	.suspend_late = i915_pm_suspend_late,
-	.resume_early = i915_pm_resume_early,
-	.resume = i915_pm_resume,
-
-	/*
-	 * S4 event handlers
-	 * @freeze, @freeze_late    : called (1) before creating the
-	 *                            hibernation image [PMSG_FREEZE] and
-	 *                            (2) after rebooting, before restoring
-	 *                            the image [PMSG_QUIESCE]
-	 * @thaw, @thaw_early       : called (1) after creating the hibernation
-	 *                            image, before writing it [PMSG_THAW]
-	 *                            and (2) after failing to create or
-	 *                            restore the image [PMSG_RECOVER]
-	 * @poweroff, @poweroff_late: called after writing the hibernation
-	 *                            image, before rebooting [PMSG_HIBERNATE]
-	 * @restore, @restore_early : called after rebooting and restoring the
-	 *                            hibernation image [PMSG_RESTORE]
-	 */
-	.freeze = i915_pm_freeze,
-	.freeze_late = i915_pm_freeze_late,
-	.thaw_early = i915_pm_thaw_early,
-	.thaw = i915_pm_thaw,
-	.poweroff = i915_pm_suspend,
-	.poweroff_late = i915_pm_poweroff_late,
-	.restore_early = i915_pm_restore_early,
-	.restore = i915_pm_restore,
-
-	/* S0ix (via runtime suspend) event handlers */
-	.runtime_suspend = intel_runtime_suspend,
-	.runtime_resume = intel_runtime_resume,
-};
 
 static const struct vm_operations_struct i915_gem_vm_ops = {
 	.fault = i915_gem_fault,

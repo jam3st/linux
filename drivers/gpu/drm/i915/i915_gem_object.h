@@ -34,7 +34,6 @@
 #include <drm/i915_drm.h>
 
 #include "i915_request.h"
-#include "i915_selftest.h"
 
 struct drm_i915_gem_object;
 
@@ -127,7 +126,6 @@ struct drm_i915_gem_object {
 	struct list_head userfault_link;
 
 	struct list_head batch_pool_link;
-	I915_SELFTEST_DECLARE(struct list_head st_link);
 
 	unsigned long flags;
 
@@ -213,7 +211,6 @@ struct drm_i915_gem_object {
 			unsigned int gtt;
 		} page_sizes;
 
-		I915_SELFTEST_DECLARE(unsigned int page_mask);
 
 		struct i915_gem_object_page_iter {
 			struct scatterlist *sg_pos;

@@ -373,8 +373,6 @@ static struct page *vm_alloc_page(struct i915_address_space *vm, gfp_t gfp)
 	struct pagevec *pvec = &vm->free_pages;
 	struct pagevec stash;
 
-	if (I915_SELFTEST_ONLY(should_fail(&vm->fault_attr, 1)))
-		i915_gem_shrink_all(vm->i915);
 
 	if (likely(pvec->nr))
 		return pvec->pages[--pvec->nr];

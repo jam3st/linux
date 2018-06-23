@@ -10,8 +10,6 @@ menuconfig DRM
 	select DRM_PANEL_ORIENTATION_QUIRKS
 	select HDMI
 	select FB_CMDLINE
-	select I2C
-	select I2C_ALGOBIT
 	select DMA_SHARED_BUFFER
 	select SYNC_FILE
 	help
@@ -153,8 +151,6 @@ config DRM_VM
 config DRM_SCHED
 	tristate
 	depends on DRM
-
-source "drivers/gpu/drm/i2c/Kconfig"
 
 source "drivers/gpu/drm/i915/Kconfig"
 

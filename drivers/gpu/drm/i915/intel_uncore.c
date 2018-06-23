@@ -1516,8 +1516,6 @@ static int i915_pmic_bus_access_notifier(struct notifier_block *nb,
 
 void intel_uncore_init(struct drm_i915_private *dev_priv)
 {
-	i915_check_vgpu(dev_priv);
-
 	intel_uncore_edram_detect(dev_priv);
 	intel_uncore_fw_domains_init(dev_priv);
 	__intel_uncore_early_sanitize(dev_priv, false);

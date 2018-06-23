@@ -144,12 +144,6 @@ int intel_sanitize_enable_ppgtt(struct drm_i915_private *dev_priv,
 	has_full_ppgtt = dev_priv->info.has_full_ppgtt;
 	has_full_48bit_ppgtt = dev_priv->info.has_full_48bit_ppgtt;
 
-	if (intel_vgpu_active(dev_priv)) {
-		/* GVT-g has no support for 32bit ppgtt */
-		has_full_ppgtt = false;
-		has_full_48bit_ppgtt = intel_vgpu_has_full_48bit_ppgtt(dev_priv);
-	}
-
 	/*
 	 * We don't allow disabling PPGTT for gen9+ as it's a requirement for
 	 * execlists, the sole mechanism available to submit work.
@@ -2858,10 +2852,6 @@ int i915_gem_init_ggtt(struct drm_i915_private *dev_priv)
 	struct drm_mm_node *entry;
 	int ret;
 
-	ret = intel_vgt_balloon(dev_priv);
-	if (ret)
-		return ret;
-
 	/* Reserve a mappable slot for our lockless error capture */
 	ret = drm_mm_insert_node_in_range(&ggtt->base.mm, &ggtt->error_capture,
 					  PAGE_SIZE, 0, I915_COLOR_UNEVICTABLE,
@@ -2922,7 +2912,6 @@ void i915_ggtt_cleanup_hw(struct drm_i915_private *dev_priv)
 		drm_mm_remove_node(&ggtt->error_capture);
 
 	if (drm_mm_initialized(&ggtt->base.mm)) {
-		intel_vgt_deballoon(dev_priv);
 		i915_address_space_fini(&ggtt->base);
 	}
 

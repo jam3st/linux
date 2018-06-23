@@ -271,7 +271,9 @@ drm_helper_probe_detect_ctx(struct drm_connector *connector, bool force)
 
 retry:
 	ret = drm_modeset_lock(&connector->dev->mode_config.connection_mutex, &ctx);
+    printk("xxxxxxxxxxxxxxxxx drm_connector status xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 	if (!ret) {
+
 		if (funcs->detect_ctx)
 			ret = funcs->detect_ctx(connector, &ctx, force);
 		else if (connector->funcs->detect)
@@ -406,7 +408,7 @@ int drm_helper_probe_single_connector_modes(struct drm_connector *connector,
 
 	DRM_DEBUG_KMS("[CONNECTOR:%d:%s]\n", connector->base.id,
 			connector->name);
-
+printk("XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 retry:
 	ret = drm_modeset_lock(&dev->mode_config.connection_mutex, &ctx);
 	if (ret == -EDEADLK) {
@@ -420,7 +422,7 @@ retry:
 		mode->status = MODE_STALE;
 
 	old_status = connector->status;
-
+printk("XXXX Forcing connector %d", connector->force);
 	if (connector->force) {
 		if (connector->force == DRM_FORCE_ON ||
 		    connector->force == DRM_FORCE_ON_DIGITAL)

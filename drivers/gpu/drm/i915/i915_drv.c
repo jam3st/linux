@@ -713,6 +713,7 @@ static int i915_load_modeset_init(struct drm_device *dev)
 	/* Only enable hotplug handling once the fbdev is fully set up. */
 	intel_hpd_init(dev_priv);
 
+        printk("XXXXXXXXXXXX MODESET DONE");
 	return 0;
 
 cleanup_gem:
@@ -1312,7 +1313,7 @@ static void i915_driver_unregister(struct drm_i915_private *dev_priv)
 
 static void i915_welcome_messages(struct drm_i915_private *dev_priv)
 {
-	if (drm_debug & DRM_UT_DRIVER) {
+	if (1) {
 		struct drm_printer p = drm_debug_printer("i915 device info:");
 
 		intel_device_info_dump(&dev_priv->info, &p);

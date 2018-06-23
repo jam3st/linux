@@ -95,7 +95,6 @@ module_param_named(id, live_selftests[live_##n].enabled, bool, 0400);
 static void set_default_test_all(struct selftest *st, unsigned int count)
 {
 	unsigned int i;
-
 	for (i = 0; i < count; i++)
 		if (st[i].enabled)
 			return;
@@ -110,6 +109,7 @@ static int __run_selftests(const char *name,
 			   void *data)
 {
 	int err = 0;
+printk("XXXXXXXXXXXXXX Running  running set_default_test_all");
 
 	while (!i915_selftest.random_seed)
 		i915_selftest.random_seed = get_random_int();
@@ -180,8 +180,8 @@ int i915_live_selftests(struct pci_dev *pdev)
 {
 	int err;
 
-	if (!i915_selftest.live)
-		return 0;
+//	if (!i915_selftest.live)
+//		return 0;
 
 	err = run_selftests(live, to_i915(pci_get_drvdata(pdev)));
 	if (err) {

@@ -10501,6 +10501,7 @@ static void intel_modeset_update_connector_atomic_state(struct drm_device *dev)
 
 	drm_connector_list_iter_begin(dev, &conn_iter);
 	for_each_intel_connector_iter(connector, &conn_iter) {
+        printk("Examinign connectors XXXXXXXXXXXXXXXXXXXXXXXX");
 		if (connector->base.state->crtc)
 			drm_connector_unreference(&connector->base);
 

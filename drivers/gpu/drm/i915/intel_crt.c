@@ -995,7 +995,7 @@ void intel_crt_init(struct drm_i915_private *dev_priv)
 	/*
 	 * Configure the automatic hotplug detection stuff
 	 */
-	crt->force_hotplug_required = 0;
+    crt->force_hotplug_required = 1;
 
 	/*
 	 * TODO: find a proper way to discover whether we need to set the the
@@ -1003,6 +1003,7 @@ void intel_crt_init(struct drm_i915_private *dev_priv)
 	 * BIOS.
 	 */
 	if (HAS_PCH_LPT(dev_priv)) {
+        printk("Reversing polarity xxxxxxxxxxxxxxxxxxxxxxxxxx");
 		u32 fdi_config = FDI_RX_POLARITY_REVERSED_LPT |
 				 FDI_RX_LINK_REVERSAL_OVERRIDE;
 

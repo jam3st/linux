@@ -284,7 +284,7 @@ update_connector_routing(struct drm_atomic_state *state,
 			 connector->base.id,
 			 connector->name);
 
-	if (old_connector_state->crtc != new_connector_state->crtc) {
+    if (old_connector_state->crtc != new_connector_state->crtc) {
 		if (old_connector_state->crtc) {
 			crtc_state = drm_atomic_get_new_crtc_state(state, old_connector_state->crtc);
 			crtc_state->connectors_changed = true;
@@ -296,7 +296,7 @@ update_connector_routing(struct drm_atomic_state *state,
 		}
 	}
 
-	if (!new_connector_state->crtc) {
+    if (!new_connector_state->crtc) {
 		DRM_DEBUG_ATOMIC("Disabling [CONNECTOR:%d:%s]\n",
 				connector->base.id,
 				connector->name);
@@ -563,6 +563,7 @@ int
 drm_atomic_helper_check_modeset(struct drm_device *dev,
 				struct drm_atomic_state *state)
 {
+
 	struct drm_crtc *crtc;
 	struct drm_crtc_state *old_crtc_state, *new_crtc_state;
 	struct drm_connector *connector;

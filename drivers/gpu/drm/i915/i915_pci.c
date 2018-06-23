@@ -712,6 +712,8 @@ static int i915_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	err = i915_live_selftests(pdev);
 	if (err) {
+        printk("Self tests failed xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+
 		i915_pci_remove(pdev);
 		return err > 0 ? -ENOTTY : err;
 	}

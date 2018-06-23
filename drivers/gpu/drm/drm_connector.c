@@ -1464,9 +1464,6 @@ int drm_connector_init_panel_orientation_property(
 	struct drm_property *prop;
 	int orientation_quirk;
 
-	orientation_quirk = drm_get_panel_orientation_quirk(width, height);
-	if (orientation_quirk != DRM_MODE_PANEL_ORIENTATION_UNKNOWN)
-		info->panel_orientation = orientation_quirk;
 
 	if (info->panel_orientation == DRM_MODE_PANEL_ORIENTATION_UNKNOWN)
 		return 0;
@@ -1482,6 +1479,9 @@ int drm_connector_init_panel_orientation_property(
 
 		dev->mode_config.panel_orientation_property = prop;
 	}
+
+
+
 
 	drm_object_attach_property(&connector->base, prop,
 				   info->panel_orientation);

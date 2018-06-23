@@ -280,6 +280,7 @@ bool intel_encoder_hotplug(struct intel_encoder *encoder,
 	struct drm_device *dev = connector->base.dev;
 	enum drm_connector_status old_status;
 
+    printk("XXXXXXXXXXXXXXXX connector hotplug");
 	WARN_ON(!mutex_is_locked(&dev->mode_config.mutex));
 	old_status = connector->base.status;
 

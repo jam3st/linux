@@ -152,21 +152,6 @@ i915-y += dvo_ch7017.o \
 i915-$(CONFIG_DRM_I915_CAPTURE_ERROR) += i915_gpu_error.o
 # virtual gpu code
 # perf code
-i915-y += i915_perf.o \
-	  i915_oa_hsw.o \
-	  i915_oa_bdw.o \
-	  i915_oa_chv.o \
-	  i915_oa_sklgt2.o \
-	  i915_oa_sklgt3.o \
-	  i915_oa_sklgt4.o \
-	  i915_oa_bxt.o \
-	  i915_oa_kblgt2.o \
-	  i915_oa_kblgt3.o \
-	  i915_oa_glk.o \
-	  i915_oa_cflgt2.o \
-	  i915_oa_cflgt3.o \
-	  i915_oa_cnl.o
-
 
 # LPE Audio for VLV and CHT
 i915-y += intel_lpe_audio.o

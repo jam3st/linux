@@ -2392,7 +2392,6 @@ static void execlists_init_reg_state(u32 *regs,
 		CTX_REG(regs, CTX_R_PWR_CLK_STATE, GEN8_R_PWR_CLK_STATE,
 			make_rpcs(dev_priv));
 
-		i915_oa_init_reg_state(engine, ctx, regs);
 	}
 }
 

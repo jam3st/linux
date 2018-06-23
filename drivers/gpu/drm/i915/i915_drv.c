@@ -1102,7 +1102,6 @@ static int i915_driver_init_hw(struct drm_i915_private *dev_priv)
 
 	intel_sanitize_options(dev_priv);
 
-	i915_perf_init(dev_priv);
 
 	ret = i915_ggtt_probe_hw(dev_priv);
 	if (ret)
@@ -1200,7 +1199,6 @@ static int i915_driver_init_hw(struct drm_i915_private *dev_priv)
 err_ggtt:
 	i915_ggtt_cleanup_hw(dev_priv);
 err_perf:
-	i915_perf_fini(dev_priv);
 	return ret;
 }
 
@@ -1212,7 +1210,6 @@ static void i915_driver_cleanup_hw(struct drm_i915_private *dev_priv)
 {
 	struct pci_dev *pdev = dev_priv->drm.pdev;
 
-	i915_perf_fini(dev_priv);
 
 	if (pdev->msi_enabled)
 		pci_disable_msi(pdev);
@@ -1249,7 +1246,6 @@ static void i915_driver_register(struct drm_i915_private *dev_priv)
 		i915_setup_sysfs(dev_priv);
 
 		/* Depends on sysfs having been initialized */
-		i915_perf_register(dev_priv);
 	} else
 		DRM_ERROR("Failed to register driver for userspace access!\n");
 
@@ -1301,7 +1297,6 @@ static void i915_driver_unregister(struct drm_i915_private *dev_priv)
 	acpi_video_unregister();
 	intel_opregion_unregister(dev_priv);
 
-	i915_perf_unregister(dev_priv);
 	i915_pmu_unregister(dev_priv);
 
 	i915_teardown_sysfs(dev_priv);
@@ -2835,9 +2830,6 @@ static const struct drm_ioctl_desc i915_ioctls[] = {
 	DRM_IOCTL_DEF_DRV(I915_GEM_USERPTR, i915_gem_userptr_ioctl, DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(I915_GEM_CONTEXT_GETPARAM, i915_gem_context_getparam_ioctl, DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(I915_GEM_CONTEXT_SETPARAM, i915_gem_context_setparam_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_PERF_OPEN, i915_perf_open_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_PERF_ADD_CONFIG, i915_perf_add_config_ioctl, DRM_UNLOCKED|DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_PERF_REMOVE_CONFIG, i915_perf_remove_config_ioctl, DRM_UNLOCKED|DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(I915_QUERY, i915_query_ioctl, DRM_UNLOCKED|DRM_RENDER_ALLOW),
 };
 

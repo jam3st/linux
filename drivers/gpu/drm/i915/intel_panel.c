@@ -522,13 +522,7 @@ static u32 _vlv_get_backlight(struct drm_i915_private *dev_priv, enum pipe pipe)
 	return I915_READ(VLV_BLC_PWM_CTL(pipe)) & BACKLIGHT_DUTY_CYCLE_MASK;
 }
 
-static u32 vlv_get_backlight(struct intel_connector *connector)
-{
-	struct drm_i915_private *dev_priv = to_i915(connector->base.dev);
-	enum pipe pipe = intel_get_pipe_from_connector(connector);
 
-	return _vlv_get_backlight(dev_priv, pipe);
-}
 
 static u32 bxt_get_backlight(struct intel_connector *connector)
 {
@@ -1097,15 +1091,6 @@ static void cnp_enable_backlight(const struct intel_crtc_state *crtc_state,
 		   pwm_ctl | BXT_BLC_PWM_ENABLE);
 }
 
-static void pwm_enable_backlight(const struct intel_crtc_state *crtc_state,
-				 const struct drm_connector_state *conn_state)
-{
-	struct intel_connector *connector = to_intel_connector(conn_state->connector);
-	struct intel_panel *panel = &connector->panel;
-
-	pwm_enable(panel->backlight.pwm);
-	intel_panel_actually_set_backlight(conn_state, panel->backlight.level);
-}
 
 void intel_panel_enable_backlight(const struct intel_crtc_state *crtc_state,
 				  const struct drm_connector_state *conn_state)
@@ -1846,92 +1831,11 @@ void intel_panel_destroy_backlight(struct drm_connector *connector)
 	panel->backlight.present = false;
 }
 
-/* Set up chip specific backlight functions */
-static void
-intel_panel_init_backlight_funcs(struct intel_panel *panel)
-{
-    struct intel_connector *connector =
-        container_of(panel, struct intel_connector, panel);
-    struct drm_i915_private *dev_priv = to_i915(connector->base.dev);
-
-    if (connector->base.connector_type == DRM_MODE_CONNECTOR_eDP &&
-        intel_dp_aux_init_backlight_funcs(connector) == 0)
-        return;
-
-    if (connector->base.connector_type == DRM_MODE_CONNECTOR_DSI &&
-        intel_dsi_dcs_init_backlight_funcs(connector) == 0)
-        return;
-
-    if (IS_GEN9_LP(dev_priv)) {
-        panel->backlight.setup = bxt_setup_backlight;
-        panel->backlight.enable = bxt_enable_backlight;
-        panel->backlight.disable = bxt_disable_backlight;
-        panel->backlight.set = bxt_set_backlight;
-        panel->backlight.get = bxt_get_backlight;
-        panel->backlight.hz_to_pwm = bxt_hz_to_pwm;
-    } else if (HAS_PCH_CNP(dev_priv) || HAS_PCH_ICP(dev_priv)) {
-        panel->backlight.setup = cnp_setup_backlight;
-        panel->backlight.enable = cnp_enable_backlight;
-        panel->backlight.disable = cnp_disable_backlight;
-        panel->backlight.set = bxt_set_backlight;
-        panel->backlight.get = bxt_get_backlight;
-        panel->backlight.hz_to_pwm = cnp_hz_to_pwm;
-    } else if (HAS_PCH_LPT(dev_priv) || HAS_PCH_SPT(dev_priv) ||
-           HAS_PCH_KBP(dev_priv)) {
-        panel->backlight.setup = lpt_setup_backlight;
-        panel->backlight.enable = lpt_enable_backlight;
-        panel->backlight.disable = lpt_disable_backlight;
-        panel->backlight.set = lpt_set_backlight;
-        panel->backlight.get = lpt_get_backlight;
-        if (HAS_PCH_LPT(dev_priv))
-            panel->backlight.hz_to_pwm = lpt_hz_to_pwm;
-        else
-            panel->backlight.hz_to_pwm = spt_hz_to_pwm;
-    } else if (HAS_PCH_SPLIT(dev_priv)) {
-        panel->backlight.setup = pch_setup_backlight;
-        panel->backlight.enable = pch_enable_backlight;
-        panel->backlight.disable = pch_disable_backlight;
-        panel->backlight.set = pch_set_backlight;
-        panel->backlight.get = pch_get_backlight;
-        panel->backlight.hz_to_pwm = pch_hz_to_pwm;
-    } else if (IS_VALLEYVIEW(dev_priv) || IS_CHERRYVIEW(dev_priv)) {
-        if (connector->base.connector_type == DRM_MODE_CONNECTOR_DSI) {
-            panel->backlight.setup = pwm_setup_backlight;
-            panel->backlight.enable = pwm_enable_backlight;
-            panel->backlight.disable = pwm_disable_backlight;
-            panel->backlight.set = pwm_set_backlight;
-            panel->backlight.get = pwm_get_backlight;
-        } else {
-            panel->backlight.setup = vlv_setup_backlight;
-            panel->backlight.enable = vlv_enable_backlight;
-            panel->backlight.disable = vlv_disable_backlight;
-            panel->backlight.set = vlv_set_backlight;
-            panel->backlight.get = vlv_get_backlight;
-            panel->backlight.hz_to_pwm = vlv_hz_to_pwm;
-        }
-    } else if (IS_GEN4(dev_priv)) {
-        panel->backlight.setup = i965_setup_backlight;
-        panel->backlight.enable = i965_enable_backlight;
-        panel->backlight.disable = i965_disable_backlight;
-        panel->backlight.set = i9xx_set_backlight;
-        panel->backlight.get = i9xx_get_backlight;
-        panel->backlight.hz_to_pwm = i965_hz_to_pwm;
-    } else {
-        panel->backlight.setup = i9xx_setup_backlight;
-        panel->backlight.enable = i9xx_enable_backlight;
-        panel->backlight.disable = i9xx_disable_backlight;
-        panel->backlight.set = i9xx_set_backlight;
-        panel->backlight.get = i9xx_get_backlight;
-        panel->backlight.hz_to_pwm = i9xx_hz_to_pwm;
-    }
-}
-
 int intel_panel_init(struct intel_panel *panel,
 		     struct drm_display_mode *fixed_mode,
 		     struct drm_display_mode *alt_fixed_mode,
 		     struct drm_display_mode *downclock_mode)
 {
-    intel_panel_init_backlight_funcs(panel);
 
 	panel->fixed_mode = fixed_mode;
 	panel->alt_fixed_mode = alt_fixed_mode;

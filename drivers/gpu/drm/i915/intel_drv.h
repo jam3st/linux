@@ -1692,9 +1692,6 @@ int intel_dp_link_required(int pixel_clock, int bpp);
 int intel_dp_max_data_rate(int max_link_clock, int max_lanes);
 bool intel_digital_port_connected(struct intel_encoder *encoder);
 
-/* intel_dp_aux_backlight.c */
-int intel_dp_aux_init_backlight_funcs(struct intel_connector *intel_connector);
-
 /* intel_dp_mst.c */
 int intel_dp_mst_encoder_init(struct intel_digital_port *intel_dig_port, int conn_id);
 void intel_dp_mst_encoder_cleanup(struct intel_digital_port *intel_dig_port);

@@ -27,7 +27,6 @@
  *
  */
 
-#include <linux/acpi.h>
 #include <linux/device.h>
 #include <linux/oom.h>
 #include <linux/module.h>
@@ -39,7 +38,6 @@
 #include <linux/vgaarb.h>
 #include <linux/vga_switcheroo.h>
 #include <linux/vt.h>
-#include <acpi/video.h>
 
 #include <drm/drmP.h>
 #include <drm/drm_crtc_helper.h>
@@ -1239,7 +1237,6 @@ static void i915_driver_register(struct drm_i915_private *dev_priv)
 	if (drm_dev_register(dev, 0) == 0) {
 		i915_debugfs_register(dev_priv);
 		i915_guc_log_register(dev_priv);
-		i915_setup_sysfs(dev_priv);
 
 		/* Depends on sysfs having been initialized */
 	} else
@@ -1282,10 +1279,8 @@ static void i915_driver_unregister(struct drm_i915_private *dev_priv)
 	drm_kms_helper_poll_fini(&dev_priv->drm);
 
 	intel_gpu_ips_teardown();
-	acpi_video_unregister();
 
 
-	i915_teardown_sysfs(dev_priv);
 	i915_guc_log_unregister(dev_priv);
 	drm_dev_unregister(&dev_priv->drm);
 

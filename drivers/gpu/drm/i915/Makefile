@@ -100,7 +100,7 @@ i915-y += intel_renderstate_gen6.o \
 	  intel_renderstate_gen9.o
 
 # modesetting core code
-i915-y += intel_audio.o \
+i915-y +=  \
 	  intel_atomic.o \
 	  intel_atomic_plane.o \
 	  intel_bios.o \
@@ -148,12 +148,5 @@ i915-y += dvo_ch7017.o \
 	  intel_sdvo.o \
 	  intel_tv.o
 
-# Post-mortem debug and GPU hang state capture
-i915-$(CONFIG_DRM_I915_CAPTURE_ERROR) += i915_gpu_error.o
-# virtual gpu code
-# perf code
-
-# LPE Audio for VLV and CHT
-i915-y += intel_lpe_audio.o
 
 obj-$(CONFIG_DRM_I915) += i915.o

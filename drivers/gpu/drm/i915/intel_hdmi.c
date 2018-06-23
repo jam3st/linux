@@ -1254,7 +1254,6 @@ static void intel_enable_hdmi_audio(struct intel_encoder *encoder,
 	WARN_ON(!pipe_config->has_hdmi_sink);
 	DRM_DEBUG_DRIVER("Enabling HDMI audio on pipe %c\n",
 			 pipe_name(crtc->pipe));
-	intel_audio_codec_enable(encoder, pipe_config, conn_state);
 }
 
 static void g4x_enable_hdmi(struct intel_encoder *encoder,
@@ -1451,10 +1450,6 @@ static void g4x_disable_hdmi(struct intel_encoder *encoder,
 			     const struct intel_crtc_state *old_crtc_state,
 			     const struct drm_connector_state *old_conn_state)
 {
-	if (old_crtc_state->has_audio)
-		intel_audio_codec_disable(encoder,
-					  old_crtc_state, old_conn_state);
-
 	intel_disable_hdmi(encoder, old_crtc_state, old_conn_state);
 }
 
@@ -1462,9 +1457,6 @@ static void pch_disable_hdmi(struct intel_encoder *encoder,
 			     const struct intel_crtc_state *old_crtc_state,
 			     const struct drm_connector_state *old_conn_state)
 {
-	if (old_crtc_state->has_audio)
-		intel_audio_codec_disable(encoder,
-					  old_crtc_state, old_conn_state);
 }
 
 static void pch_post_disable_hdmi(struct intel_encoder *encoder,

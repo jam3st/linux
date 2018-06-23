@@ -940,7 +940,6 @@ static int i915_driver_init_early(struct drm_i915_private *dev_priv,
 	intel_hangcheck_init(dev_priv);
 	intel_init_display_hooks(dev_priv);
 	intel_init_clock_gating_hooks(dev_priv);
-	intel_init_audio_hooks(dev_priv);
 	ret = i915_gem_load_init(dev_priv);
 	if (ret < 0)
 		goto err_irq;
@@ -1258,7 +1257,6 @@ static void i915_driver_register(struct drm_i915_private *dev_priv)
 	if (IS_GEN5(dev_priv))
 		intel_gpu_ips_init(dev_priv);
 
-	intel_audio_init(dev_priv);
 
 	/*
 	 * Some ports require correctly set-up hpd registers for detection to
@@ -1284,7 +1282,6 @@ static void i915_driver_register(struct drm_i915_private *dev_priv)
 static void i915_driver_unregister(struct drm_i915_private *dev_priv)
 {
 	intel_fbdev_unregister(dev_priv);
-	intel_audio_deinit(dev_priv);
 
 	/*
 	 * After flushing the fbdev (incl. a late async config which will

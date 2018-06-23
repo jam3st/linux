@@ -2058,7 +2058,6 @@ static irqreturn_t valleyview_irq_handler(int irq, void *arg)
 
 		if (iir & (I915_LPE_PIPE_A_INTERRUPT |
 			   I915_LPE_PIPE_B_INTERRUPT))
-			intel_lpe_audio_irq_handler(dev_priv);
 
 		/*
 		 * VLV_IIR is single buffered, and reflects the level
@@ -2143,7 +2142,6 @@ static irqreturn_t cherryview_irq_handler(int irq, void *arg)
 		if (iir & (I915_LPE_PIPE_A_INTERRUPT |
 			   I915_LPE_PIPE_B_INTERRUPT |
 			   I915_LPE_PIPE_C_INTERRUPT))
-			intel_lpe_audio_irq_handler(dev_priv);
 
 		/*
 		 * VLV_IIR is single buffered, and reflects the level

@@ -1,0 +1,6 @@
+#!/bin/sh
+/bin/busybox mount -n -t proc /proc /proc
+/bin/busybox mount -t sysfs /sys /sys
+/bin/busybox mount -t devtmpfs -o "exec,noatime,nodiratime,nosuid,mode=0755,size=1M" udev /dev
+
+exec /bin/sh

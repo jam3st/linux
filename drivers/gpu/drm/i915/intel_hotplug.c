@@ -240,7 +240,6 @@ static void intel_hpd_irq_storm_reenable_work(struct work_struct *work)
 	struct drm_device *dev = &dev_priv->drm;
 	int i;
 
-	intel_runtime_pm_get(dev_priv);
 
 	spin_lock_irq(&dev_priv->irq_lock);
 	for_each_hpd_pin(i) {
@@ -271,7 +270,6 @@ static void intel_hpd_irq_storm_reenable_work(struct work_struct *work)
 		dev_priv->display.hpd_irq_setup(dev_priv);
 	spin_unlock_irq(&dev_priv->irq_lock);
 
-	intel_runtime_pm_put(dev_priv);
 }
 
 bool intel_encoder_hotplug(struct intel_encoder *encoder,
@@ -280,7 +278,6 @@ bool intel_encoder_hotplug(struct intel_encoder *encoder,
 	struct drm_device *dev = connector->base.dev;
 	enum drm_connector_status old_status;
 
-    printk("XXXXXXXXXXXXXXXX connector hotplug");
 	WARN_ON(!mutex_is_locked(&dev->mode_config.mutex));
 	old_status = connector->base.status;
 

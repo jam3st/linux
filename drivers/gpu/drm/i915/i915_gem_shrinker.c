@@ -182,9 +182,8 @@ i915_gem_shrink(struct drm_i915_private *i915,
 	 * device just to recover a little memory. If absolutely necessary,
 	 * we will force the wake during oom-notifier.
 	 */
-	if ((flags & I915_SHRINK_BOUND) &&
-	    !intel_runtime_pm_get_if_in_use(i915))
-		flags &= ~I915_SHRINK_BOUND;
+    if ((flags & I915_SHRINK_BOUND))
+        flags &= ~I915_SHRINK_BOUND;
 
 	/*
 	 * As we may completely rewrite the (un)bound list whilst unbinding
@@ -264,8 +263,7 @@ i915_gem_shrink(struct drm_i915_private *i915,
 		spin_unlock(&i915->mm.obj_lock);
 	}
 
-	if (flags & I915_SHRINK_BOUND)
-		intel_runtime_pm_put(i915);
+
 
 	i915_retire_requests(i915);
 
@@ -294,12 +292,10 @@ unsigned long i915_gem_shrink_all(struct drm_i915_private *i915)
 {
 	unsigned long freed;
 
-	intel_runtime_pm_get(i915);
 	freed = i915_gem_shrink(i915, -1UL, NULL,
 				I915_SHRINK_BOUND |
 				I915_SHRINK_UNBOUND |
 				I915_SHRINK_ACTIVE);
-	intel_runtime_pm_put(i915);
 
 	return freed;
 }
@@ -370,14 +366,12 @@ i915_gem_shrinker_scan(struct shrinker *shrinker, struct shrink_control *sc)
 					 I915_SHRINK_BOUND |
 					 I915_SHRINK_UNBOUND);
 	if (sc->nr_scanned < sc->nr_to_scan && current_is_kswapd()) {
-		intel_runtime_pm_get(i915);
 		freed += i915_gem_shrink(i915,
 					 sc->nr_to_scan - sc->nr_scanned,
 					 &sc->nr_scanned,
 					 I915_SHRINK_ACTIVE |
 					 I915_SHRINK_BOUND |
 					 I915_SHRINK_UNBOUND);
-		intel_runtime_pm_put(i915);
 	}
 
 	shrinker_unlock(i915, unlock);
@@ -470,13 +464,11 @@ i915_gem_shrinker_vmap(struct notifier_block *nb, unsigned long event, void *ptr
 	if (ret)
 		goto out;
 
-	intel_runtime_pm_get(i915);
 	freed_pages += i915_gem_shrink(i915, -1UL, NULL,
 				       I915_SHRINK_BOUND |
 				       I915_SHRINK_UNBOUND |
 				       I915_SHRINK_ACTIVE |
 				       I915_SHRINK_VMAPS);
-	intel_runtime_pm_put(i915);
 
 	/* We also want to clear any cached iomaps as they wrap vmap */
 	list_for_each_entry_safe(vma, next,

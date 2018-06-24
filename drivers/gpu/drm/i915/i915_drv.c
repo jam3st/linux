@@ -36,7 +36,6 @@
 #include <linux/pnp.h>
 #include <linux/slab.h>
 #include <linux/vgaarb.h>
-#include <linux/vga_switcheroo.h>
 #include <linux/vt.h>
 
 #include <drm/drmP.h>
@@ -574,46 +573,6 @@ static unsigned int i915_vga_set_decode(void *cookie, bool state)
 		return VGA_RSRC_NORMAL_IO | VGA_RSRC_NORMAL_MEM;
 }
 
-static int i915_resume_switcheroo(struct drm_device *dev);
-static int i915_suspend_switcheroo(struct drm_device *dev, pm_message_t state);
-
-static void i915_switcheroo_set_state(struct pci_dev *pdev, enum vga_switcheroo_state state)
-{
-	struct drm_device *dev = pci_get_drvdata(pdev);
-	pm_message_t pmm = { .event = PM_EVENT_SUSPEND };
-
-	if (state == VGA_SWITCHEROO_ON) {
-		pr_info("switched on\n");
-		dev->switch_power_state = DRM_SWITCH_POWER_CHANGING;
-		/* i915 resume handler doesn't set to D0 */
-		pci_set_power_state(pdev, PCI_D0);
-		i915_resume_switcheroo(dev);
-		dev->switch_power_state = DRM_SWITCH_POWER_ON;
-	} else {
-		pr_info("switched off\n");
-		dev->switch_power_state = DRM_SWITCH_POWER_CHANGING;
-		i915_suspend_switcheroo(dev, pmm);
-		dev->switch_power_state = DRM_SWITCH_POWER_OFF;
-	}
-}
-
-static bool i915_switcheroo_can_switch(struct pci_dev *pdev)
-{
-	struct drm_device *dev = pci_get_drvdata(pdev);
-
-	/*
-	 * FIXME: open_count is protected by drm_global_mutex but that would lead to
-	 * locking inversion with the driver load path. And the access here is
-	 * completely racy anyway. So don't bother with locking for now.
-	 */
-	return dev->open_count == 0;
-}
-
-static const struct vga_switcheroo_client_ops i915_switcheroo_ops = {
-	.set_gpu_state = i915_switcheroo_set_state,
-	.reprobe = NULL,
-	.can_switch = i915_switcheroo_can_switch,
-};
 
 static void i915_gem_fini(struct drm_i915_private *dev_priv)
 {
@@ -639,8 +598,7 @@ static int i915_load_modeset_init(struct drm_device *dev)
 	struct pci_dev *pdev = dev_priv->drm.pdev;
 	int ret;
 
-	if (i915_inject_load_failure())
-		return -ENODEV;
+
 
 	intel_bios_init(dev_priv);
 
@@ -651,19 +609,13 @@ static int i915_load_modeset_init(struct drm_device *dev)
 	 * then we do not take part in VGA arbitration and the
 	 * vga_client_register() fails with -ENODEV.
 	 */
-	ret = vga_client_register(pdev, dev_priv, NULL, i915_vga_set_decode);
-	if (ret && ret != -ENODEV)
-		goto out;
+//	ret = vga_client_register(pdev, dev_priv, NULL, i915_vga_set_decode);
+//	if (ret && ret != -ENODEV)
+//		goto out;
 
-
-	ret = vga_switcheroo_register_client(pdev, &i915_switcheroo_ops, false);
-	if (ret)
-		goto cleanup_vga_client;
 
 	/* must happen before intel_power_domains_init_hw() on VLV/CHV */
 	intel_update_rawclk(dev_priv);
-
-	intel_power_domains_init_hw(dev_priv, false);
 
 	intel_csr_ucode_init(dev_priv);
 
@@ -680,11 +632,11 @@ static int i915_load_modeset_init(struct drm_device *dev)
 		goto cleanup_irq;
 
 
-	ret = i915_gem_init(dev_priv);
-	if (ret)
-		goto cleanup_uc;
+//	ret = i915_gem_init(dev_priv);
+//	if (ret)
+//		goto cleanup_uc;
 
-	intel_setup_overlay(dev_priv);
+//	intel_setup_overlay(dev_priv);
 
 	if (INTEL_INFO(dev_priv)->num_pipes == 0)
 		return 0;
@@ -696,7 +648,6 @@ static int i915_load_modeset_init(struct drm_device *dev)
 	/* Only enable hotplug handling once the fbdev is fully set up. */
 	intel_hpd_init(dev_priv);
 
-        printk("XXXXXXXXXXXX MODESET DONE");
 	return 0;
 
 cleanup_gem:
@@ -710,9 +661,6 @@ cleanup_irq:
 cleanup_csr:
 	intel_csr_ucode_fini(dev_priv);
 	intel_power_domains_fini(dev_priv);
-	vga_switcheroo_unregister_client(pdev);
-cleanup_vga_client:
-	vga_client_register(pdev, NULL, NULL, NULL);
 out:
 	return ret;
 }
@@ -742,38 +690,6 @@ static int i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
 	return ret;
 }
 
-#if !defined(CONFIG_VGA_CONSOLE)
-static int i915_kick_out_vgacon(struct drm_i915_private *dev_priv)
-{
-	return 0;
-}
-#elif !defined(CONFIG_DUMMY_CONSOLE)
-static int i915_kick_out_vgacon(struct drm_i915_private *dev_priv)
-{
-	return -ENODEV;
-}
-#else
-static int i915_kick_out_vgacon(struct drm_i915_private *dev_priv)
-{
-	int ret = 0;
-
-	DRM_INFO("Replacing VGA console driver\n");
-
-	console_lock();
-	if (con_is_bound(&vga_con))
-		ret = do_take_over_console(&dummy_con, 0, MAX_NR_CONSOLES - 1, 1);
-	if (ret == 0) {
-		ret = do_unregister_con_driver(&vga_con);
-
-		/* Ignore "already unregistered". */
-		if (ret == -ENODEV)
-			ret = 0;
-	}
-	console_unlock();
-
-	return ret;
-}
-#endif
 
 static void intel_init_dpio(struct drm_i915_private *dev_priv)
 {
@@ -921,9 +837,9 @@ static int i915_driver_init_early(struct drm_i915_private *dev_priv,
 	intel_hangcheck_init(dev_priv);
 	intel_init_display_hooks(dev_priv);
 	intel_init_clock_gating_hooks(dev_priv);
-	ret = i915_gem_load_init(dev_priv);
-	if (ret < 0)
-		goto err_irq;
+    ret = i915_gem_load_init(dev_priv);
+    if (ret < 0)
+        goto err_irq;
 
 	intel_display_crc_init(dev_priv);
 
@@ -1017,11 +933,11 @@ static int i915_driver_init_mmio(struct drm_i915_private *dev_priv)
 	intel_uncore_init(dev_priv);
 
 
-	ret = intel_engines_init_mmio(dev_priv);
-	if (ret)
-		goto err_uncore;
+//	ret = intel_engines_init_mmio(dev_priv);
+//	if (ret)
+//		goto err_uncore;
 
-	i915_gem_init_mmio(dev_priv);
+//	i915_gem_init_mmio(dev_priv);
 
 	return 0;
 
@@ -1093,11 +1009,7 @@ static int i915_driver_init_hw(struct drm_i915_private *dev_priv)
 		goto err_ggtt;
 	}
 
-	ret = i915_kick_out_vgacon(dev_priv);
-	if (ret) {
-		DRM_ERROR("failed to remove conflicting VGA console\n");
-		goto err_ggtt;
-	}
+
 
 	ret = i915_ggtt_init_hw(dev_priv);
 	if (ret)
@@ -1256,21 +1168,6 @@ static void i915_driver_unregister(struct drm_i915_private *dev_priv)
 	i915_gem_shrinker_unregister(dev_priv);
 }
 
-static void i915_welcome_messages(struct drm_i915_private *dev_priv)
-{
-	if (1) {
-		struct drm_printer p = drm_debug_printer("i915 device info:");
-
-		intel_device_info_dump(&dev_priv->info, &p);
-		intel_device_info_dump_runtime(&dev_priv->info, &p);
-	}
-
-	if (IS_ENABLED(CONFIG_DRM_I915_DEBUG))
-		DRM_INFO("DRM_I915_DEBUG enabled\n");
-	if (IS_ENABLED(CONFIG_DRM_I915_DEBUG_GEM))
-		DRM_INFO("DRM_I915_DEBUG_GEM enabled\n");
-}
-
 /**
  * i915_driver_load - setup chip and create an initial config
  * @pdev: PCI device
@@ -1324,8 +1221,6 @@ int i915_driver_load(struct pci_dev *pdev, const struct pci_device_id *ent)
 	if (ret < 0)
 		goto out_pci_disable;
 
-	intel_runtime_pm_get(dev_priv);
-
 	ret = i915_driver_init_mmio(dev_priv);
 	if (ret < 0)
 		goto out_runtime_pm_put;
@@ -1352,13 +1247,9 @@ int i915_driver_load(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	i915_driver_register(dev_priv);
 
-	intel_runtime_pm_enable(dev_priv);
 
 	intel_init_ipc(dev_priv);
 
-	intel_runtime_pm_put(dev_priv);
-
-	i915_welcome_messages(dev_priv);
 
 	return 0;
 
@@ -1367,7 +1258,6 @@ out_cleanup_hw:
 out_cleanup_mmio:
 	i915_driver_cleanup_mmio(dev_priv);
 out_runtime_pm_put:
-	intel_runtime_pm_put(dev_priv);
 	i915_driver_cleanup_early(dev_priv);
 out_pci_disable:
 	pci_disable_device(pdev);
@@ -1397,8 +1287,6 @@ void i915_driver_unload(struct drm_device *dev)
 
 	intel_bios_cleanup(dev_priv);
 
-	vga_switcheroo_unregister_client(pdev);
-	vga_client_register(pdev, NULL, NULL, NULL);
 
 	intel_csr_ucode_fini(dev_priv);
 
@@ -1454,7 +1342,6 @@ static int i915_driver_open(struct drm_device *dev, struct drm_file *file)
 static void i915_driver_lastclose(struct drm_device *dev)
 {
 	intel_fbdev_restore_mode(dev);
-	vga_switcheroo_process_delayed_switch();
 }
 
 static void i915_driver_postclose(struct drm_device *dev, struct drm_file *file)
@@ -1669,7 +1556,6 @@ static int i915_drm_resume(struct drm_device *dev)
 	 * Modeset enabling in intel_modeset_init_hw() also needs working
 	 * interrupts.
 	 */
-	intel_runtime_pm_enable_interrupts(dev_priv);
 
 	drm_mode_config_reset(dev);
 
@@ -1900,18 +1786,18 @@ void i915_reset(struct drm_i915_private *i915, unsigned int flags)
 	 * was running at the time of the reset (i.e. we weren't VT
 	 * switched away).
 	 */
-	ret = i915_gem_init_hw(i915);
-	if (ret) {
-		DRM_ERROR("Failed to initialise HW following reset (%d)\n",
-			  ret);
-		goto error;
-	}
+//	ret = i915_gem_init_hw(i915);
+//	if (ret) {
+//		DRM_ERROR("Failed to initialise HW following reset (%d)\n",
+//			  ret);
+//		goto error;
+//	}
 
-	i915_queue_hangcheck(i915);
+//	i915_queue_hangcheck(i915);
 
 finish:
-	i915_gem_reset_finish(i915);
-	enable_irq(i915->drm.irq);
+//	i915_gem_reset_finish(i915);
+//	enable_irq(i915->drm.irq);
 
 wakeup:
 	clear_bit(I915_RESET_HANDOFF, &error->flags);
@@ -2424,59 +2310,7 @@ i915_gem_reject_pin_ioctl(struct drm_device *dev, void *data,
 }
 
 static const struct drm_ioctl_desc i915_ioctls[] = {
-	DRM_IOCTL_DEF_DRV(I915_INIT, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_FLUSH, drm_noop, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_FLIP, drm_noop, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_BATCHBUFFER, drm_noop, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_IRQ_EMIT, drm_noop, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_IRQ_WAIT, drm_noop, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_GETPARAM, i915_getparam_ioctl, DRM_AUTH|DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_SETPARAM, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_ALLOC, drm_noop, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_FREE, drm_noop, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_INIT_HEAP, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_CMDBUFFER, drm_noop, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_DESTROY_HEAP,  drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_SET_VBLANK_PIPE,  drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_GET_VBLANK_PIPE,  drm_noop, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_VBLANK_SWAP, drm_noop, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_HWS_ADDR, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_GEM_INIT, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_GEM_EXECBUFFER, i915_gem_execbuffer_ioctl, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(I915_GEM_EXECBUFFER2_WR, i915_gem_execbuffer2_ioctl, DRM_AUTH|DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_PIN, i915_gem_reject_pin_ioctl, DRM_AUTH|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_GEM_UNPIN, i915_gem_reject_pin_ioctl, DRM_AUTH|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_GEM_BUSY, i915_gem_busy_ioctl, DRM_AUTH|DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_SET_CACHING, i915_gem_set_caching_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_GET_CACHING, i915_gem_get_caching_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_THROTTLE, i915_gem_throttle_ioctl, DRM_AUTH|DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_ENTERVT, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_GEM_LEAVEVT, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF_DRV(I915_GEM_CREATE, i915_gem_create_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_PREAD, i915_gem_pread_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_PWRITE, i915_gem_pwrite_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_MMAP, i915_gem_mmap_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_MMAP_GTT, i915_gem_mmap_gtt_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_SET_DOMAIN, i915_gem_set_domain_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_SW_FINISH, i915_gem_sw_finish_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_SET_TILING, i915_gem_set_tiling_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_GET_TILING, i915_gem_get_tiling_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_GET_APERTURE, i915_gem_get_aperture_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GET_PIPE_FROM_CRTC_ID, intel_get_pipe_from_crtc_id_ioctl, 0),
-	DRM_IOCTL_DEF_DRV(I915_GEM_MADVISE, i915_gem_madvise_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_OVERLAY_PUT_IMAGE, intel_overlay_put_image_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_OVERLAY_ATTRS, intel_overlay_attrs_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_SET_SPRITE_COLORKEY, intel_sprite_set_colorkey_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GET_SPRITE_COLORKEY, drm_noop, DRM_MASTER|DRM_CONTROL_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_WAIT, i915_gem_wait_ioctl, DRM_AUTH|DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_CONTEXT_CREATE, i915_gem_context_create_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_CONTEXT_DESTROY, i915_gem_context_destroy_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_REG_READ, i915_reg_read_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GET_RESET_STATS, i915_gem_context_reset_stats_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_USERPTR, i915_gem_userptr_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_CONTEXT_GETPARAM, i915_gem_context_getparam_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_GEM_CONTEXT_SETPARAM, i915_gem_context_setparam_ioctl, DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(I915_QUERY, i915_query_ioctl, DRM_UNLOCKED|DRM_RENDER_ALLOW),
+
 };
 
 static struct drm_driver driver = {

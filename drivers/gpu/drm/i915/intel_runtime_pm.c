@@ -1498,14 +1498,7 @@ void intel_display_power_get(struct drm_i915_private *dev_priv,
 			     enum intel_display_power_domain domain)
 {
 	struct i915_power_domains *power_domains = &dev_priv->power_domains;
-
-	intel_runtime_pm_get(dev_priv);
-
-	mutex_lock(&power_domains->lock);
-
 	__intel_display_power_get_domain(dev_priv, domain);
-
-	mutex_unlock(&power_domains->lock);
 }
 
 /**
@@ -1526,8 +1519,6 @@ bool intel_display_power_get_if_enabled(struct drm_i915_private *dev_priv,
 	struct i915_power_domains *power_domains = &dev_priv->power_domains;
 	bool is_enabled;
 
-	if (!intel_runtime_pm_get_if_in_use(dev_priv))
-		return false;
 
 	mutex_lock(&power_domains->lock);
 
@@ -1540,8 +1531,6 @@ bool intel_display_power_get_if_enabled(struct drm_i915_private *dev_priv,
 
 	mutex_unlock(&power_domains->lock);
 
-	if (!is_enabled)
-		intel_runtime_pm_put(dev_priv);
 
 	return is_enabled;
 }
@@ -1575,7 +1564,6 @@ void intel_display_power_put(struct drm_i915_private *dev_priv,
 
 	mutex_unlock(&power_domains->lock);
 
-	intel_runtime_pm_put(dev_priv);
 }
 
 #define I830_PIPES_POWER_DOMAINS (		\
@@ -3166,7 +3154,7 @@ static void vlv_cmnlane_wa(struct drm_i915_private *dev_priv)
 void intel_power_domains_init_hw(struct drm_i915_private *dev_priv, bool resume)
 {
 	struct i915_power_domains *power_domains = &dev_priv->power_domains;
-
+return;
 	power_domains->initializing = true;
 
 	if (IS_ICELAKE(dev_priv)) {
@@ -3196,256 +3184,3 @@ void intel_power_domains_init_hw(struct drm_i915_private *dev_priv, bool resume)
 	power_domains->initializing = false;
 }
 
-/**
- * intel_power_domains_suspend - suspend power domain state
- * @dev_priv: i915 device instance
- *
- * This function prepares the hardware power domain state before entering
- * system suspend. It must be paired with intel_power_domains_init_hw().
- */
-void intel_power_domains_suspend(struct drm_i915_private *dev_priv)
-{
-	/*
-	 * Even if power well support was disabled we still want to disable
-	 * power wells while we are system suspended.
-	 */
-	if (!i915_modparams.disable_power_well)
-		intel_display_power_put(dev_priv, POWER_DOMAIN_INIT);
-
-	if (IS_ICELAKE(dev_priv))
-		icl_display_core_uninit(dev_priv);
-	else if (IS_CANNONLAKE(dev_priv))
-		cnl_display_core_uninit(dev_priv);
-	else if (IS_GEN9_BC(dev_priv))
-		skl_display_core_uninit(dev_priv);
-	else if (IS_GEN9_LP(dev_priv))
-		bxt_display_core_uninit(dev_priv);
-}
-
-static void intel_power_domains_dump_info(struct drm_i915_private *dev_priv)
-{
-	struct i915_power_domains *power_domains = &dev_priv->power_domains;
-	struct i915_power_well *power_well;
-
-	for_each_power_well(dev_priv, power_well) {
-		enum intel_display_power_domain domain;
-
-		DRM_DEBUG_DRIVER("%-25s %d\n",
-				 power_well->name, power_well->count);
-
-		for_each_power_domain(domain, power_well->domains)
-			DRM_DEBUG_DRIVER("  %-23s %d\n",
-					 intel_display_power_domain_str(domain),
-					 power_domains->domain_use_count[domain]);
-	}
-}
-
-/**
- * intel_power_domains_verify_state - verify the HW/SW state for all power wells
- * @dev_priv: i915 device instance
- *
- * Verify if the reference count of each power well matches its HW enabled
- * state and the total refcount of the domains it belongs to. This must be
- * called after modeset HW state sanitization, which is responsible for
- * acquiring reference counts for any power wells in use and disabling the
- * ones left on by BIOS but not required by any active output.
- */
-void intel_power_domains_verify_state(struct drm_i915_private *dev_priv)
-{
-	struct i915_power_domains *power_domains = &dev_priv->power_domains;
-	struct i915_power_well *power_well;
-	bool dump_domain_info;
-
-	mutex_lock(&power_domains->lock);
-
-	dump_domain_info = false;
-	for_each_power_well(dev_priv, power_well) {
-		enum intel_display_power_domain domain;
-		int domains_count;
-		bool enabled;
-
-		/*
-		 * Power wells not belonging to any domain (like the MISC_IO
-		 * and PW1 power wells) are under FW control, so ignore them,
-		 * since their state can change asynchronously.
-		 */
-		if (!power_well->domains)
-			continue;
-
-		enabled = power_well->ops->is_enabled(dev_priv, power_well);
-		if ((power_well->count || power_well->always_on) != enabled)
-			DRM_ERROR("power well %s state mismatch (refcount %d/enabled %d)",
-				  power_well->name, power_well->count, enabled);
-
-		domains_count = 0;
-		for_each_power_domain(domain, power_well->domains)
-			domains_count += power_domains->domain_use_count[domain];
-
-		if (power_well->count != domains_count) {
-			DRM_ERROR("power well %s refcount/domain refcount mismatch "
-				  "(refcount %d/domains refcount %d)\n",
-				  power_well->name, power_well->count,
-				  domains_count);
-			dump_domain_info = true;
-		}
-	}
-
-	if (dump_domain_info) {
-		static bool dumped;
-
-		if (!dumped) {
-			intel_power_domains_dump_info(dev_priv);
-			dumped = true;
-		}
-	}
-
-	mutex_unlock(&power_domains->lock);
-}
-
-/**
- * intel_runtime_pm_get - grab a runtime pm reference
- * @dev_priv: i915 device instance
- *
- * This function grabs a device-level runtime pm reference (mostly used for GEM
- * code to ensure the GTT or GT is on) and ensures that it is powered up.
- *
- * Any runtime pm reference obtained by this function must have a symmetric
- * call to intel_runtime_pm_put() to release the reference again.
- */
-void intel_runtime_pm_get(struct drm_i915_private *dev_priv)
-{
-	struct pci_dev *pdev = dev_priv->drm.pdev;
-	struct device *kdev = &pdev->dev;
-	int ret;
-
-	ret = pm_runtime_get_sync(kdev);
-	WARN_ONCE(ret < 0, "pm_runtime_get_sync() failed: %d\n", ret);
-
-	atomic_inc(&dev_priv->runtime_pm.wakeref_count);
-	assert_rpm_wakelock_held(dev_priv);
-}
-
-/**
- * intel_runtime_pm_get_if_in_use - grab a runtime pm reference if device in use
- * @dev_priv: i915 device instance
- *
- * This function grabs a device-level runtime pm reference if the device is
- * already in use and ensures that it is powered up. It is illegal to try
- * and access the HW should intel_runtime_pm_get_if_in_use() report failure.
- *
- * Any runtime pm reference obtained by this function must have a symmetric
- * call to intel_runtime_pm_put() to release the reference again.
- *
- * Returns: True if the wakeref was acquired, or False otherwise.
- */
-bool intel_runtime_pm_get_if_in_use(struct drm_i915_private *dev_priv)
-{
-	if (IS_ENABLED(CONFIG_PM)) {
-		struct pci_dev *pdev = dev_priv->drm.pdev;
-		struct device *kdev = &pdev->dev;
-
-		/*
-		 * In cases runtime PM is disabled by the RPM core and we get
-		 * an -EINVAL return value we are not supposed to call this
-		 * function, since the power state is undefined. This applies
-		 * atm to the late/early system suspend/resume handlers.
-		 */
-		if (pm_runtime_get_if_in_use(kdev) <= 0)
-			return false;
-	}
-
-	atomic_inc(&dev_priv->runtime_pm.wakeref_count);
-	assert_rpm_wakelock_held(dev_priv);
-
-	return true;
-}
-
-/**
- * intel_runtime_pm_get_noresume - grab a runtime pm reference
- * @dev_priv: i915 device instance
- *
- * This function grabs a device-level runtime pm reference (mostly used for GEM
- * code to ensure the GTT or GT is on).
- *
- * It will _not_ power up the device but instead only check that it's powered
- * on.  Therefore it is only valid to call this functions from contexts where
- * the device is known to be powered up and where trying to power it up would
- * result in hilarity and deadlocks. That pretty much means only the system
- * suspend/resume code where this is used to grab runtime pm references for
- * delayed setup down in work items.
- *
- * Any runtime pm reference obtained by this function must have a symmetric
- * call to intel_runtime_pm_put() to release the reference again.
- */
-void intel_runtime_pm_get_noresume(struct drm_i915_private *dev_priv)
-{
-	struct pci_dev *pdev = dev_priv->drm.pdev;
-	struct device *kdev = &pdev->dev;
-
-	assert_rpm_wakelock_held(dev_priv);
-	pm_runtime_get_noresume(kdev);
-
-	atomic_inc(&dev_priv->runtime_pm.wakeref_count);
-}
-
-/**
- * intel_runtime_pm_put - release a runtime pm reference
- * @dev_priv: i915 device instance
- *
- * This function drops the device-level runtime pm reference obtained by
- * intel_runtime_pm_get() and might power down the corresponding
- * hardware block right away if this is the last reference.
- */
-void intel_runtime_pm_put(struct drm_i915_private *dev_priv)
-{
-	struct pci_dev *pdev = dev_priv->drm.pdev;
-	struct device *kdev = &pdev->dev;
-
-	assert_rpm_wakelock_held(dev_priv);
-	atomic_dec(&dev_priv->runtime_pm.wakeref_count);
-
-	pm_runtime_mark_last_busy(kdev);
-	pm_runtime_put_autosuspend(kdev);
-}
-
-/**
- * intel_runtime_pm_enable - enable runtime pm
- * @dev_priv: i915 device instance
- *
- * This function enables runtime pm at the end of the driver load sequence.
- *
- * Note that this function does currently not enable runtime pm for the
- * subordinate display power domains. That is only done on the first modeset
- * using intel_display_set_init_power().
- */
-void intel_runtime_pm_enable(struct drm_i915_private *dev_priv)
-{
-	struct pci_dev *pdev = dev_priv->drm.pdev;
-	struct device *kdev = &pdev->dev;
-
-	pm_runtime_set_autosuspend_delay(kdev, 10000); /* 10s */
-	pm_runtime_mark_last_busy(kdev);
-
-	/*
-	 * Take a permanent reference to disable the RPM functionality and drop
-	 * it only when unloading the driver. Use the low level get/put helpers,
-	 * so the driver's own RPM reference tracking asserts also work on
-	 * platforms without RPM support.
-	 */
-	if (!HAS_RUNTIME_PM(dev_priv)) {
-		int ret;
-
-		pm_runtime_dont_use_autosuspend(kdev);
-		ret = pm_runtime_get_sync(kdev);
-		WARN(ret < 0, "pm_runtime_get_sync() failed: %d\n", ret);
-	} else {
-		pm_runtime_use_autosuspend(kdev);
-	}
-
-	/*
-	 * The core calls the driver load handler with an RPM reference held.
-	 * We drop that here and will reacquire it during unloading in
-	 * intel_power_domains_fini().
-	 */
-	pm_runtime_put_autosuspend(kdev);
-}

@@ -24,7 +24,6 @@
 
 #include <linux/console.h>
 #include <linux/vgaarb.h>
-#include <linux/vga_switcheroo.h>
 
 #include "i915_drv.h"
 
@@ -698,12 +697,6 @@ static int i915_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	if (PCI_FUNC(pdev->devfn))
 		return -ENODEV;
 
-	/*
-	 * apple-gmux is needed on dual GPU MacBook Pro
-	 * to probe the panel if we're the inactive GPU.
-	 */
-	if (vga_switcheroo_client_probe_defer(pdev))
-		return -EPROBE_DEFER;
 
 	err = i915_driver_load(pdev, ent);
 	if (err)

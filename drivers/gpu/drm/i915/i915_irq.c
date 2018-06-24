@@ -2797,7 +2797,6 @@ void i915_handle_error(struct drm_i915_private *dev_priv,
 	 * isn't the case at least when we get here by doing a
 	 * simulated reset via debugfs, so get an RPM reference.
 	 */
-	intel_runtime_pm_get(dev_priv);
 
 	i915_capture_error_state(dev_priv, engine_mask, error_msg);
 	i915_clear_error_registers(dev_priv);
@@ -2834,11 +2833,9 @@ void i915_handle_error(struct drm_i915_private *dev_priv,
 			  &dev_priv->gpu_error.flags);
 	}
 
+    out:
 	clear_bit(I915_RESET_BACKOFF, &dev_priv->gpu_error.flags);
 	wake_up_all(&dev_priv->gpu_error.reset_queue);
-
-out:
-	intel_runtime_pm_put(dev_priv);
 }
 
 /* Called from drm generic code, passed 'crtc' which

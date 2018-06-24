@@ -144,33 +144,6 @@ struct vga_switcheroo_client_ops {
 	bool (*can_switch)(struct pci_dev *dev);
 };
 
-#if defined(CONFIG_VGA_SWITCHEROO)
-void vga_switcheroo_unregister_client(struct pci_dev *dev);
-int vga_switcheroo_register_client(struct pci_dev *dev,
-				   const struct vga_switcheroo_client_ops *ops,
-				   bool driver_power_control);
-int vga_switcheroo_register_audio_client(struct pci_dev *pdev,
-					 const struct vga_switcheroo_client_ops *ops,
-					 enum vga_switcheroo_client_id id);
-
-void vga_switcheroo_client_fb_set(struct pci_dev *dev,
-				  struct fb_info *info);
-
-int vga_switcheroo_register_handler(const struct vga_switcheroo_handler *handler,
-				    enum vga_switcheroo_handler_flags_t handler_flags);
-void vga_switcheroo_unregister_handler(void);
-enum vga_switcheroo_handler_flags_t vga_switcheroo_handler_flags(void);
-int vga_switcheroo_lock_ddc(struct pci_dev *pdev);
-int vga_switcheroo_unlock_ddc(struct pci_dev *pdev);
-
-int vga_switcheroo_process_delayed_switch(void);
-
-bool vga_switcheroo_client_probe_defer(struct pci_dev *pdev);
-enum vga_switcheroo_state vga_switcheroo_get_client_state(struct pci_dev *dev);
-
-int vga_switcheroo_init_domain_pm_ops(struct device *dev, struct dev_pm_domain *domain);
-void vga_switcheroo_fini_domain_pm_ops(struct device *dev);
-#else
 
 static inline void vga_switcheroo_unregister_client(struct pci_dev *dev) {}
 static inline int vga_switcheroo_register_client(struct pci_dev *dev,
@@ -192,5 +165,4 @@ static inline enum vga_switcheroo_state vga_switcheroo_get_client_state(struct p
 static inline int vga_switcheroo_init_domain_pm_ops(struct device *dev, struct dev_pm_domain *domain) { return -EINVAL; }
 static inline void vga_switcheroo_fini_domain_pm_ops(struct device *dev) {}
 
-#endif
 #endif /* _LINUX_VGA_SWITCHEROO_H_ */

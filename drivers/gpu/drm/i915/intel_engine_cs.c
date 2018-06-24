@@ -229,7 +229,7 @@ intel_engine_setup(struct drm_i915_private *dev_priv,
 	const struct engine_info *info = &intel_engines[id];
 	const struct engine_class_info *class_info;
 	struct intel_engine_cs *engine;
-
+;
 	GEM_BUG_ON(info->class >= ARRAY_SIZE(intel_engine_classes));
 	class_info = &intel_engine_classes[info->class];
 
@@ -299,62 +299,7 @@ intel_engine_setup(struct drm_i915_private *dev_priv,
 	return 0;
 }
 
-/**
- * intel_engines_init_mmio() - allocate and prepare the Engine Command Streamers
- * @dev_priv: i915 device private
- *
- * Return: non-zero if the initialization failed.
- */
-int intel_engines_init_mmio(struct drm_i915_private *dev_priv)
-{
-	struct intel_device_info *device_info = mkwrite_device_info(dev_priv);
-	const unsigned int ring_mask = INTEL_INFO(dev_priv)->ring_mask;
-	struct intel_engine_cs *engine;
-	enum intel_engine_id id;
-	unsigned int mask = 0;
-	unsigned int i;
-	int err;
 
-	WARN_ON(ring_mask == 0);
-	WARN_ON(ring_mask &
-		GENMASK(sizeof(mask) * BITS_PER_BYTE - 1, I915_NUM_ENGINES));
-
-	for (i = 0; i < ARRAY_SIZE(intel_engines); i++) {
-		if (!HAS_ENGINE(dev_priv, i))
-			continue;
-
-		err = intel_engine_setup(dev_priv, i);
-		if (err)
-			goto cleanup;
-
-		mask |= ENGINE_MASK(i);
-	}
-
-	/*
-	 * Catch failures to update intel_engines table when the new engines
-	 * are added to the driver by a warning and disabling the forgotten
-	 * engines.
-	 */
-	if (WARN_ON(mask != ring_mask))
-		device_info->ring_mask = mask;
-
-	/* We always presume we have at least RCS available for later probing */
-	if (WARN_ON(!HAS_ENGINE(dev_priv, RCS))) {
-		err = -ENODEV;
-		goto cleanup;
-	}
-
-	device_info->num_rings = hweight32(mask);
-
-	i915_check_and_clear_faults(dev_priv);
-
-	return 0;
-
-cleanup:
-	for_each_engine(engine, dev_priv, id)
-		kfree(engine);
-	return err;
-}
 
 /**
  * intel_engines_init() - init the Engine Command Streamers
@@ -1507,9 +1452,6 @@ static bool ring_is_idle(struct intel_engine_cs *engine)
 	struct drm_i915_private *dev_priv = engine->i915;
 	bool idle = true;
 
-	/* If the whole device is asleep, the engine must be idle */
-	if (!intel_runtime_pm_get_if_in_use(dev_priv))
-		return true;
 
 	/* First check that no commands are left in the ring */
 	if ((I915_READ_HEAD(engine) & HEAD_ADDR) !=
@@ -1520,7 +1462,6 @@ static bool ring_is_idle(struct intel_engine_cs *engine)
 	if (INTEL_GEN(dev_priv) > 2 && !(I915_READ_MODE(engine) & MODE_IDLE))
 		idle = false;
 
-	intel_runtime_pm_put(dev_priv);
 
 	return idle;
 }
@@ -1934,12 +1875,6 @@ void intel_engine_dump(struct intel_engine_cs *engine,
 
 	rcu_read_unlock();
 
-	if (intel_runtime_pm_get_if_in_use(engine->i915)) {
-		intel_engine_print_registers(engine, m);
-		intel_runtime_pm_put(engine->i915);
-	} else {
-		drm_printf(m, "\tDevice is asleep; skipping register dump\n");
-	}
 
 	spin_lock_irq(&engine->timeline->lock);
 	list_for_each_entry(rq, &engine->timeline->requests, link)

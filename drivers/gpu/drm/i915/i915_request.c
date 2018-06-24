@@ -258,7 +258,6 @@ static void mark_busy(struct drm_i915_private *i915)
 
 	GEM_BUG_ON(!i915->gt.active_requests);
 
-	intel_runtime_pm_get_noresume(i915);
 
 	/*
 	 * It seems that the DMC likes to transition between the DC states a lot

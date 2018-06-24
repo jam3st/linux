@@ -2109,7 +2109,6 @@ intel_pin_and_fence_fb_obj(struct drm_framebuffer *fb,
 	 * intel_runtime_pm_put(), so it is correct to wrap only the
 	 * pin/unpin/fence and not more.
 	 */
-	intel_runtime_pm_get(dev_priv);
 
 	atomic_inc(&dev_priv->gpu_error.pending_fb_pin);
 
@@ -2164,7 +2163,6 @@ intel_pin_and_fence_fb_obj(struct drm_framebuffer *fb,
 err:
 	atomic_dec(&dev_priv->gpu_error.pending_fb_pin);
 
-	intel_runtime_pm_put(dev_priv);
 	return vma;
 }
 
@@ -15214,7 +15212,6 @@ intel_modeset_setup_hw_state(struct drm_device *dev,
 	}
 	intel_display_set_init_power(dev_priv, false);
 
-	intel_power_domains_verify_state(dev_priv);
 
 	intel_fbc_init_pipe_state(dev_priv);
 }

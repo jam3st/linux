@@ -2950,8 +2950,6 @@ extern unsigned long i915_gfx_val(struct drm_i915_private *dev_priv);
 extern void i915_update_gfx_val(struct drm_i915_private *dev_priv);
 int vlv_force_gfx_clock(struct drm_i915_private *dev_priv, bool on);
 
-int intel_engines_init_mmio(struct drm_i915_private *dev_priv);
-int intel_engines_init(struct drm_i915_private *dev_priv);
 
 /* intel_hotplug.c */
 void intel_hpd_irq_handler(struct drm_i915_private *dev_priv,
@@ -3710,8 +3708,6 @@ extern int intel_set_rps(struct drm_i915_private *dev_priv, u8 val);
 extern bool intel_set_memory_cxsr(struct drm_i915_private *dev_priv,
 				  bool enable);
 
-int i915_reg_read_ioctl(struct drm_device *dev, void *data,
-			struct drm_file *file);
 
 /* overlay */
 extern struct intel_overlay_error_state *

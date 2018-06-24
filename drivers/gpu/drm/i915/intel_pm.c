@@ -7947,7 +7947,6 @@ void intel_init_gt_powersave(struct drm_i915_private *dev_priv)
 	 */
 	if (!sanitize_rc6(dev_priv)) {
 		DRM_INFO("RC6 disabled, disabling runtime PM support\n");
-		intel_runtime_pm_get(dev_priv);
 	}
 
 	mutex_lock(&dev_priv->pcu_lock);
@@ -7998,8 +7997,6 @@ void intel_cleanup_gt_powersave(struct drm_i915_private *dev_priv)
 	if (IS_VALLEYVIEW(dev_priv))
 		valleyview_cleanup_gt_powersave(dev_priv);
 
-	if (!HAS_RC6(dev_priv))
-		intel_runtime_pm_put(dev_priv);
 }
 
 /**

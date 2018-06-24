@@ -1,0 +1,1405 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[0m[35m[40m[    0.000000] Linux version 4.17.2-at+ (user@at) (gcc version 7.3.0 (Gentoo 7.3.0-r3 p1.4)) #172 PREEMPT Sun Jun 24 04:14:02 UTC 2018
+[    0.000000] Command line: 
+[    0.000000] x86/fpu: Supporting XSAVE feature 0x001: 'x87 floating point registers'
+[    0.000000] x86/fpu: Supporting XSAVE feature 0x002: 'SSE registers'
+[    0.000000] x86/fpu: Supporting XSAVE feature 0x004: 'AVX registers'
+[    0.000000] x86/fpu: xstate_offset[2]:  576, xstate_sizes[2]:  256
+[    0.000000] x86/fpu: Enabled xstate features 0x7, context size is 832 bytes, using 'standard' format.
+[    0.000000] e820: BIOS-provided physical RAM map:
+[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009ffff] usable
+[    0.000000] BIOS-e820: [mem 0x0000000000100000-0x00000000007fffff] usable
+[    0.000000] BIOS-e820: [mem 0x0000000000800000-0x0000000000807fff] ACPI NVS
+[    0.000000] BIOS-e820: [mem 0x0000000000808000-0x000000000080ffff] usable
+[    0.000000] BIOS-e820: [mem 0x0000000000810000-0x00000000008fffff] ACPI NVS
+[    0.000000] BIOS-e820: [mem 0x0000000000900000-0x000000007ea63fff] usable
+[    0.000000] BIOS-e820: [mem 0x000000007ea64000-0x000000007ea6ffff] ACPI NVS
+[    0.000000] BIOS-e820: [mem 0x000000007ea70000-0x000000007ea87fff] reserved
+[    0.000000] BIOS-e820: [mem 0x000000007ea88000-0x000000007ea90fff] usable
+[    0.000000] BIOS-e820: [mem 0x000000007ea91000-0x000000007eb1afff] reserved
+[    0.000000] BIOS-e820: [mem 0x000000007eb1b000-0x000000007fb9afff] usable
+[    0.000000] BIOS-e820: [mem 0x000000007fb9b000-0x000000007fbf2fff] reserved
+[    0.000000] BIOS-e820: [mem 0x000000007fbf3000-0x000000007fbfafff] ACPI data
+[    0.000000] BIOS-e820: [mem 0x000000007fbfb000-0x000000007fbfefff] ACPI NVS
+[    0.000000] BIOS-e820: [mem 0x000000007fbff000-0x000000007fedbfff] usable
+[    0.000000] BIOS-e820: [mem 0x000000007fedc000-0x000000007ff5ffff] reserved
+[    0.000000] BIOS-e820: [mem 0x000000007ff60000-0x000000007fffffff] ACPI NVS
+[    0.000000] BIOS-e820: [mem 0x0000000080000000-0x000000008fffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000ffc00000-0x00000000ffffffff] reserved
+[    0.000000] NX (Execute Disable) protection: active
+[    0.000000] efi: EFI v2.70 by EDK II
+[    0.000000] efi:  SMBIOS=0x7fbcc000  ACPI=0x7fbfa000  ACPI 2.0=0x7fbfa014  MEMATTR=0x7f2af018 
+[    0.000000] e820: update [mem 0x00000000-0x00000fff] usable ==> reserved
+[    0.000000] e820: remove [mem 0x000a0000-0x000fffff] usable
+[    0.000000] e820: last_pfn = 0x7fedc max_arch_pfn = 0x400000000
+[    0.000000] x86/PAT: Configuration [0-7]: WB  WT  UC- UC  WB  WT  UC- UC  
+[    0.000000] Base memory trampoline at [        (ptrval)] 99000 size 24576
+[    0.000000] Using GB pages for direct mapping
+[    0.000000] BRK [0x032c9000, 0x032c9fff] PGTABLE
+[    0.000000] BRK [0x032ca000, 0x032cafff] PGTABLE
+[    0.000000] BRK [0x032cb000, 0x032cbfff] PGTABLE
+[    0.000000] BRK [0x032cc000, 0x032ccfff] PGTABLE
+[    0.000000] BRK [0x032cd000, 0x032cdfff] PGTABLE
+[    0.000000] BRK [0x032ce000, 0x032cefff] PGTABLE
+[    0.000000] Secure boot disabled
+[    0.000000] ACPI: Early table checksum verification disabled
+[    0.000000] ACPI: RSDP 0x000000007FBFA014 000024 (v02 BOCHS )
+[    0.000000] ACPI: XSDT 0x000000007FBF90E8 000044 (v01 BOCHS  BXPCFACP 00000001      01000013)
+[    0.000000] ACPI: FACP 0x000000007FBF6000 0000F4 (v03 BOCHS  BXPCFACP 00000001 BXPC 00000001)
+[    0.000000] ACPI: DSDT 0x000000007FBF7000 001F87 (v01 BOCHS  BXPCDSDT 00000001 BXPC 00000001)
+[    0.000000] ACPI: FACS 0x000000007FBFD000 000040
+[    0.000000] ACPI: APIC 0x000000007FBF5000 000090 (v01 BOCHS  BXPCAPIC 00000001 BXPC 00000001)
+[    0.000000] ACPI: HPET 0x000000007FBF4000 000038 (v01 BOCHS  BXPCHPET 00000001 BXPC 00000001)
+[    0.000000] ACPI: MCFG 0x000000007FBF3000 00003C (v01 BOCHS  BXPCMCFG 00000001 BXPC 00000001)
+[    0.000000] ACPI: Local APIC address 0xfee00000
+[    0.000000] tsc: Fast TSC calibration using PIT
+[    0.000000] Zone ranges:
+[    0.000000]   DMA32    [mem 0x0000000000001000-0x000000007fedbfff]
+[    0.000000]   Normal   empty
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000001000-0x000000000009ffff]
+[    0.000000]   node   0: [mem 0x0000000000100000-0x00000000007fffff]
+[    0.000000]   node   0: [mem 0x0000000000808000-0x000000000080ffff]
+[    0.000000]   node   0: [mem 0x0000000000900000-0x000000007ea63fff]
+[    0.000000]   node   0: [mem 0x000000007ea88000-0x000000007ea90fff]
+[    0.000000]   node   0: [mem 0x000000007eb1b000-0x000000007fb9afff]
+[    0.000000]   node   0: [mem 0x000000007fbff000-0x000000007fedbfff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000001000-0x000000007fedbfff]
+[    0.000000] On node 0 totalpages: 523377
+[    0.000000]   DMA32 zone: 7164 pages used for memmap
+[    0.000000]   DMA32 zone: 1799 pages reserved
+[    0.000000]   DMA32 zone: 523377 pages, LIFO batch:31
+[    0.000000] Reserved but unavailable: 97 pages
+[    0.000000] Reserving Intel graphics memory at [mem 0xc7200000-0xcf1fffff]
+[    0.000000] ACPI: Local APIC address 0xfee00000
+[    0.000000] APIC: NR_CPUS/possible_cpus limit of 1 reached. Processor 1/0x1 ignored.
+[    0.000000] APIC: NR_CPUS/possible_cpus limit of 1 reached. Processor 2/0x2 ignored.
+[    0.000000] APIC: NR_CPUS/possible_cpus limit of 1 reached. Processor 3/0x3 ignored.
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0xff] dfl dfl lint[0x1])
+[    0.000000] IOAPIC[0]: apic_id 0, version 17, address 0xfec00000, GSI 0-23
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 5 global_irq 5 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 10 global_irq 10 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 11 global_irq 11 high level)
+[    0.000000] ACPI: IRQ0 used by override.
+[    0.000000] ACPI: IRQ5 used by override.
+[    0.000000] ACPI: IRQ9 used by override.
+[    0.000000] ACPI: IRQ10 used by override.
+[    0.000000] ACPI: IRQ11 used by override.
+[    0.000000] Using ACPI (MADT) for SMP configuration information
+[    0.000000] ACPI: HPET id: 0x8086a201 base: 0xfed00000
+[    0.000000] e820: [mem 0x90000000-0xc71fffff] available for PCI devices
+[    0.000000] clocksource: refined-jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[    0.000000] pcpu-alloc: s0 r0 d32768 u32768 alloc=1*32768
+[    0.000000] pcpu-alloc: [0] 0 
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 514414
+[    0.000000] Kernel command line: console=ttyS0,115200n8 i915.modeset=-1 drm.debug=0xff i915.enable_fbc=1
+[    0.000000] Setting dangerous option i915.enable_fbc - tainting kernel
+[    0.000000] Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes)
+[    0.000000] Inode-cache hash table entries: 131072 (order: 8, 1048576 bytes)
+[    0.000000] Memory: 2020276K/2093508K available (6152K kernel code, 370K rwdata, 852K rodata, 8416K init, 172K bss, 73232K reserved, 0K cma-reserved)
+[    0.000000] Preemptible hierarchical RCU implementation.
+[    0.000000] 	Tasks RCU enabled.
+[    0.000000] NR_IRQS: 4352, nr_irqs: 256, preallocated irqs: 16
+[    0.000000] console [ttyS0] enabled
+[    0.000000] ACPI: Core revision 20180313
+[    0.000000] clocksource: hpet: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604467 ns
+[    0.000000] hpet clockevent registered
+[    0.010000] APIC: Switch to symmetric I/O mode setup
+[    0.010000] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+[    0.060000] tsc: Fast TSC calibration using PIT
+[    0.060000] tsc: Detected 4250.954 MHz processor
+[    0.060000] clocksource: tsc-early: mask: 0xffffffffffffffff max_cycles: 0x3d4667dcc08, max_idle_ns: 440795279003 ns
+[    0.060000] Calibrating delay loop (skipped), value calculated using timer frequency.. 8501.90 BogoMIPS (lpj=42509540)
+[    0.060000] pid_max: default: 32768 minimum: 301
+[    0.060000] Mount-cache hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.060000] Mountpoint-cache hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.060000] Last level iTLB entries: 4KB 0, 2MB 0, 4MB 0
+[    0.060000] Last level dTLB entries: 4KB 0, 2MB 0, 4MB 0, 1GB 0
+[    0.060000] CPU: Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz (family: 0x6, model: 0x3c, stepping: 0x3)
+[    0.060000] Spectre V2 : Spectre mitigation: kernel not compiled with retpoline; no mitigation available!
+[    0.060000] Speculative Store Bypass: Vulnerable
+[    0.060000] Performance Events: Haswell events, Intel PMU driver.
+[    0.160257] ... version:                2
+[    0.160419] ... bit width:              48
+[    0.160583] ... generic registers:      4
+[    0.160745] ... value mask:             0000ffffffffffff
+[    0.160957] ... max period:             000000007fffffff
+[    0.161169] ... fixed-purpose events:   3
+[    0.161330] ... event mask:             000000070000000f
+[    0.161563] Hierarchical SRCU implementation.
+[    0.161791] TSC deadline timer enabled
+[    0.162010] devtmpfs: initialized
+[    0.162199] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[    0.162590] futex hash table entries: 256 (order: 0, 6144 bytes)
+[    0.162884] ACPI: bus type PCI registered
+[    0.163058] PCI: Using configuration type 1 for base access
+[    0.163287] core: PMU erratum BJ122, BV98, HSD29 workaround disabled, HT off
+[    0.163902] HugeTLB registered 2.00 MiB page size, pre-allocated 0 pages
+[    0.164194] ACPI: Added _OSI(Module Device)
+[    0.164365] ACPI: Added _OSI(Processor Device)
+[    0.164543] ACPI: Added _OSI(3.0 _SCP Extensions)
+[    0.164731] ACPI: Added _OSI(Processor Aggregator Device)
+[    0.164947] ACPI: Added _OSI(Linux-Dell-Video)
+[    0.165684] ACPI: 1 ACPI AML tables successfully acquired and loaded
+[    0.166458] ACPI: Interpreter enabled
+[    0.166613] ACPI: (supports S0 S5)
+[    0.166751] ACPI: Using IOAPIC for interrupt routing
+[    0.166961] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+[    0.167361] ACPI: Enabled 1 GPEs in block 00 to 3F
+[    0.168371] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+[    0.168622] acpi PNP0A08:00: _OSC: OS supports [Segments MSI]
+[    0.168872] acpi PNP0A08:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
+[    0.169272] PCI host bridge to bus 0000:00
+[    0.169439] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
+[    0.169710] pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
+[    0.169980] pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
+[    0.170000] pci_bus 0000:00: root bus resource [mem 0x90000000-0xfebfffff window]
+[    0.170000] pci_bus 0000:00: root bus resource [mem 0x800000000-0x8ffffffff window]
+[    0.170000] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    0.170000] pci 0000:00:00.0: [8086:29c0] type 00 class 0x060000
+[    0.170000] pci 0000:00:01.0: [1af4:1004] type 00 class 0x010000
+[    0.170250] pci 0000:00:01.0: reg 0x10: [io  0x6080-0x60bf]
+[    0.170942] pci 0000:00:01.0: reg 0x14: [mem 0x90001000-0x90001fff]
+[    0.172591] pci 0000:00:01.0: reg 0x20: [mem 0x810400000-0x810403fff 64bit pref]
+[    0.173563] pci 0000:00:02.0: [8086:0412] type 00 class 0x030000
+[    0.178413] pci 0000:00:02.0: reg 0x10: [mem 0x810000000-0x8103fffff 64bit]
+[    0.180028] pci 0000:00:02.0: reg 0x18: [mem 0x800000000-0x80fffffff 64bit pref]
+[    0.184563] pci 0000:00:02.0: reg 0x20: [io  0x6040-0x607f]
+[    0.193196] pci 0000:00:1f.0: [8086:2918] type 00 class 0x060100
+[    0.193642] pci 0000:00:1f.2: [8086:2922] type 00 class 0x010601
+[    0.195403] pci 0000:00:1f.2: reg 0x20: [io  0x60c0-0x60df]
+[    0.195904] pci 0000:00:1f.2: reg 0x24: [mem 0x90000000-0x90000fff]
+[    0.196543] pci 0000:00:1f.3: [8086:2930] type 00 class 0x0c0500
+[    0.197535] pci 0000:00:1f.3: reg 0x20: [io  0x6000-0x603f]
+[    0.198098] pci_bus 0000:00: on NUMA node 0
+[    0.198412] ACPI: PCI Interrupt Link [LNKA] (IRQs 5 *10 11)
+[    0.198671] ACPI: PCI Interrupt Link [LNKB] (IRQs 5 *10 11)
+[    0.198925] ACPI: PCI Interrupt Link [LNKC] (IRQs 5 10 *11)
+[    0.199179] ACPI: PCI Interrupt Link [LNKD] (IRQs 5 10 *11)
+[    0.199432] ACPI: PCI Interrupt Link [LNKE] (IRQs 5 *10 11)
+[    0.199685] ACPI: PCI Interrupt Link [LNKF] (IRQs 5 *10 11)
+[    0.199953] ACPI: PCI Interrupt Link [LNKG] (IRQs 5 10 *11)
+[    0.210371] ACPI: PCI Interrupt Link [LNKH] (IRQs 5 10 *11)
+[    0.210769] ACPI: PCI Interrupt Link [GSIA] (IRQs *16)
+[    0.211110] ACPI: PCI Interrupt Link [GSIB] (IRQs *17)
+[    0.211449] ACPI: PCI Interrupt Link [GSIC] (IRQs *18)
+[    0.211788] ACPI: PCI Interrupt Link [GSID] (IRQs *19)
+[    0.212126] ACPI: PCI Interrupt Link [GSIE] (IRQs *20)
+[    0.212465] ACPI: PCI Interrupt Link [GSIF] (IRQs *21)
+[    0.212804] ACPI: PCI Interrupt Link [GSIG] (IRQs *22)
+[    0.213142] ACPI: PCI Interrupt Link [GSIH] (IRQs *23)
+[    0.213657] Registered efivars operations
+[    0.213976] PCI: Using ACPI for IRQ routing
+[    0.214251] PCI: pci_cache_line_size set to 64 bytes
+[    0.214627] e820: reserve RAM buffer [mem 0x00810000-0x008fffff]
+[    0.215015] e820: reserve RAM buffer [mem 0x7ea64000-0x7fffffff]
+[    0.215402] e820: reserve RAM buffer [mem 0x7ea91000-0x7fffffff]
+[    0.215789] e820: reserve RAM buffer [mem 0x7fb9b000-0x7fffffff]
+[    0.216176] e820: reserve RAM buffer [mem 0x7fedc000-0x7fffffff]
+[    0.216584] clocksource: Switched to clocksource tsc-early
+[    0.216971] ACPI: Failed to create genetlink family for ACPI event
+[    0.217375] pnp: PnP ACPI init
+[    0.217602] pnp 00:00: Plug and Play ACPI device, IDs PNP0b00 (active)
+[    0.218043] pnp 00:01: Plug and Play ACPI device, IDs PNP0303 (active)
+[    0.218481] pnp 00:02: Plug and Play ACPI device, IDs PNP0f13 (active)
+[    0.218935] pnp 00:03: Plug and Play ACPI device, IDs PNP0400 (active)
+[    0.219384] pnp 00:04: Plug and Play ACPI device, IDs PNP0501 (active)
+[    0.219977] pnp: PnP ACPI: found 5 devices
+[    0.219977] pci_bus 0000:00: resource 4 [io  0x0000-0x0cf7 window]
+[    0.219977] pci_bus 0000:00: resource 5 [io  0x0d00-0xffff window]
+[    0.219977] pci_bus 0000:00: resource 6 [mem 0x000a0000-0x000bffff window]
+[    0.219977] pci_bus 0000:00: resource 7 [mem 0x90000000-0xfebfffff window]
+[    0.219977] pci_bus 0000:00: resource 8 [mem 0x800000000-0x8ffffffff window]
+[    0.219977] workingset: timestamp_bits=62 max_order=19 bucket_order=0
+[    0.219977] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
+[    0.219977] ACPI: Power Button [PWRF]
+[    0.219977] Serial: 8250/16550 driver, 4 ports, IRQ sharing disabled
+[    0.242110] 00:04: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is a 16550A
+[    0.242484] [drm:drm_core_init] Initialized
+[    0.242838] PCI Interrupt Link [GSIG] enabled at IRQ 22
+[    0.243073] [drm:i915_driver_load] Assuming PCH ID 8c00
+[    0.243284] [drm:intel_pch_type] Found LynxPoint PCH
+[    0.243491] [drm:intel_power_domains_init] Allowed DC state mask 00
+[    0.243782] ------------[ cut here ]------------
+[    0.243969] RPM wakelock ref not held during HW access
+[    0.243975] WARNING: CPU: 0 PID: 1 at drivers/gpu/drm/i915/intel_drv.h:1919 gen6_read32+0x110/0x140
+[    0.244539] CPU: 0 PID: 1 Comm: swapper Tainted: G     U            4.17.2-at+ #172
+[    0.244843] RIP: 0010:gen6_read32+0x110/0x140
+[    0.245018] RSP: 0000:ffff88000005bc30 EFLAGS: 00010282
+[    0.245227] RAX: 000000000000002a RBX: ffff8800001e0000 RCX: 0000000000000000
+[    0.245509] RDX: ffffffff81a3bf08 RSI: ffffffff822aed8a RDI: ffffffff81a3bf00
+[    0.245792] RBP: ffff88000005bc50 R08: 00000000000000e1 R09: ffffffff822aed60
+[    0.246075] R10: 0000000000000002 R11: 0000000000000000 R12: 0000000000004094
+[    0.246357] R13: ffff8800001aa000 R14: ffffffff818bdad3 R15: ffff8800001e3330
+[    0.246640] FS:  0000000000000000(0000) GS:ffffffff81a31000(0000) knlGS:0000000000000000
+[    0.246960] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    0.247194] CR2: 0000000000000000 CR3: 0000000002a12001 CR4: 00000000001606b0
+[    0.247478] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    0.247761] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    0.248044] Call Trace:
+[    0.248146]  i915_check_and_clear_faults+0x75/0x200
+[    0.248342]  intel_engines_init_mmio+0x205/0x3f0
+[    0.248528]  i915_driver_load+0x50b/0xcf0
+[    0.248690]  i915_pci_probe+0x22/0x40
+[    0.248839]  pci_device_probe+0x87/0xf0
+[    0.248994]  really_probe+0x1a5/0x2b0
+[    0.249142]  __driver_attach+0x92/0xa0
+[    0.249294]  ? really_probe+0x2b0/0x2b0
+[    0.249449]  bus_for_each_dev+0x61/0x90
+[    0.249604]  driver_attach+0x19/0x20
+[    0.249749]  bus_add_driver+0x185/0x210
+[    0.249904]  ? set_debug_rodata+0x12/0x12
+[    0.250066]  driver_register+0x5b/0xd0
+[    0.250217]  __pci_register_driver+0x4b/0x50
+[    0.250388]  i915_init+0x24/0x3e
+[    0.250519]  ? drm_core_init+0x95/0x95
+[    0.250670]  do_one_initcall+0x63/0x122
+[    0.250824]  ? set_debug_rodata+0x12/0x12
+[    0.250985]  kernel_init_freeable+0x107/0x18f
+[    0.251159]  ? rest_init+0xa0/0xa0
+[    0.251297]  kernel_init+0x9/0x100
+[    0.251434]  ret_from_fork+0x1f/0x30
+[    0.251577] Code: 67 d7 df ff 0f 0b e9 30 ff ff ff 80 3d d8 ff 81 00 00 0f 85 31 ff ff ff 48 c7 c7 b0 9c 8b 81 c6 05 c4 ff 81 00 01 e8 40 d7 df ff <0f> 0b e9 17 ff ff ff b9 01 00 00 00 ba 01 00 00 00 44 89 e6 48 
+[    0.252091] random: get_random_bytes called from print_oops_end_marker+0x3a/0x50 with crng_init=0
+[    0.252091] ---[ end trace c0da9b7b6ea503f0 ]---
+[    0.252940] [drm:i915_driver_load] ppgtt mode: 1
+[    0.253134] [drm:i915_ggtt_probe_hw] GGTT size = 2048M
+[    0.253350] [drm:i915_ggtt_probe_hw] GMADR size = 256M
+[    0.253555] [drm:i915_ggtt_probe_hw] DSM size = 128M
+[    0.253758] [drm:i915_gem_init_stolen] Memory reserved for graphics device: 131072K, usable: 130048K
+[    0.293590] [drm] Supports vblank timestamp caching Rev 2 (21.10.2013).
+[    0.294011] [drm] Driver supports precise vblank timestamp query.
+[    0.294394] [drm:intel_update_rawclk] rawclk rate: 125000 kHz
+[    0.294752] [drm:drm_irq_install] irq=24
+[    0.295067] [drm:intel_fbc_init] Sanitized enable_fbc value: 1
+[    0.295434] [drm:intel_print_wm_latency] Primary WM0 latency 20 (2.0 usec)
+[    0.295858] [drm:intel_print_wm_latency] Primary WM1 latency 4 (2.0 usec)
+[    0.296276] [drm:intel_print_wm_latency] Primary WM2 latency 36 (18.0 usec)
+[    0.296704] [drm:intel_print_wm_latency] Primary WM3 latency 90 (45.0 usec)
+[    0.297132] [drm:intel_print_wm_latency] Primary WM4 latency 160 (80.0 usec)
+[    0.297565] [drm:intel_print_wm_latency] Sprite WM0 latency 20 (2.0 usec)
+[    0.297983] [drm:intel_print_wm_latency] Sprite WM1 latency 4 (2.0 usec)
+[    0.298395] [drm:intel_print_wm_latency] Sprite WM2 latency 36 (18.0 usec)
+[    0.298817] [drm:intel_print_wm_latency] Sprite WM3 latency 90 (45.0 usec)
+[    0.299240] [drm:intel_print_wm_latency] Sprite WM4 latency 160 (80.0 usec)
+[    0.299668] [drm:intel_print_wm_latency] Cursor WM0 latency 20 (2.0 usec)
+[    0.300092] [drm:intel_print_wm_latency] Cursor WM1 latency 4 (2.0 usec)
+[    0.300505] [drm:intel_print_wm_latency] Cursor WM2 latency 36 (18.0 usec)
+[    0.300927] [drm:intel_print_wm_latency] Cursor WM3 latency 90 (45.0 usec)
+[    0.301349] [drm:intel_print_wm_latency] Cursor WM4 latency 160 (80.0 usec)
+[    0.301778] [drm:intel_modeset_init] 3 display pipes available.
+[    0.302182] [drm:intel_dump_cdclk_state] Current CDCLK 540000 kHz, VCO 0 kHz, ref 0 kHz, bypass 0 kHz, voltage level 0
+[    0.302837] [drm:intel_update_max_cdclk] Max CD clock rate: 540000 kHz
+[    0.303238] [drm:intel_update_max_cdclk] Max dotclock rate: 540000 kHz
+[    0.303973] [drm:intel_dp_init_connector] Adding DP connector on port C
+[    0.304384] [drm:intel_dp_init_connector] using AUX C for port C (platform default)
+[    0.304865] [drm:intel_hdmi_init_connector] Adding HDMI connector on port C
+[    0.305296] [drm:intel_hdmi_init_connector] Using DDC pin 0x4 for port C (platform default)
+[    0.305822] [drm:intel_dp_init_connector] Adding DP connector on port D
+[    0.306232] [drm:intel_dp_init_connector] using AUX D for port D (platform default)
+[    0.306710] [drm:intel_hdmi_init_connector] Adding HDMI connector on port D
+[    0.307141] [drm:intel_hdmi_init_connector] Using DDC pin 0x6 for port D (platform default)
+[    0.307674] [drm:intel_set_plane_visible] pipe A active planes 0x0
+[    0.308059] [drm:intel_set_plane_visible] pipe A active planes 0x0
+[    0.308442] [drm:intel_set_plane_visible] pipe A active planes 0x0
+[    0.308825] [drm:intel_modeset_setup_hw_state] [CRTC:39:pipe A] hw state readout: disabled
+[    0.309334] [drm:intel_set_plane_visible] pipe B active planes 0x0
+[    0.309716] [drm:intel_set_plane_visible] pipe B active planes 0x0
+[    0.310106] [drm:intel_set_plane_visible] pipe B active planes 0x0
+[    0.310490] [drm:intel_modeset_setup_hw_state] [CRTC:51:pipe B] hw state readout: disabled
+[    0.310998] [drm:intel_set_plane_visible] pipe C active planes 0x0
+[    0.311380] [drm:intel_set_plane_visible] pipe C active planes 0x0
+[    0.311763] [drm:intel_set_plane_visible] pipe C active planes 0x0
+[    0.312145] [drm:intel_modeset_setup_hw_state] [CRTC:63:pipe C] hw state readout: disabled
+[    0.312654] [drm:intel_modeset_setup_hw_state] WRPLL 1 hw state readout: crtc_mask 0x00000000, on 0
+[    0.313209] [drm:intel_modeset_setup_hw_state] WRPLL 2 hw state readout: crtc_mask 0x00000000, on 0
+[    0.313775] [drm:intel_modeset_setup_hw_state] SPLL hw state readout: crtc_mask 0x00000000, on 0
+[    0.314315] [drm:intel_modeset_setup_hw_state] LCPLL 810 hw state readout: crtc_mask 0x00000000, on 1
+[    0.314882] [drm:intel_modeset_setup_hw_state] LCPLL 1350 hw state readout: crtc_mask 0x00000000, on 1
+[    0.315454] [drm:intel_modeset_setup_hw_state] LCPLL 2700 hw state readout: crtc_mask 0x00000000, on 1
+[    0.316026] [drm:intel_modeset_setup_hw_state] [ENCODER:64:DDI C] hw state readout: disabled, pipe A
+[    0.316588] [drm:intel_modeset_setup_hw_state] [ENCODER:66:DP-MST A] hw state readout: disabled, pipe A
+[    0.317165] [drm:intel_modeset_setup_hw_state] [ENCODER:67:DP-MST B] hw state readout: disabled, pipe B
+[    0.317742] [drm:intel_modeset_setup_hw_state] [ENCODER:68:DP-MST C] hw state readout: disabled, pipe C
+[    0.318319] [drm:intel_modeset_setup_hw_state] [ENCODER:75:DDI D] hw state readout: disabled, pipe A
+[    0.318881] [drm:intel_modeset_setup_hw_state] [ENCODER:77:DP-MST A] hw state readout: disabled, pipe A
+[    0.319458] [drm:intel_modeset_setup_hw_state] [ENCODER:78:DP-MST B] hw state readout: disabled, pipe B
+[    0.320040] [drm:intel_modeset_setup_hw_state] [ENCODER:79:DP-MST C] hw state readout: disabled, pipe C
+[    0.320618] [drm:intel_modeset_setup_hw_state] [CONNECTOR:65:DP-1] hw state readout: disabled
+[    0.321143] [drm:intel_modeset_setup_hw_state] [CONNECTOR:72:HDMI-A-1] hw state readout: disabled
+[    0.321689] [drm:intel_modeset_setup_hw_state] [CONNECTOR:76:DP-2] hw state readout: disabled
+[    0.322213] [drm:intel_modeset_setup_hw_state] [CONNECTOR:81:HDMI-A-2] hw state readout: disabled
+[    0.322760] [drm:intel_dump_pipe_config] [CRTC:39:pipe A][setup_hw_state]
+[    0.323179] [drm:intel_dump_pipe_config] output_types:  (0x0)
+[    0.323459] [drm:intel_dump_pipe_config] cpu_transcoder: A, pipe bpp: 0, dithering: 0
+[    0.323757] [drm:intel_dump_pipe_config] audio: 0, infoframes: 0
+[    0.323986] [drm:intel_dump_pipe_config] requested mode:
+[    0.324190] [drm:drm_mode_debug_printmodeline] Modeline 0:"" 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+[    0.324497] [drm:intel_dump_pipe_config] adjusted mode:
+[    0.324698] [drm:drm_mode_debug_printmodeline] Modeline 0:"" 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+[    0.325005] [drm:intel_dump_pipe_config] crtc timings: 0 0 0 0 0 0 0 0 0, type: 0x0 flags: 0x0
+[    0.325332] [drm:intel_dump_pipe_config] port clock: 0, pipe src size: 0x0, pixel rate 0
+[    0.325639] [drm:intel_dump_pipe_config] pch pfit: pos: 0x00000000, size: 0x00000000, disabled
+[    0.325967] [drm:intel_dump_pipe_config] ips: 0, double wide: 0
+[    0.326194] [drm:hsw_dump_hw_state] dpll_hw_state: wrpll: 0x0 spll: 0x0
+[    0.326446] [drm:intel_dump_pipe_config] planes on this crtc
+[    0.326662] [drm:intel_dump_pipe_config] [PLANE:28:primary A] disabled, scaler_id = 0
+[    0.326959] [drm:intel_dump_pipe_config] [PLANE:31:sprite A] disabled, scaler_id = 0
+[    0.327253] [drm:intel_dump_pipe_config] [PLANE:36:cursor A] disabled, scaler_id = 0
+[    0.327547] [drm:intel_dump_pipe_config] [CRTC:51:pipe B][setup_hw_state]
+[    0.327805] [drm:intel_dump_pipe_config] output_types:  (0x0)
+[    0.328024] [drm:intel_dump_pipe_config] cpu_transcoder: A, pipe bpp: 0, dithering: 0
+[    0.328321] [drm:intel_dump_pipe_config] audio: 0, infoframes: 0
+[    0.328550] [drm:intel_dump_pipe_config] requested mode:
+[    0.328754] [drm:drm_mode_debug_printmodeline] Modeline 0:"" 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+[    0.329061] [drm:intel_dump_pipe_config] adjusted mode:
+[    0.329261] [drm:drm_mode_debug_printmodeline] Modeline 0:"" 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+[    0.329568] [drm:intel_dump_pipe_config] crtc timings: 0 0 0 0 0 0 0 0 0, type: 0x0 flags: 0x0
+[    0.329894] [drm:intel_dump_pipe_config] port clock: 0, pipe src size: 0x0, pixel rate 0
+[    0.330203] [drm:intel_dump_pipe_config] pch pfit: pos: 0x00000000, size: 0x00000000, disabled
+[    0.330530] [drm:intel_dump_pipe_config] ips: 0, double wide: 0
+[    0.330756] [drm:hsw_dump_hw_state] dpll_hw_state: wrpll: 0x0 spll: 0x0
+[    0.331008] [drm:intel_dump_pipe_config] planes on this crtc
+[    0.331224] [drm:intel_dump_pipe_config] [PLANE:40:primary B] disabled, scaler_id = 0
+[    0.331521] [drm:intel_dump_pipe_config] [PLANE:43:sprite B] disabled, scaler_id = 0
+[    0.331814] [drm:intel_dump_pipe_config] [PLANE:48:cursor B] disabled, scaler_id = 0
+[    0.332108] [drm:intel_dump_pipe_config] [CRTC:63:pipe C][setup_hw_state]
+[    0.332366] [drm:intel_dump_pipe_config] output_types:  (0x0)
+[    0.332585] [drm:intel_dump_pipe_config] cpu_transcoder: A, pipe bpp: 0, dithering: 0
+[    0.332882] [drm:intel_dump_pipe_config] audio: 0, infoframes: 0
+[    0.333111] [drm:intel_dump_pipe_config] requested mode:
+[    0.333320] [drm:drm_mode_debug_printmodeline] Modeline 0:"" 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+[    0.333627] [drm:intel_dump_pipe_config] adjusted mode:
+[    0.333827] [drm:drm_mode_debug_printmodeline] Modeline 0:"" 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+[    0.334134] [drm:intel_dump_pipe_config] crtc timings: 0 0 0 0 0 0 0 0 0, type: 0x0 flags: 0x0
+[    0.334460] [drm:intel_dump_pipe_config] port clock: 0, pipe src size: 0x0, pixel rate 0
+[    0.334767] [drm:intel_dump_pipe_config] pch pfit: pos: 0x00000000, size: 0x00000000, disabled
+[    0.335093] [drm:intel_dump_pipe_config] ips: 0, double wide: 0
+[    0.335319] [drm:hsw_dump_hw_state] dpll_hw_state: wrpll: 0x0 spll: 0x0
+[    0.335571] [drm:intel_dump_pipe_config] planes on this crtc
+[    0.335787] [drm:intel_dump_pipe_config] [PLANE:52:primary C] disabled, scaler_id = 0
+[    0.336084] [drm:intel_dump_pipe_config] [PLANE:55:sprite C] disabled, scaler_id = 0
+[    0.336378] [drm:intel_dump_pipe_config] [PLANE:60:cursor C] disabled, scaler_id = 0
+[    0.336671] Examinign connectors XXXXXXXXXXXXXXXXXXXXXXXX
+[    0.336672] Examinign connectors XXXXXXXXXXXXXXXXXXXXXXXX
+[    0.336878] Examinign connectors XXXXXXXXXXXXXXXXXXXXXXXX
+[    0.337084] Examinign connectors XXXXXXXXXXXXXXXXXXXXXXXX
+[    0.337291] [drm:intel_modeset_setup_hw_state] LCPLL 810 enabled but not in use, disabling
+[    0.337810] [drm:intel_modeset_setup_hw_state] LCPLL 1350 enabled but not in use, disabling
+[    0.338127] [drm:intel_modeset_setup_hw_state] LCPLL 2700 enabled but not in use, disabling
+[    0.338449] [drm:drm_atomic_state_init] Allocated atomic state         (ptrval)
+[    0.338728] [drm:drm_atomic_get_crtc_state] Added [CRTC:39:pipe A]         (ptrval) state to         (ptrval)
+[    0.339104] [drm:drm_atomic_get_crtc_state] Added [CRTC:51:pipe B]         (ptrval) state to         (ptrval)
+[    0.339481] [drm:drm_atomic_get_crtc_state] Added [CRTC:63:pipe C]         (ptrval) state to         (ptrval)
+[    0.339856] [drm:drm_atomic_get_plane_state] Added [PLANE:28:primary A]         (ptrval) state to         (ptrval)
+[    0.340250] [drm:drm_atomic_get_plane_state] Added [PLANE:31:sprite A]         (ptrval) state to         (ptrval)
+[    0.340638] [drm:drm_atomic_get_plane_state] Added [PLANE:36:cursor A]         (ptrval) state to         (ptrval)
+[    0.341026] [drm:drm_atomic_get_plane_state] Added [PLANE:40:primary B]         (ptrval) state to         (ptrval)
+[    0.341417] [drm:drm_atomic_get_plane_state] Added [PLANE:43:sprite B]         (ptrval) state to         (ptrval)
+[    0.341805] [drm:drm_atomic_get_plane_state] Added [PLANE:48:cursor B]         (ptrval) state to         (ptrval)
+[    0.342193] [drm:drm_atomic_get_plane_state] Added [PLANE:52:primary C]         (ptrval) state to         (ptrval)
+[    0.342584] [drm:drm_atomic_get_plane_state] Added [PLANE:55:sprite C]         (ptrval) state to         (ptrval)
+[    0.342974] [drm:drm_atomic_get_plane_state] Added [PLANE:60:cursor C]         (ptrval) state to         (ptrval)
+[    0.343371] [drm:drm_mode_object_get] OBJ ID: 65 (2)
+[    0.343561] [drm:drm_atomic_get_connector_state] Added [CONNECTOR:65:DP-1]         (ptrval) state to         (ptrval)
+[    0.343963] [drm:drm_mode_object_get] OBJ ID: 72 (2)
+[    0.344160] [drm:drm_atomic_get_connector_state] Added [CONNECTOR:72:HDMI-A-1]         (ptrval) state to         (ptrval)
+[    0.344648] [drm:drm_mode_object_get] OBJ ID: 76 (2)
+[    0.344859] [drm:drm_atomic_get_connector_state] Added [CONNECTOR:76:DP-2]         (ptrval) state to         (ptrval)
+[    0.345306] [drm:drm_mode_object_get] OBJ ID: 81 (2)
+[    0.345515] [drm:drm_atomic_get_connector_state] Added [CONNECTOR:81:HDMI-A-2]         (ptrval) state to         (ptrval)
+[    0.345944] [drm:drm_atomic_helper_check_modeset] Updating routing for [CONNECTOR:65:DP-1]
+[    0.346262] [drm:drm_atomic_helper_check_modeset] Disabling [CONNECTOR:65:DP-1]
+[    0.346544] [drm:drm_atomic_helper_check_modeset] Updating routing for [CONNECTOR:72:HDMI-A-1]
+[    0.346875] [drm:drm_atomic_helper_check_modeset] Disabling [CONNECTOR:72:HDMI-A-1]
+[    0.347175] [drm:drm_atomic_helper_check_modeset] Updating routing for [CONNECTOR:76:DP-2]
+[    0.347497] [drm:drm_atomic_helper_check_modeset] Disabling [CONNECTOR:76:DP-2]
+[    0.347775] [drm:drm_atomic_helper_check_modeset] Updating routing for [CONNECTOR:81:HDMI-A-2]
+[    0.348102] [drm:drm_atomic_helper_check_modeset] Disabling [CONNECTOR:81:HDMI-A-2]
+[    0.348398] [drm:drm_atomic_state_default_clear] Clearing atomic state         (ptrval)
+[    0.348703] [drm:drm_mode_object_put.part.2] OBJ ID: 65 (2)
+[    0.348916] [drm:drm_mode_object_put.part.2] OBJ ID: 72 (2)
+[    0.349129] [drm:drm_mode_object_put.part.2] OBJ ID: 76 (2)
+[    0.349342] [drm:drm_mode_object_put.part.2] OBJ ID: 81 (2)
+[    0.349556] [drm:__drm_atomic_state_free] Freeing atomic state         (ptrval)
+[    0.349882] [drm:i915_gem_init_ggtt] clearing unused GTT space: [1000, 80000000]
+[    0.373009] [drm:i915_ppgtt_create] Allocated pde space (2M) at GTT entry: 7fe00
+[    0.373298] [drm:i915_ppgtt_create] Adding PPGTT at offset 7fe00000
+[    0.373547] [drm:i915_gem_contexts_init] logical context support initialized
+[    0.373849] [drm:intel_engine_init_common] rcs0 hws offset: 0x7fdee000
+[    0.374103] ------------[ cut here ]------------
+[    0.374281] RPM wakelock ref not held during HW access
+[    0.374289] WARNING: CPU: 0 PID: 1 at drivers/gpu/drm/i915/intel_drv.h:1919 i915_vma_pin_iomap+0x103/0x130
+[    0.374849] CPU: 0 PID: 1 Comm: swapper Tainted: G     U  W         4.17.2-at+ #172
+[    0.375138] RIP: 0010:i915_vma_pin_iomap+0x103/0x130
+[    0.375327] RSP: 0000:ffff88000005bbc8 EFLAGS: 00010296
+[    0.375527] RAX: 000000000000002a RBX: ffff880000e11640 RCX: 0000000000000000
+[    0.375797] RDX: ffffffff81a3bf08 RSI: ffffffff822aed8a RDI: ffffffff81a3bf00
+[    0.376067] RBP: ffff88000005bbd8 R08: 00000000000001b0 R09: ffffffff822aed60
+[    0.376341] R10: 0000000000001000 R11: 0000000000000000 R12: ffff8800001e0000
+[    0.376610] R13: 0000000000000000 R14: ffff880000e11640 R15: ffff880000190800
+[    0.376880] FS:  0000000000000000(0000) GS:ffffffff81a31000(0000) knlGS:0000000000000000
+[    0.377185] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    0.377404] CR2: 0000000000000000 CR3: 0000000002a12001 CR4: 00000000001606b0
+[    0.377674] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    0.377944] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    0.378213] Call Trace:
+[    0.378311]  intel_ring_pin+0xd3/0x110
+[    0.378455]  intel_init_ring_buffer+0x47/0x80
+[    0.378623]  intel_init_render_ring_buffer+0x84/0x120
+[    0.378816]  intel_engines_init+0x49/0xb0
+[    0.378971]  i915_gem_init+0x113/0x3f0
+[    0.379115]  i915_driver_load+0x675/0xcf0
+[    0.379270]  i915_pci_probe+0x22/0x40
+[    0.379412]  pci_device_probe+0x87/0xf0
+[    0.379560]  really_probe+0x1a5/0x2b0
+[    0.379701]  __driver_attach+0x92/0xa0
+[    0.379846]  ? really_probe+0x2b0/0x2b0
+[    0.379994]  bus_for_each_dev+0x61/0x90
+[    0.380002]  driver_attach+0x19/0x20
+[    0.380002]  bus_add_driver+0x185/0x210
+[    0.380002]  ? set_debug_rodata+0x12/0x12
+[    0.380002]  driver_register+0x5b/0xd0
+[    0.380002]  __pci_register_driver+0x4b/0x50
+[    0.380002]  i915_init+0x24/0x3e
+[    0.380002]  ? drm_core_init+0x95/0x95
+[    0.380002]  do_one_initcall+0x63/0x122
+[    0.380002]  ? set_debug_rodata+0x12/0x12
+[    0.380002]  kernel_init_freeable+0x107/0x18f
+[    0.380002]  ? rest_init+0xa0/0xa0
+[    0.380002]  kernel_init+0x9/0x100
+[    0.380002]  ret_from_fork+0x1f/0x30
+[    0.380002] Code: 14 a8 e0 ff 0f 0b e9 44 ff ff ff 80 3d 7f d0 82 00 00 0f 85 47 ff ff ff 48 c7 c7 b0 9c 8b 81 c6 05 6b d0 82 00 01 e8 ed a7 e0 ff <0f> 0b e9 2d ff ff ff 48 c7 c6 58 e8 8b 81 48 c7 c7 05 c4 89 81 
+[    0.380002] ---[ end trace c0da9b7b6ea503f1 ]---
+[    0.382912] ------------[ cut here ]------------
+[    0.383089] RPM wakelock ref not held during HW access
+[    0.383093] WARNING: CPU: 0 PID: 1 at drivers/gpu/drm/i915/intel_drv.h:1919 i915_vma_pin_fence+0x174/0x190
+[    0.383656] CPU: 0 PID: 1 Comm: swapper Tainted: G     U  W         4.17.2-at+ #172
+[    0.383946] RIP: 0010:i915_vma_pin_fence+0x174/0x190
+[    0.384136] RSP: 0000:ffff88000005bba0 EFLAGS: 00010286
+[    0.384335] RAX: 000000000000002a RBX: ffff8800001e0000 RCX: 0000000000000000
+[    0.384605] RDX: ffffffff81a3bf08 RSI: ffffffff822aed8a RDI: ffffffff81a3bf00
+[    0.384874] RBP: ffff88000005bbb8 R08: 00000000000001dc R09: ffffffff822aed60
+[    0.385144] R10: 0000000000001000 R11: 0000000000000000 R12: ffff880000e11640
+[    0.385414] R13: 0000000000000000 R14: ffff880000e11640 R15: ffff880000190800
+[    0.385684] FS:  0000000000000000(0000) GS:ffffffff81a31000(0000) knlGS:0000000000000000
+[    0.385989] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    0.386208] CR2: 0000000000000000 CR3: 0000000002a12001 CR4: 00000000001606b0
+[    0.386479] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    0.386749] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    0.387018] Call Trace:
+[    0.387114]  i915_vma_pin_iomap+0x66/0x130
+[    0.387272]  intel_ring_pin+0xd3/0x110
+[    0.387417]  intel_init_ring_buffer+0x47/0x80
+[    0.387584]  intel_init_render_ring_buffer+0x84/0x120
+[    0.387777]  intel_engines_init+0x49/0xb0
+[    0.387931]  i915_gem_init+0x113/0x3f0
+[    0.388076]  i915_driver_load+0x675/0xcf0
+[    0.388230]  i915_pci_probe+0x22/0x40
+[    0.388372]  pci_device_probe+0x87/0xf0
+[    0.388519]  really_probe+0x1a5/0x2b0
+[    0.388661]  __driver_attach+0x92/0xa0
+[    0.388805]  ? really_probe+0x2b0/0x2b0
+[    0.388953]  bus_for_each_dev+0x61/0x90
+[    0.389101]  driver_attach+0x19/0x20
+[    0.389239]  bus_add_driver+0x185/0x210
+[    0.389386]  ? set_debug_rodata+0x12/0x12
+[    0.389541]  driver_register+0x5b/0xd0
+[    0.389685]  __pci_register_driver+0x4b/0x50
+[    0.389851]  i915_init+0x24/0x3e
+[    0.389977]  ? drm_core_init+0x95/0x95
+[    0.390121]  do_one_initcall+0x63/0x122
+[    0.390268]  ? set_debug_rodata+0x12/0x12
+[    0.390421]  kernel_init_freeable+0x107/0x18f
+[    0.390587]  ? rest_init+0xa0/0xa0
+[    0.390718]  kernel_init+0x9/0x100
+[    0.390849]  ret_from_fork+0x1f/0x30
+[    0.390985] Code: 73 f7 e1 ff 0f 0b e9 eb fe ff ff 80 3d d9 1f 84 00 00 0f 85 ec fe ff ff 48 c7 c7 b0 9c 8b 81 c6 05 c5 1f 84 00 01 e8 4c f7 e1 ff <0f> 0b e9 d2 fe ff ff 89 d8 e9 2d ff ff ff 0f 1f 40 00 66 2e 0f 
+[    0.391695] ---[ end trace c0da9b7b6ea503f2 ]---
+[    0.391876] [drm:intel_engine_create_scratch] rcs0 pipe control offset: 0x7fded000
+[    0.392171] [drm:intel_engine_init_common] bcs0 hws offset: 0x7fdec000
+[    0.392429] [drm:intel_engine_init_common] vcs0 hws offset: 0x7fdeb000
+[    0.392686] [drm:intel_engine_init_common] vecs0 hws offset: 0x7fdea000
+[    0.392943] [drm:sandybridge_pcode_read] warning: pcode (read from mbox 1a) mailbox access failed for intel_init_gt_powersave: -6
+[    0.393393] [drm:intel_init_gt_powersave] Overclocking supported, max: 1250MHz, overclock: 1250MHz
+[    0.393753] [drm:init_workarounds_ring] rcs0: Number of context specific w/a: 0
+[    0.394085] [drm:intel_power_well_enable] enabling always-on
+[    0.394312] [drm:sandybridge_pcode_read] warning: pcode (read from mbox 5) mailbox access failed for intel_enable_gt_powersave: -6
+[    1.280107] tsc: Refined TSC clocksource calibration: 4251.242 MHz
+[    1.281041] clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x3d477820c42, max_idle_ns: 440795421468 ns
+[    1.282476] clocksource: Switched to clocksource tsc
+[    2.080063] missed_breadcrumb rcs0 missed breadcrumb at intel_breadcrumbs_hangcheck+0x5c/0x80
+[    2.080998] missed_breadcrumb 	current seqno 2, last 2, hangcheck 0 [-297920 ms], inflight 2
+[    2.081892] missed_breadcrumb 	Reset count: 0 (global 0)
+[    2.082459] missed_breadcrumb 	Requests:
+[    2.082883] missed_breadcrumb 		first  1! [8:1] prio=-2147483648 @ 1730ms: [global]
+[    2.083719] missed_breadcrumb 		last   2! [8:2] prio=-2147483648 @ 1730ms: [global]
+[    2.084534] missed_breadcrumb 	Device is asleep; skipping register dump
+[    2.085240] missed_breadcrumb 		E 1! [8:1] prio=-2147483648 @ 1730ms: [global]
+[    2.086008] missed_breadcrumb 		E 2! [8:2] prio=-2147483648 @ 1730ms: [global]
+[    2.086777] missed_breadcrumb 		Queue priority: -2147483648
+[    2.087372] missed_breadcrumb 	swapper [1] waiting for 2
+[    2.087940] missed_breadcrumb IRQ? 0x0 (breadcrumbs? no) (execlists? no)
+[    2.088653] missed_breadcrumb HWSP:
+[    2.089033] missed_breadcrumb 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.090039] missed_breadcrumb *
+[    2.090039] missed_breadcrumb 000000c0 00000002 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.090039] missed_breadcrumb 000000e0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.090039] missed_breadcrumb *
+[    2.090039] missed_breadcrumb Idle? yes
+[    2.090039] [drm:intel_fbdev_init] pipe A not active or no fb, skipping
+[    2.090039] [drm:intel_fbdev_init] pipe B not active or no fb, skipping
+[    2.090039] [drm:intel_fbdev_init] pipe C not active or no fb, skipping
+[    2.090039] [drm:intel_fbdev_init] no active fbs found, not using BIOS config
+[    2.090039] [drm:drm_mode_object_get] OBJ ID: 65 (2)
+[    2.090039] [drm:drm_mode_object_get] OBJ ID: 72 (2)
+[    2.090039] [drm:drm_mode_object_get] OBJ ID: 76 (2)
+[    2.090039] [drm:drm_mode_object_get] OBJ ID: 81 (2)
+[    2.090039] [drm:drm_minor_register] 
+[    2.090039] [drm:drm_minor_register] 
+[    2.090039] [drm:drm_minor_register] new minor registered 128
+[    2.090039] [drm:drm_minor_register] 
+[    2.100461] [drm:drm_minor_register] new minor registered 0
+[    2.101074] [drm:drm_sysfs_connector_add] adding "DP-1" to sysfs
+[    2.101720] [drm:drm_sysfs_connector_add] *ERROR* failed to register connector device: -19
+[    2.102611] [drm] Initialized i915 1.6.0 20180308 for 0000:00:02.0 on minor 0
+[    2.103401] intel_fbdev_initial_config xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+[    2.103403] [drm:drm_setup_crtcs] 
+[    2.103818] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:65:DP-1]
+[    2.104088] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    2.104088] XXXX Forcing connector 0
+[    2.104365] [drm:intel_dp_detect] [CONNECTOR:65:DP-1]
+[    2.104696] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:65:DP-1] status updated from unknown to disconnected
+[    2.105108] [drm:drm_sysfs_hotplug_event] generating hotplug event
+[    2.105344] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:65:DP-1] disconnected
+[    2.105656] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:72:HDMI-A-1]
+[    2.105939] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    2.105939] XXXX Forcing connector 0
+[    2.106216] [drm:intel_hdmi_detect] [CONNECTOR:72:HDMI-A-1]
+[    2.106610] sched_clock: Marking stable (2100306886, 0)->(2079802405, 20504481)
+[    2.106909] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0050 w(1)
+[    2.107184] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK on first message, retry
+[    2.107655] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0050 w(1)
+[    2.107934] [drm:drm_do_probe_ddc_edid] drm: skipping non-existent adapter i915 gmbus dpc
+[    2.108244] [drm:intel_hdmi_set_edid] HDMI GMBUS EDID read failed, retry using GPIO bit-banging
+[    2.108574] [drm:intel_gmbus_force_bit] enabling bit-banging on i915 gmbus dpc. force bit now 1
+[    2.109536] [drm:drm_do_probe_ddc_edid] drm: skipping non-existent adapter i915 gmbus dpc
+[    2.109847] [drm:intel_gmbus_force_bit] disabling bit-banging on i915 gmbus dpc. force bit now 0
+[    2.110352] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0040 w(1)
+[    2.110629] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK on first message, retry
+[    2.111082] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0040 w(1)
+[    2.111358] [drm:drm_dp_dual_mode_detect] DP dual mode HDMI ID:  (err -6)
+[    2.111617] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:72:HDMI-A-1] status updated from unknown to disconnected
+[    2.112045] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:72:HDMI-A-1] disconnected
+[    2.112372] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:76:DP-2]
+[    2.112643] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    2.112644] XXXX Forcing connector 0
+[    2.112922] [drm:intel_dp_detect] [CONNECTOR:76:DP-2]
+[    2.118930] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.124924] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.130951] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.137032] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.143381] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.149885] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.156363] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.162943] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.169511] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.176079] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.182576] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.189133] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.195573] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.201864] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.208250] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.214667] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.220992] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.227402] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.233846] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.240094] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.246595] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.253061] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.259521] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.262379] random: fast init done
+[    2.266531] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.273564] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.280534] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.287599] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.294576] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.301552] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.308585] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.315659] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.322598] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    2.323336] [drm:drm_dp_dpcd_access] Too many retries, giving up. First error: -110
+[    2.324178] [drm:intel_power_well_disable] disabling always-on
+[    2.324812] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:76:DP-2] status updated from unknown to disconnected
+[    2.325983] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:76:DP-2] disconnected
+[    2.326871] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:81:HDMI-A-2]
+[    2.327675] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    2.327676] XXXX Forcing connector 0
+[    2.328463] [drm:intel_hdmi_detect] [CONNECTOR:81:HDMI-A-2]
+[    2.329457] [drm:intel_power_well_enable] enabling always-on
+[    2.355935] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpd] NAK for addr: 0040 w(1)
+[    2.356356] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpd] NAK on first message, retry
+[    2.356944] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpd] NAK for addr: 0040 w(1)
+[    2.357339] [drm:drm_dp_dual_mode_detect] DP dual mode HDMI ID:  (err -6)
+[    2.357710] [drm:drm_detect_monitor_audio] Monitor has basic audio support
+[    2.358086] [drm:intel_power_well_disable] disabling always-on
+[    2.358406] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:81:HDMI-A-2] status updated from unknown to connected
+[    2.359003] [drm:drm_add_display_info] non_desktop set to 0
+[    2.359309] [drm:drm_add_display_info] HDMI: DVI dual 0, max TMDS clock 0 kHz
+[    2.359700] [drm:drm_add_edid_modes] ELD monitor 27MU67
+[    2.359988] [drm:drm_add_edid_modes] HDMI: latency present 0 0, video latency 0 0, audio latency 0 0
+[    2.360487] [drm:drm_add_edid_modes] ELD size 32, SAD count 1
+[    2.360802] [drm:drm_add_display_info] non_desktop set to 0
+[    2.361106] [drm:drm_add_display_info] HDMI: DVI dual 0, max TMDS clock 0 kHz
+[    2.361583] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:81:HDMI-A-2] probed modes :
+[    2.362059] [drm:drm_mode_debug_printmodeline] Modeline 84:"1920x2160" 60 277250 1920 1968 2000 2080 2160 2163 2173 2222 0x48 0xa
+[    2.362687] [drm:drm_mode_debug_printmodeline] Modeline 85:"1920x1080" 60 148500 1920 2008 2052 2200 1080 1084 1089 1125 0x40 0x5
+[    2.363315] [drm:drm_mode_debug_printmodeline] Modeline 98:"1920x1080" 60 148352 1920 2008 2052 2200 1080 1084 1089 1125 0x40 0x5
+[    2.364113] [drm:drm_mode_debug_printmodeline] Modeline 90:"1600x900" 60 108000 1600 1624 1704 1800 900 901 904 1000 0x40 0x5
+[    2.364876] [drm:drm_mode_debug_printmodeline] Modeline 88:"1280x1024" 60 108000 1280 1328 1440 1688 1024 1025 1028 1066 0x40 0x5
+[    2.365661] [drm:drm_mode_debug_printmodeline] Modeline 87:"1152x864" 60 81579 1152 1216 1336 1520 864 865 868 895 0x0 0x6
+[    2.366406] [drm:drm_mode_debug_printmodeline] Modeline 89:"1280x720" 60 74250 1280 1390 1430 1650 720 725 730 750 0x40 0x5
+[    2.367157] [drm:drm_mode_debug_printmodeline] Modeline 100:"1280x720" 60 74176 1280 1390 1430 1650 720 725 730 750 0x40 0x5
+[    2.367914] [drm:drm_mode_debug_printmodeline] Modeline 93:"1024x768" 60 65000 1024 1048 1184 1344 768 771 777 806 0x40 0xa
+[    2.368672] [drm:drm_mode_debug_printmodeline] Modeline 91:"800x600" 60 40000 800 840 968 1056 600 601 605 628 0x40 0x5
+[    2.369400] [drm:drm_mode_debug_printmodeline] Modeline 104:"720x480" 60 27027 720 736 798 858 480 489 495 525 0x40 0xa
+[    2.370133] [drm:drm_mode_debug_printmodeline] Modeline 96:"720x480" 60 27000 720 736 798 858 480 489 495 525 0x40 0xa
+[    2.370856] [drm:drm_mode_debug_printmodeline] Modeline 101:"640x480" 60 25200 640 656 752 800 480 490 492 525 0x40 0xa
+[    2.371583] [drm:drm_mode_debug_printmodeline] Modeline 92:"640x480" 60 25175 640 656 752 800 480 490 492 525 0x40 0xa
+[    2.372305] [drm:drm_setup_crtcs] connector 65 enabled? no
+[    2.372680] [drm:drm_setup_crtcs] connector 72 enabled? no
+[    2.373055] [drm:drm_setup_crtcs] connector 76 enabled? no
+[    2.373422] [drm:drm_setup_crtcs] connector 81 enabled? yes
+[    2.373648] [drm:intel_fb_initial_config] Not using firmware configuration
+[    2.373923] [drm:drm_setup_crtcs] looking for cmdline mode on connector 81
+[    2.374198] [drm:drm_setup_crtcs] looking for preferred mode on connector 81 0
+[    2.374486] [drm:drm_setup_crtcs] found mode 1920x2160
+[    2.374693] [drm:drm_setup_crtcs] picking CRTCs for 8192x8192 config
+[    2.374949] [drm:drm_setup_crtcs] desired mode 1920x2160 set on crtc 39 (0,0)
+[    2.375235] [drm:drm_mode_object_get] OBJ ID: 81 (2)
+[    2.375436] [drm:intelfb_create] no BIOS fb, allocating a new one
+[    3.179219] [drm:intelfb_create] xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx allocated 1920x2160 fb: 0x00081000 phys 0x           81000
+[    3.179793] i915 0000:00:02.0: fb0: inteldrmfb frame buffer device
+[    3.180047] Created fb0 of 1920 x 2160 at 780 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+[    3.185785] Freeing unused kernel memory: 8416K
+[    3.186411] Write protecting the kernel read-only data: 10240k
+[    3.186821] Freeing unused kernel memory: 2024K
+[    3.188255] Freeing unused kernel memory: 1196K
+[    3.188441] rodata_test: all tests were successful
+[    3.188767] [drm:drm_fb_helper_hotplug_event.part.33] 
+[    3.188980] [drm:drm_setup_crtcs] 
+[    3.189120] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:65:DP-1]
+[    3.189403] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    3.189403] XXXX Forcing connector 0
+[    3.189695] [drm:intel_dp_detect] [CONNECTOR:65:DP-1]
+[    3.190057] [drm:intel_power_well_enable] enabling always-on
+[    3.190287] [drm:intel_power_well_disable] disabling always-on
+[    3.190520] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:65:DP-1] disconnected
+[    3.190849] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:72:HDMI-A-1]
+[    3.191146] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    3.191146] XXXX Forcing connector 0
+[    3.191437] [drm:intel_hdmi_detect] [CONNECTOR:72:HDMI-A-1]
+[    3.191805] [drm:intel_power_well_enable] enabling always-on
+[    3.192208] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0050 w(1)
+[    3.192502] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK on first message, retry
+mount: /etc/mtab: No such file or directory[    3.193060] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0050 w(1)
+[    3.193350] [drm:drm_do_probe_ddc_edid] drm: skipping non-existent adapter i915 gmbus dpc
+[    3.193680] [drm:intel_hdmi_set_edid] HDMI GMBUS EDID read failed, retry using GPIO bit-banging
+[    3.194026] [drm:intel_gmbus_force_bit] enabling bit-banging on i915 gmbus dpc. force bit now 1
+[    3.195004] [drm:drm_do_probe_ddc_edid] drm: skipping non-existent adapter i915 gmbus dpc
+[    3.195330] [drm:intel_gmbus_force_bit] disabling bit-banging on i915 gmbus dpc. force bit now 0
+
+[    3.195829] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0040 w(1)
+[    3.196130] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK on first message, retry
+mount: /etc/mtab: No such file or directory[    3.196637] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0040 w(1)
+[    3.196927] [drm:drm_dp_dual_mode_detect] DP dual mode HDMI ID:  (err -6)
+[    3.197198] [drm:intel_power_well_disable] disabling always-on
+[    3.197437] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:72:HDMI-A-1] disconnected
+[    3.197780] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:76:DP-2]
+[    3.198065] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    3.198065] XXXX Forcing connector 0
+[    3.198357] [drm:intel_dp_detect] [CONNECTOR:76:DP-2]
+[    3.198705] [drm:intel_power_well_enable] enabling always-on
+
+/bin/sh: can't access tty; job control turned off
+/ # [6n[    3.204536] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.210546] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.216846] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.223115] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.229385] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.235690] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.241948] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.248360] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.254756] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.261094] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.267509] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.273888] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.280264] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.286696] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.293046] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.299447] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.305822] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.312226] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.318614] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.325008] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.331398] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.337812] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.344178] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.350264] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.356629] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.362907] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.369304] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.375918] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.382645] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.389283] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.395895] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.402573] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.403191] [drm:drm_dp_dpcd_access] Too many retries, giving up. First error: -110
+[    3.403894] [drm:intel_power_well_disable] disabling always-on
+[    3.404427] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:76:DP-2] disconnected
+[    3.405173] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:81:HDMI-A-2]
+[    3.405846] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    3.405848] XXXX Forcing connector 0
+[    3.406508] [drm:intel_hdmi_detect] [CONNECTOR:81:HDMI-A-2]
+[    3.407341] [drm:intel_power_well_enable] enabling always-on
+[    3.434019] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpd] NAK for addr: 0040 w(1)
+[    3.434381] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpd] NAK on first message, retry
+[    3.434920] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpd] NAK for addr: 0040 w(1)
+[    3.435273] [drm:drm_dp_dual_mode_detect] DP dual mode HDMI ID:  (err -6)
+[    3.435604] [drm:drm_detect_monitor_audio] Monitor has basic audio support
+[    3.435944] [drm:intel_power_well_disable] disabling always-on
+[    3.436230] [drm:drm_add_display_info] non_desktop set to 0
+[    3.436502] [drm:drm_add_display_info] HDMI: DVI dual 0, max TMDS clock 0 kHz
+[    3.436851] [drm:drm_mode_object_put.part.2] OBJ ID: 83 (1)
+[    3.437124] [drm:drm_add_edid_modes] ELD monitor 27MU67
+[    3.437380] [drm:drm_add_edid_modes] HDMI: latency present 0 0, video latency 0 0, audio latency 0 0
+[    3.437821] [drm:drm_add_edid_modes] ELD size 32, SAD count 1
+[    3.438101] [drm:drm_add_display_info] non_desktop set to 0
+[    3.438374] [drm:drm_add_display_info] HDMI: DVI dual 0, max TMDS clock 0 kHz
+[    3.438801] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:81:HDMI-A-2] probed modes :
+[    3.439229] [drm:drm_mode_debug_printmodeline] Modeline 84:"1920x2160" 60 277250 1920 1968 2000 2080 2160 2163 2173 2222 0x48 0xa
+[    3.439791] [drm:drm_mode_debug_printmodeline] Modeline 85:"1920x1080" 60 148500 1920 2008 2052 2200 1080 1084 1089 1125 0x40 0x5
+[    3.440358] [drm:drm_mode_debug_printmodeline] Modeline 98:"1920x1080" 60 148352 1920 2008 2052 2200 1080 1084 1089 1125 0x40 0x5
+[    3.440920] [drm:drm_mode_debug_printmodeline] Modeline 90:"1600x900" 60 108000 1600 1624 1704 1800 900 901 904 1000 0x40 0x5
+[    3.441465] [drm:drm_mode_debug_printmodeline] Modeline 88:"1280x1024" 60 108000 1280 1328 1440 1688 1024 1025 1028 1066 0x40 0x5
+[    3.442026] [drm:drm_mode_debug_printmodeline] Modeline 87:"1152x864" 60 81579 1152 1216 1336 1520 864 865 868 895 0x0 0x6
+[    3.442559] [drm:drm_mode_debug_printmodeline] Modeline 89:"1280x720" 60 74250 1280 1390 1430 1650 720 725 730 750 0x40 0x5
+[    3.443095] [drm:drm_mode_debug_printmodeline] Modeline 100:"1280x720" 60 74176 1280 1390 1430 1650 720 725 730 750 0x40 0x5
+[    3.443606] [drm:drm_mode_debug_printmodeline] Modeline 93:"1024x768" 60 65000 1024 1048 1184 1344 768 771 777 806 0x40 0xa
+[    3.444047] [drm:drm_mode_debug_printmodeline] Modeline 91:"800x600" 60 40000 800 840 968 1056 600 601 605 628 0x40 0x5
+[    3.444475] [drm:drm_mode_debug_printmodeline] Modeline 104:"720x480" 60 27027 720 736 798 858 480 489 495 525 0x40 0xa
+[    3.444902] [drm:drm_mode_debug_printmodeline] Modeline 96:"720x480" 60 27000 720 736 798 858 480 489 495 525 0x40 0xa
+[    3.445326] [drm:drm_mode_debug_printmodeline] Modeline 101:"640x480" 60 25200 640 656 752 800 480 490 492 525 0x40 0xa
+[    3.445755] [drm:drm_mode_debug_printmodeline] Modeline 92:"640x480" 60 25175 640 656 752 800 480 490 492 525 0x40 0xa
+[    3.446179] [drm:drm_setup_crtcs] connector 65 enabled? no
+[    3.446400] [drm:drm_setup_crtcs] connector 72 enabled? no
+[    3.446620] [drm:drm_setup_crtcs] connector 76 enabled? no
+[    3.446841] [drm:drm_setup_crtcs] connector 81 enabled? yes
+[    3.447066] [drm:intel_fb_initial_config] Not using firmware configuration
+[    3.447341] [drm:drm_setup_crtcs] looking for cmdline mode on connector 81
+[    3.447620] [drm:drm_setup_crtcs] looking for preferred mode on connector 81 0
+[    3.447907] [drm:drm_setup_crtcs] found mode 1920x2160
+[    3.448114] [drm:drm_setup_crtcs] picking CRTCs for 1920x2160 config
+[    3.448369] [drm:drm_mode_object_put.part.2] OBJ ID: 81 (3)
+[    3.448593] [drm:drm_setup_crtcs] desired mode 1920x2160 set on crtc 39 (0,0)
+[    3.448879] [drm:drm_mode_object_get] OBJ ID: 81 (2)
+[    3.449080] [drm:drm_atomic_state_init] Allocated atomic state         (ptrval)
+[    3.449371] [drm:drm_atomic_get_plane_state] Added [PLANE:28:primary A]         (ptrval) state to         (ptrval)
+[    3.449782] [drm:drm_atomic_get_plane_state] Added [PLANE:31:sprite A]         (ptrval) state to         (ptrval)
+[    3.450192] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.450530] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.450856] [drm:drm_atomic_get_plane_state] Added [PLANE:36:cursor A]         (ptrval) state to         (ptrval)
+[    3.451263] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.451606] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.451931] [drm:drm_atomic_get_plane_state] Added [PLANE:40:primary B]         (ptrval) state to         (ptrval)
+[    3.452341] [drm:drm_atomic_get_plane_state] Added [PLANE:43:sprite B]         (ptrval) state to         (ptrval)
+[    3.452747] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.453085] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.453413] [drm:drm_atomic_get_plane_state] Added [PLANE:48:cursor B]         (ptrval) state to         (ptrval)
+[    3.453820] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.454158] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.454484] [drm:drm_atomic_get_plane_state] Added [PLANE:52:primary C]         (ptrval) state to         (ptrval)
+[    3.454894] [drm:drm_atomic_get_plane_state] Added [PLANE:55:sprite C]         (ptrval) state to         (ptrval)
+[    3.455301] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.455639] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.455965] [drm:drm_atomic_get_plane_state] Added [PLANE:60:cursor C]         (ptrval) state to         (ptrval)
+[    3.456372] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.456710] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.457037] [drm:drm_atomic_get_crtc_state] Added [CRTC:39:pipe A]         (ptrval) state to         (ptrval)
+[    3.457430] [drm:drm_atomic_set_mode_for_crtc] Set [MODE:1920x2160] for CRTC state         (ptrval)
+[    3.457790] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [CRTC:39:pipe A]
+[    3.458156] [drm:drm_atomic_set_fb_for_plane] Set [FB:94] for plane state         (ptrval)
+[    3.458485] [drm:drm_mode_object_get] OBJ ID: 94 (1)
+[    3.458685] [drm:drm_atomic_add_affected_connectors] Adding all current connectors for [CRTC:39:pipe A] to         (ptrval)
+[    3.459127] [drm:drm_mode_object_get] OBJ ID: 81 (3)
+[    3.459327] [drm:drm_atomic_get_connector_state] Added [CONNECTOR:81:HDMI-A-2]         (ptrval) state to         (ptrval)
+[    3.459761] [drm:drm_mode_object_get] OBJ ID: 81 (4)
+[    3.459962] [drm:drm_atomic_set_crtc_for_connector] Link connector state         (ptrval) to [CRTC:39:pipe A]
+[    3.460357] [drm:drm_atomic_get_crtc_state] Added [CRTC:51:pipe B]         (ptrval) state to         (ptrval)
+[    3.460752] [drm:drm_atomic_set_mode_for_crtc] Set [NOMODE] for CRTC state         (ptrval)
+[    3.461084] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.461424] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.461750] [drm:drm_atomic_add_affected_connectors] Adding all current connectors for [CRTC:51:pipe B] to         (ptrval)
+[    3.462192] [drm:drm_atomic_get_crtc_state] Added [CRTC:63:pipe C]         (ptrval) state to         (ptrval)
+[    3.462585] [drm:drm_atomic_set_mode_for_crtc] Set [NOMODE] for CRTC state         (ptrval)
+[    3.462918] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.463256] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.463585] [drm:drm_atomic_add_affected_connectors] Adding all current connectors for [CRTC:63:pipe C] to         (ptrval)
+[    3.464030] [drm:drm_atomic_check_only] checking         (ptrval)
+[    3.464275] [drm:drm_atomic_helper_check_modeset] [CRTC:39:pipe A] mode changed
+[    3.464566] [drm:drm_atomic_helper_check_modeset] [CRTC:39:pipe A] enable changed
+[    3.464864] [drm:drm_atomic_helper_check_modeset] [CRTC:39:pipe A] active changed
+[    3.465163] [drm:drm_atomic_helper_check_modeset] Updating routing for [CONNECTOR:81:HDMI-A-2]
+[    3.465506] [drm:drm_atomic_helper_check_modeset] [CONNECTOR:81:HDMI-A-2] using [ENCODER:75:DDI D] on [CRTC:39:pipe A]
+[    3.465932] [drm:drm_atomic_helper_check_modeset] [CRTC:39:pipe A] needs all connectors, enable: y, active: y
+[    3.466325] [drm:drm_atomic_add_affected_connectors] Adding all current connectors for [CRTC:39:pipe A] to         (ptrval)
+[    3.466767] [drm:intel_atomic_check] [CONNECTOR:81:HDMI-A-2] checking for sink bpp constrains
+[    3.467106] [drm:intel_atomic_check] clamping display bpp (was 36) to EDID reported max of 24
+[    3.467451] [drm:intel_hdmi_compute_config] picking bpc to 8 for HDMI output
+[    3.467732] [drm:intel_hdmi_compute_config] forcing pipe bpp to 24 for HDMI
+[    3.468011] [drm:intel_atomic_check] hw max bpp: 36, pipe bpp: 24, dithering: 0
+[    3.468302] [drm:intel_dump_pipe_config] [CRTC:39:pipe A][modeset]
+[    3.468549] [drm:intel_dump_pipe_config] output_types: HDMI (0x40)
+[    3.468796] [drm:intel_dump_pipe_config] cpu_transcoder: A, pipe bpp: 24, dithering: 0
+[    3.469111] [drm:intel_dump_pipe_config] audio: 1, infoframes: 1
+[    3.469351] [drm:intel_dump_pipe_config] requested mode:
+[    3.469565] [drm:drm_mode_debug_printmodeline] Modeline 0:"1920x2160" 60 277250 1920 1968 2000 2080 2160 2163 2173 2222 0x48 0xa
+[    3.470026] [drm:intel_dump_pipe_config] adjusted mode:
+[    3.470237] [drm:drm_mode_debug_printmodeline] Modeline 0:"1920x2160" 60 277250 1920 1968 2000 2080 2160 2163 2173 2222 0x48 0xa
+[    3.470695] [drm:intel_dump_pipe_config] crtc timings: 277250 1920 1968 2000 2080 2160 2163 2173 2222, type: 0x48 flags: 0xa
+[    3.471139] [drm:intel_dump_pipe_config] port clock: 277250, pipe src size: 1920x2160, pixel rate 277250
+[    3.471515] [drm:intel_dump_pipe_config] pch pfit: pos: 0x00000000, size: 0x00000000, disabled
+[    3.471857] [drm:intel_dump_pipe_config] ips: 0, double wide: 0
+[    3.472094] [drm:hsw_dump_hw_state] dpll_hw_state: wrpll: 0x0 spll: 0x0
+[    3.472358] [drm:intel_dump_pipe_config] planes on this crtc
+[    3.472585] [drm:intel_dump_pipe_config] [PLANE:28:primary A] disabled, scaler_id = 0
+[    3.472896] [drm:intel_dump_pipe_config] [PLANE:31:sprite A] disabled, scaler_id = 0
+[    3.473204] [drm:intel_dump_pipe_config] [PLANE:36:cursor A] disabled, scaler_id = 0
+[    3.473518] [drm:intel_plane_atomic_calc_changes] [CRTC:39:pipe A] has [PLANE:28:primary A] with fb 94
+[    3.473889] [drm:intel_plane_atomic_calc_changes] [PLANE:28:primary A] visible 0 -> 1, off 0, on 1, ms 1
+[    3.474839] [drm:intel_find_shared_dpll] [CRTC:39:pipe A] allocated WRPLL 1
+[    3.475117] [drm:intel_reference_shared_dpll] using WRPLL 1 for pipe A
+[    3.475379] [drm:drm_atomic_commit] committing         (ptrval)
+[    3.475621] [drm:intel_power_well_enable] enabling always-on
+[    3.475849] [drm:intel_power_well_enable] enabling display
+[    3.476074] [drm:drm_calc_timestamping_constants] crtc 39: hwmode: htotal 2080, vtotal 2222, vdisplay 2160
+[    3.476457] [drm:drm_calc_timestamping_constants] crtc 39: clock 277250 kHz framedur 16670009 linedur 7502
+[    3.476840] [drm:intel_atomic_commit_tail] [ENCODER:64:DDI C]
+[    3.477071] [drm:intel_atomic_commit_tail] [ENCODER:66:DP-MST A]
+[    3.477311] [drm:intel_atomic_commit_tail] [ENCODER:67:DP-MST B]
+[    3.477552] [drm:intel_atomic_commit_tail] [ENCODER:68:DP-MST C]
+[    3.477792] [drm:intel_atomic_commit_tail] [ENCODER:75:DDI D]
+[    3.478022] [drm:intel_atomic_commit_tail] [ENCODER:77:DP-MST A]
+[    3.478263] [drm:intel_atomic_commit_tail] [ENCODER:78:DP-MST B]
+[    3.478503] [drm:intel_atomic_commit_tail] [ENCODER:79:DP-MST C]
+[    3.478744] [drm:verify_single_dpll_state.isra.125] WRPLL 1
+[    3.478967] [drm:verify_single_dpll_state.isra.125] WRPLL 2
+[    3.479189] [drm:verify_single_dpll_state.isra.125] SPLL
+[    3.479402] [drm:verify_single_dpll_state.isra.125] LCPLL 810
+[    3.479631] [drm:verify_single_dpll_state.isra.125] LCPLL 1350
+[    3.479864] [drm:verify_single_dpll_state.isra.125] LCPLL 2700
+[    3.480101] [drm:intel_enable_shared_dpll] enable WRPLL 1 (active 1, on? 0) for crtc 39
+[    3.480422] [drm:intel_enable_shared_dpll] enabling WRPLL 1
+[    3.480716] [drm:intel_enable_pipe] enabling pipe A
+[    3.480916] [drm:drm_crtc_vblank_on] crtc 0, vblank enabled 0, inmodeset 1
+[    3.481521] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0: Noisy timestamp 109 us > 20 us [3 reps].
+[    3.481898] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,2)@ 3.481520 -> 3.481505 [e 109 us, 3 rep]
+[    3.482307] [drm:intel_fbc_enable] reserved 31457280 bytes of contiguous stolen space for FBC, threshold: 1
+[    3.482694] [drm:intel_fbc_enable] Enabling FBC on pipe A
+[    3.482912] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,16)@ 3.482910 -> 3.482790 [e 0 us, 0 rep]
+[    3.483315] [drm:drm_vblank_restore] missed 0 vblanks in 1285623 ns, frame duration=16670009 ns, hw_diff=1
+[    3.483702] [drm:drm_vblank_enable] enabling vblank on crtc 0, ret: 0
+[    3.483960] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,156)@ 3.483959 -> 3.482788 [e 0 us, 0 rep]
+[    3.484367] [drm:drm_update_vblank_count] updating vblank count on crtc 0: current=1, diff=0, hw=1 hw_last=1
+[    3.484759] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,263)@ 3.484758 -> 3.482785 [e 0 us, 0 rep]
+[    3.485167] [drm:drm_update_vblank_count] updating vblank count on crtc 0: current=1, diff=0, hw=1 hw_last=1
+[    3.499005] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,-59)@ 3.499002 -> 3.499444 [e 0 us, 0 rep]
+[    3.499672] [drm:drm_update_vblank_count] updating vblank count on crtc 0: current=1, diff=1, hw=2 hw_last=1
+[    3.500304] [drm:drm_handle_vblank] vblank event on 2, current 2
+[    3.500709] [drm:verify_connector_state.isra.124] [CONNECTOR:81:HDMI-A-2]
+[    3.501148] ------------[ cut here ]------------
+[    3.501448] attached crtc is active, but connector isn't
+[    3.501799] WARNING: CPU: 0 PID: 18 at drivers/gpu/drm/i915/intel_display.c:6120 verify_connector_state.isra.124+0x254/0x280
+[    3.502520] CPU: 0 PID: 18 Comm: kworker/0:1 Tainted: G     U  W         4.17.2-at+ #172
+[    3.503043] Workqueue: events output_poll_execute
+[    3.503352] RIP: 0010:verify_connector_state.isra.124+0x254/0x280
+[    3.503752] RSP: 0018:ffff8800001d3bb8 EFLAGS: 00010296
+[    3.504093] RAX: 000000000000002c RBX: 0000000000000003 RCX: 0000000000000000
+[    3.504555] RDX: ffffffff81a3bf08 RSI: 0000000000000001 RDI: ffffffff81a3bf00
+[    3.505016] RBP: ffff8800001d3bf0 R08: 0000000000000398 R09: 0000000000000009
+[    3.505478] R10: ffff880000c01800 R11: ffffffff822ae94d R12: ffff8800001feb80
+[    3.505939] R13: ffff880000e43400 R14: ffff8800001f3800 R15: ffff880000c00800
+[    3.506401] FS:  0000000000000000(0000) GS:ffffffff81a31000(0000) knlGS:0000000000000000
+[    3.506924] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    3.507298] CR2: 0000000000a96dc8 CR3: 0000000002a12002 CR4: 00000000001606b0
+[    3.507761] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    3.508223] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    3.508684] Call Trace:
+[    3.508850]  intel_atomic_commit_tail+0x3ca/0xbe0
+[    3.509158]  intel_atomic_commit+0x20d/0x2e0
+[    3.509439]  drm_atomic_commit+0x3f/0x50
+[    3.509698]  restore_fbdev_mode_atomic+0x187/0x1e0
+[    3.510014]  restore_fbdev_mode+0x2c/0x140
+[    3.510282]  drm_fb_helper_restore_fbdev_mode_unlocked+0x49/0xa0
+[    3.510671]  drm_fb_helper_set_par+0x28/0x50
+[    3.510950]  drm_fb_helper_hotplug_event.part.33+0xa2/0xb0
+[    3.511305]  drm_fb_helper_hotplug_event+0x1a/0x20
+[    3.511617]  intel_fbdev_output_poll_changed+0x2f/0x60
+[    3.511950]  drm_kms_helper_hotplug_event+0x22/0x30
+[    3.512267]  output_poll_execute+0x89/0x190
+[    3.512541]  process_one_work+0x1a5/0x330
+[    3.512803]  worker_thread+0x43/0x410
+[    3.513044]  ? process_one_work+0x330/0x330
+[    3.513318]  kthread+0x10c/0x130
+[    3.513498]  ? __kthread_create_worker+0x100/0x100
+[    3.513717]  ret_from_fork+0x1f/0x30
+[    3.513880] Code: 89 55 c8 48 c7 c7 80 1b 8c 81 75 36 e8 86 2e fa ff 48 8b 55 c8 e9 a4 fe ff ff e8 e8 d2 de ff 0f 0b e9 d7 fd ff ff e8 dc d2 de ff <0f> 0b e9 9b fe ff ff e8 d0 d2 de ff 0f 0b 48 8b 55 c8 e9 63 fe 
+[    3.514734] ---[ end trace c0da9b7b6ea503f4 ]---
+[    3.514948] [drm:intel_atomic_commit_tail] [CRTC:39:pipe A]
+[    3.515201] ------------[ cut here ]------------
+[    3.515411] crtc active state doesn't match with hw state (expected 1, found 0)
+[    3.515747] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,-47)@ 3.515745 -> 3.516097 [e 0 us, 0 rep]
+[    3.515748] [drm:drm_update_vblank_count] updating vblank count on crtc 0: current=2, diff=1, hw=3 hw_last=2
+[    3.515749] [drm:vblank_disable_fn] disabling vblank on crtc 0
+[    3.515751] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,-47)@ 3.515750 -> 3.516102 [e 0 us, 0 rep]
+[    3.515752] [drm:drm_update_vblank_count] updating vblank count on crtc 0: current=3, diff=0, hw=3 hw_last=3
+[    3.517820] WARNING: CPU: 0 PID: 18 at drivers/gpu/drm/i915/intel_display.c:11526 intel_atomic_commit_tail+0xb9d/0xbe0
+[    3.518300] CPU: 0 PID: 18 Comm: kworker/0:1 Tainted: G     U  W         4.17.2-at+ #172
+[    3.518664] Workqueue: events output_poll_execute
+[    3.518879] RIP: 0010:intel_atomic_commit_tail+0xb9d/0xbe0
+[    3.519127] RSP: 0018:ffff8800001d3c00 EFLAGS: 00010286
+[    3.519364] RAX: 0000000000000043 RBX: ffff880000e43400 RCX: 0000000000000000
+[    3.519685] RDX: ffffffff81a3bf08 RSI: 0000000000000001 RDI: ffffffff81a3bf00
+[    3.520007] RBP: ffff8800001d3c80 R08: 00000000000003c4 R09: 0000000000000009
+[    3.520326] R10: ffff880000c01800 R11: ffffffff822ae94d R12: ffff8800001f3800
+[    3.520646] R13: ffff8800001f3000 R14: ffff880000c01800 R15: ffff8800001e0000
+[    3.520965] FS:  0000000000000000(0000) GS:ffffffff81a31000(0000) knlGS:0000000000000000
+[    3.521326] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    3.521585] CR2: 0000000000a96dc8 CR3: 0000000002a12002 CR4: 00000000001606b0
+[    3.521905] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    3.522224] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    3.522544] Call Trace:
+[    3.522658]  intel_atomic_commit+0x20d/0x2e0
+[    3.522852]  drm_atomic_commit+0x3f/0x50
+[    3.523031]  restore_fbdev_mode_atomic+0x187/0x1e0
+[    3.523248]  restore_fbdev_mode+0x2c/0x140
+[    3.523438]  drm_fb_helper_restore_fbdev_mode_unlocked+0x49/0xa0
+[    3.523709]  drm_fb_helper_set_par+0x28/0x50
+[    3.523904]  drm_fb_helper_hotplug_event.part.33+0xa2/0xb0
+[    3.524152]  drm_fb_helper_hotplug_event+0x1a/0x20
+[    3.524369]  intel_fbdev_output_poll_changed+0x2f/0x60
+[    3.524602]  drm_kms_helper_hotplug_event+0x22/0x30
+[    3.524823]  output_poll_execute+0x89/0x190
+[    3.525014]  process_one_work+0x1a5/0x330
+[    3.525197]  worker_thread+0x43/0x410
+[    3.525365]  ? process_one_work+0x330/0x330
+[    3.525555]  kthread+0x10c/0x130
+[    3.525704]  ? __kthread_create_worker+0x100/0x100
+[    3.525921]  ret_from_fork+0x1f/0x30
+[    3.526084] Code: ff e8 08 39 de ff 0f 0b 44 0f b6 45 a0 0f b6 55 a8 e9 74 fd ff ff e8 f3 38 de ff 0f 0b 49 8b 46 50 e9 f4 fd ff ff e8 e3 38 de ff <0f> 0b 41 0f b6 4e 09 e9 8d f8 ff ff e8 d2 38 de ff 0f 0b e9 92 
+[    3.526930] ---[ end trace c0da9b7b6ea503f5 ]---
+[    3.527143] ------------[ cut here ]------------
+[    3.527353] [ENCODER:75] active 0 with crtc active 1
+[    3.527582] WARNING: CPU: 0 PID: 18 at drivers/gpu/drm/i915/intel_display.c:11538 intel_atomic_commit_tail+0xb68/0xbe0
+[    3.528061] CPU: 0 PID: 18 Comm: kworker/0:1 Tainted: G     U  W         4.17.2-at+ #172
+[    3.528424] Workqueue: events output_poll_execute
+[    3.528639] RIP: 0010:intel_atomic_commit_tail+0xb68/0xbe0
+[    3.528887] RSP: 0018:ffff8800001d3c00 EFLAGS: 00010286
+[    3.529124] RAX: 0000000000000028 RBX: ffff8800001fd000 RCX: 0000000000000000
+[    3.529445] RDX: ffffffff81a3bf08 RSI: 0000000000000001 RDI: ffffffff81a3bf00
+[    3.529765] RBP: ffff8800001d3c80 R08: 00000000000003e9 R09: 0000000000000009
+[    3.530086] R10: ffff880000c01800 R11: ffffffff822ae94d R12: ffff8800001f3800
+[    3.530408] R13: ffff8800001f3000 R14: ffff880000c01800 R15: ffff8800001e0000
+[    3.530733] FS:  0000000000000000(0000) GS:ffffffff81a31000(0000) knlGS:0000000000000000
+[    3.531094] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    3.531353] CR2: 0000000000a96dc8 CR3: 0000000002a12002 CR4: 00000000001606b0
+[    3.531672] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    3.531991] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    3.532309] Call Trace:
+[    3.532423]  intel_atomic_commit+0x20d/0x2e0
+[    3.532617]  drm_atomic_commit+0x3f/0x50
+[    3.532796]  restore_fbdev_mode_atomic+0x187/0x1e0
+[    3.533012]  restore_fbdev_mode+0x2c/0x140
+[    3.533199]  drm_fb_helper_restore_fbdev_mode_unlocked+0x49/0xa0
+[    3.533474]  drm_fb_helper_set_par+0x28/0x50
+[    3.533646]  drm_fb_helper_hotplug_event.part.33+0xa2/0xb0
+[    3.533865]  drm_fb_helper_hotplug_event+0x1a/0x20
+[    3.534057]  intel_fbdev_output_poll_changed+0x2f/0x60
+[    3.534262]  drm_kms_helper_hotplug_event+0x22/0x30
+[    3.534457]  output_poll_execute+0x89/0x190
+[    3.534625]  process_one_work+0x1a5/0x330
+[    3.534787]  worker_thread+0x43/0x410
+[    3.534935]  ? process_one_work+0x330/0x330
+[    3.535103]  kthread+0x10c/0x130
+[    3.535234]  ? __kthread_create_worker+0x100/0x100
+[    3.535426]  ret_from_fork+0x1f/0x30
+[    3.535571] Code: b7 80 00 00 8d 71 41 48 c7 c7 98 2f 8c 81 75 74 e8 be 94 f9 ff e9 11 fa ff ff e8 24 39 de ff 0f 0b e9 4c f9 ff ff e8 18 39 de ff <0f> 0b 0f b6 45 90 e9 0f f9 ff ff e8 08 39 de ff 0f 0b 44 0f b6 
+[    3.536318] ---[ end trace c0da9b7b6ea503f6 ]---
+[    3.536507] [drm:pipe_config_err] *ERROR* mismatch in lane_count (expected 4, found 0)
+[    3.536823] [drm:pipe_config_err] *ERROR* mismatch in output_types (expected 0x00000040, found 0x00000000)
+[    3.537207] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_hdisplay (expected 1920, found 0)
+[    3.537607] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_htotal (expected 2080, found 0)
+[    3.538000] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_hblank_start (expected 1920, found 0)
+[    3.538414] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_hblank_end (expected 2080, found 0)
+[    3.538820] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_hsync_start (expected 1968, found 0)
+[    3.539230] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_hsync_end (expected 2000, found 0)
+[    3.539633] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_vdisplay (expected 2160, found 0)
+[    3.540035] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_vtotal (expected 2222, found 0)
+[    3.540429] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_vblank_start (expected 2160, found 0)
+[    3.540841] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_vblank_end (expected 2222, found 0)
+[    3.541247] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_vsync_start (expected 2163, found 0)
+[    3.541658] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_vsync_end (expected 2173, found 0)
+[    3.542061] [drm:pipe_config_err] *ERROR* mismatch in pixel_multiplier (expected 1, found 0)
+[    3.542397] [drm:pipe_config_err] *ERROR* mismatch in has_hdmi_sink (expected yes, found no)
+[    3.542732] [drm:pipe_config_err] *ERROR* mismatch in has_infoframe (expected yes, found no)
+[    3.543068] [drm:pipe_config_err] *ERROR* mismatch in has_audio (expected yes, found no)
+[    3.543392] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.flags (2) (expected 2, found 0)
+[    3.543769] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.flags (8) (expected 8, found 0)
+[    3.544146] [drm:pipe_config_err] *ERROR* mismatch in pipe_src_w (expected 1920, found 0)
+[    3.544472] [drm:pipe_config_err] *ERROR* mismatch in pipe_src_h (expected 2160, found 0)
+[    3.544800] [drm:pipe_config_err] *ERROR* mismatch in pixel_rate (expected 277250, found 0)
+[    3.545132] [drm:pipe_config_err] *ERROR* mismatch in shared_dpll (expected         (ptrval), found           (null))
+[    3.545554] [drm:pipe_config_err] *ERROR* mismatch in dpll_hw_state.wrpll (expected 0xb0250224, found 0x00000000)
+[    3.545961] [drm:pipe_config_err] *ERROR* mismatch in pipe_bpp (expected 24, found 0)
+[    3.546273] [drm:pipe_config_err] *ERROR* mismatch in base.adjusted_mode.crtc_clock (expected 277250, found 0)
+[    3.546670] [drm:pipe_config_err] *ERROR* mismatch in port_clock (expected 277250, found 0)
+[    3.547003] [drm:intel_dump_pipe_config] [CRTC:39:pipe A][hw state]
+[    3.547253] [drm:intel_dump_pipe_config] output_types:  (0x0)
+[    3.547488] [drm:intel_dump_pipe_config] cpu_transcoder: A, pipe bpp: 0, dithering: 0
+[    3.547800] [drm:intel_dump_pipe_config] audio: 0, infoframes: 0
+[    3.548040] [drm:intel_dump_pipe_config] requested mode:
+[    3.548254] [drm:drm_mode_debug_printmodeline] Modeline 0:"" 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+[    3.548576] [drm:intel_dump_pipe_config] adjusted mode:
+[    3.548787] [drm:drm_mode_debug_printmodeline] Modeline 0:"" 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+[    3.549109] [drm:intel_dump_pipe_config] crtc timings: 0 0 0 0 0 0 0 0 0, type: 0x0 flags: 0x0
+[    3.549452] [drm:intel_dump_pipe_config] port clock: 0, pipe src size: 0x0, pixel rate 0
+[    3.549775] [drm:intel_dump_pipe_config] pch pfit: pos: 0x00000000, size: 0x00000000, disabled
+[    3.550120] [drm:intel_dump_pipe_config] ips: 0, double wide: 0
+[    3.550359] [drm:hsw_dump_hw_state] dpll_hw_state: wrpll: 0x0 spll: 0x0
+[    3.550623] [drm:intel_dump_pipe_config] planes on this crtc
+[    3.550851] [drm:intel_dump_pipe_config] [PLANE:28:primary A] FB:94, fb = 1920x2160 format = XR24 little-endian (0x34325258)
+[    3.551296] [drm:intel_dump_pipe_config] [PLANE:31:sprite A] disabled, scaler_id = 0
+[    3.551604] [drm:intel_dump_pipe_config] [PLANE:36:cursor A] disabled, scaler_id = 0
+[    3.551913] [drm:intel_dump_pipe_config] [CRTC:39:pipe A][sw state]
+[    3.552164] [drm:intel_dump_pipe_config] output_types: HDMI (0x40)
+[    3.552411] [drm:intel_dump_pipe_config] cpu_transcoder: A, pipe bpp: 24, dithering: 0
+[    3.552727] [drm:intel_dump_pipe_config] audio: 1, infoframes: 1
+[    3.552967] [drm:intel_dump_pipe_config] requested mode:
+[    3.553181] [drm:drm_mode_debug_printmodeline] Modeline 0:"1920x2160" 60 277250 1920 1968 2000 2080 2160 2163 2173 2222 0x48 0xa
+[    3.553643] [drm:intel_dump_pipe_config] adjusted mode:
+[    3.553854] [drm:drm_mode_debug_printmodeline] Modeline 0:"1920x2160" 60 277250 1920 1968 2000 2080 2160 2163 2173 2222 0x48 0xa
+[    3.554313] [drm:intel_dump_pipe_config] crtc timings: 277250 1920 1968 2000 2080 2160 2163 2173 2222, type: 0x48 flags: 0xa
+[    3.554757] [drm:intel_dump_pipe_config] port clock: 277250, pipe src size: 1920x2160, pixel rate 277250
+[    3.555134] [drm:intel_dump_pipe_config] pch pfit: pos: 0x00000000, size: 0x00000000, disabled
+[    3.555476] [drm:intel_dump_pipe_config] ips: 0, double wide: 0
+[    3.555714] [drm:hsw_dump_hw_state] dpll_hw_state: wrpll: 0xb0250224 spll: 0x0
+[    3.556002] [drm:intel_dump_pipe_config] planes on this crtc
+[    3.556230] [drm:intel_dump_pipe_config] [PLANE:28:primary A] FB:94, fb = 1920x2160 format = XR24 little-endian (0x34325258)
+[    3.556675] [drm:intel_dump_pipe_config] [PLANE:31:sprite A] disabled, scaler_id = 0
+[    3.556984] [drm:intel_dump_pipe_config] [PLANE:36:cursor A] disabled, scaler_id = 0
+[    3.557293] [drm:verify_single_dpll_state.isra.125] WRPLL 1
+[    3.557516] ------------[ cut here ]------------
+[    3.557702] pll on state mismatch (expected 1, found 0)
+[    3.557915] WARNING: CPU: 0 PID: 18 at drivers/gpu/drm/i915/intel_display.c:11601 verify_single_dpll_state.isra.125+0x202/0x290
+[    3.558370] CPU: 0 PID: 18 Comm: kworker/0:1 Tainted: G     U  W         4.17.2-at+ #172
+[    3.558692] Workqueue: events output_poll_execute
+[    3.558882] RIP: 0010:verify_single_dpll_state.isra.125+0x202/0x290
+[    3.559134] RSP: 0018:ffff8800001d3b68 EFLAGS: 00010292
+[    3.559344] RAX: 000000000000002b RBX: ffff8800001e5148 RCX: 0000000000000000
+[    3.559629] RDX: ffffffff81a3bf08 RSI: 0000000000000001 RDI: ffffffff81a3bf00
+[    3.559915] RBP: ffff8800001d3bf0 R08: 000000000000044d R09: 0000000000000009
+[    3.560199] R10: 0000000000000058 R11: ffffffff822ae94d R12: ffff8800001d3b74
+[    3.560482] R13: ffff8800001e0000 R14: ffff880000c01809 R15: ffff8800001f3800
+[    3.560766] FS:  0000000000000000(0000) GS:ffffffff81a31000(0000) knlGS:0000000000000000
+[    3.561086] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    3.561316] CR2: 0000000000a96dc8 CR3: 0000000002a12002 CR4: 00000000001606b0
+[    3.561599] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    3.561882] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    3.562165] Call Trace:
+[    3.562266]  intel_atomic_commit_tail+0x538/0xbe0
+[    3.562455]  intel_atomic_commit+0x20d/0x2e0
+[    3.562627]  drm_atomic_commit+0x3f/0x50
+[    3.562786]  restore_fbdev_mode_atomic+0x187/0x1e0
+[    3.562978]  restore_fbdev_mode+0x2c/0x140
+[    3.563144]  drm_fb_helper_restore_fbdev_mode_unlocked+0x49/0xa0
+[    3.563386]  drm_fb_helper_set_par+0x28/0x50
+[    3.563558]  drm_fb_helper_hotplug_event.part.33+0xa2/0xb0
+[    3.563777]  drm_fb_helper_hotplug_event+0x1a/0x20
+[    3.563969]  intel_fbdev_output_poll_changed+0x2f/0x60
+[    3.564181]  drm_kms_helper_hotplug_event+0x22/0x30
+[    3.564377]  output_poll_execute+0x89/0x190
+[    3.564546]  process_one_work+0x1a5/0x330
+[    3.564709]  worker_thread+0x43/0x410
+[    3.564857]  ? process_one_work+0x330/0x330
+[    3.565026]  kthread+0x10c/0x130
+[    3.565158]  ? __kthread_create_worker+0x100/0x100
+[    3.565350]  ret_from_fork+0x1f/0x30
+[    3.565495] Code: 65 2c fa ff e9 d5 fe ff ff 80 3d 32 4f 81 00 00 44 89 ee 48 c7 c7 c8 1d 8c 81 75 3b e8 48 2c fa ff e9 f2 fe ff ff e8 ae d0 de ff <0f> 0b e9 ac fe ff ff 80 3d 09 4f 81 00 00 8d 71 41 89 c2 48 c7 
+[    3.566245] ---[ end trace c0da9b7b6ea503f7 ]---
+[    3.566434] ------------[ cut here ]------------
+[    3.566620] pll hw state mismatch
+[    3.566758] WARNING: CPU: 0 PID: 18 at drivers/gpu/drm/i915/intel_display.c:11630 verify_single_dpll_state.isra.125+0x23f/0x290
+[    3.567214] CPU: 0 PID: 18 Comm: kworker/0:1 Tainted: G     U  W         4.17.2-at+ #172
+[    3.567538] Workqueue: events output_poll_execute
+[    3.567728] RIP: 0010:verify_single_dpll_state.isra.125+0x23f/0x290
+[    3.567979] RSP: 0018:ffff8800001d3b68 EFLAGS: 00010292
+[    3.568208] RAX: 0000000000000015 RBX: ffff8800001e5148 RCX: 0000000000000000
+[    3.568492] RDX: ffffffff81a3bf08 RSI: 0000000000000001 RDI: ffffffff81a3bf00
+[    3.568776] RBP: ffff8800001d3bf0 R08: 0000000000000473 R09: 0000000000000009
+[    3.569060] R10: 0000000000000058 R11: ffffffff822ae94d R12: ffff8800001d3b74
+[    3.569343] R13: 0000000000000001 R14: ffff880000c01809 R15: ffff8800001f3800
+[    3.569627] FS:  0000000000000000(0000) GS:ffffffff81a31000(0000) knlGS:0000000000000000
+[    3.569948] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    3.570178] CR2: 0000000000a96dc8 CR3: 0000000002a12002 CR4: 00000000001606b0
+[    3.570460] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    3.570741] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    3.571023] Call Trace:
+[    3.571123]  intel_atomic_commit_tail+0x538/0xbe0
+[    3.571312]  intel_atomic_commit+0x20d/0x2e0
+[    3.571483]  drm_atomic_commit+0x3f/0x50
+[    3.571641]  restore_fbdev_mode_atomic+0x187/0x1e0
+[    3.571833]  restore_fbdev_mode+0x2c/0x140
+[    3.571998]  drm_fb_helper_restore_fbdev_mode_unlocked+0x49/0xa0
+[    3.572236]  drm_fb_helper_set_par+0x28/0x50
+[    3.572408]  drm_fb_helper_hotplug_event.part.33+0xa2/0xb0
+[    3.572626]  drm_fb_helper_hotplug_event+0x1a/0x20
+[    3.572818]  intel_fbdev_output_poll_changed+0x2f/0x60
+[    3.573023]  drm_kms_helper_hotplug_event+0x22/0x30
+[    3.573218]  output_poll_execute+0x89/0x190
+[    3.573395]  process_one_work+0x1a5/0x330
+[    3.573557]  worker_thread+0x43/0x410
+[    3.573706]  ? process_one_work+0x330/0x330
+[    3.573874]  kthread+0x10c/0x130
+[    3.574005]  ? __kthread_create_worker+0x100/0x100
+[    3.574198]  ret_from_fork+0x1f/0x30
+[    3.574342] Code: c2 48 c7 c7 80 1d 8c 81 0f 84 2d ff ff ff e8 89 d0 de ff 0f 0b e9 b6 fe ff ff e8 7d d0 de ff 0f 0b e9 b5 fe ff ff e8 71 d0 de ff <0f> 0b e9 dd fe ff ff e8 65 d0 de ff 0f 0b 0f b6 85 7f ff ff ff 
+[    3.575091] ---[ end trace c0da9b7b6ea503f8 ]---
+[    3.575286] ------------[ cut here ]------------
+[    3.575473] primary A assertion failure (expected on, current off)
+[    3.575724] WARNING: CPU: 0 PID: 18 at drivers/gpu/drm/i915/intel_display.c:1230 assert_plane+0x84/0x90
+[    3.576098] CPU: 0 PID: 18 Comm: kworker/0:1 Tainted: G     U  W         4.17.2-at+ #172
+[    3.576420] Workqueue: events output_poll_execute
+[    3.576610] RIP: 0010:assert_plane+0x84/0x90
+[    3.576782] RSP: 0018:ffff8800001d3be0 EFLAGS: 00010286
+[    3.576992] RAX: 0000000000000036 RBX: ffff8800001c3400 RCX: 0000000000000000
+[    3.577276] RDX: ffffffff81a3bf08 RSI: 0000000000000001 RDI: ffffffff81a3bf00
+[    3.577561] RBP: ffff8800001d3bf0 R08: 0000000000000499 R09: 0000000000000009
+[    3.577845] R10: 0000000000000058 R11: ffffffff822ae94d R12: 0000000000000001
+[    3.578130] R13: ffff8800001f7000 R14: ffff880000e4d800 R15: 0000000000000000
+[    3.578414] FS:  0000000000000000(0000) GS:ffffffff81a31000(0000) knlGS:0000000000000000
+[    3.578736] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    3.578967] CR2: 0000000000a96dc8 CR3: 0000000002a12002 CR4: 00000000001606b0
+[    3.579252] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    3.579537] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    3.579821] Call Trace:
+[    3.579922]  intel_atomic_commit_tail+0x835/0xbe0
+[    3.580113]  intel_atomic_commit+0x20d/0x2e0
+[    3.580284]  drm_atomic_commit+0x3f/0x50
+[    3.580443]  restore_fbdev_mode_atomic+0x187/0x1e0
+[    3.580635]  restore_fbdev_mode+0x2c/0x140
+[    3.580810]  drm_fb_helper_restore_fbdev_mode_unlocked+0x49/0xa0
+[    3.581050]  drm_fb_helper_set_par+0x28/0x50
+[    3.581222]  drm_fb_helper_hotplug_event.part.33+0xa2/0xb0
+[    3.581441]  drm_fb_helper_hotplug_event+0x1a/0x20
+[    3.581633]  intel_fbdev_output_poll_changed+0x2f/0x60
+[    3.581838]  drm_kms_helper_hotplug_event+0x22/0x30
+[    3.582034]  output_poll_execute+0x89/0x190
+[    3.582203]  process_one_work+0x1a5/0x330
+[    3.582365]  worker_thread+0x43/0x410
+[    3.582513]  ? process_one_work+0x330/0x330
+[    3.582681]  kthread+0x10c/0x130
+[    3.582812]  ? __kthread_create_worker+0x100/0x100
+[    3.583004]  ret_from_fork+0x1f/0x30
+[    3.583148] Code: c1 9d 8c 81 84 c0 48 c7 c2 c0 c9 8b 81 48 89 f1 48 c7 c7 b8 10 8c 81 48 0f 44 ca 45 84 e4 48 0f 45 d6 48 8b 73 18 e8 6c 1c df ff <0f> 0b eb 90 0f 1f 84 00 00 00 00 00 55 c1 e6 0c 48 89 e5 81 c6 
+[    3.583900] ---[ end trace c0da9b7b6ea503f9 ]---
+[    3.584090] [drm:drm_mode_object_get] OBJ ID: 94 (2)
+[    3.584292] [drm:drm_atomic_state_default_clear] Clearing atomic state         (ptrval)
+[    3.584611] [drm:drm_mode_object_put.part.2] OBJ ID: 81 (5)
+[    3.584836] [drm:__drm_atomic_state_free] Freeing atomic state         (ptrval)
+[    3.585130] [drm:drm_sysfs_hotplug_event] generating hotplug event
+[    3.585378] [drm:drm_fb_helper_hotplug_event.part.33] 
+[    3.585585] [drm:drm_setup_crtcs] 
+[    3.585725] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:65:DP-1]
+[    3.586009] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    3.586009] XXXX Forcing connector 0
+[    3.586302] [drm:intel_dp_detect] [CONNECTOR:65:DP-1]
+[    3.586651] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:65:DP-1] disconnected
+[    3.586981] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:72:HDMI-A-1]
+[    3.587278] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    3.587279] XXXX Forcing connector 0
+[    3.587571] [drm:intel_hdmi_detect] [CONNECTOR:72:HDMI-A-1]
+[    3.588117] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0050 w(1)
+[    3.588408] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK on first message, retry
+[    3.588879] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0050 w(1)
+[    3.589169] [drm:drm_do_probe_ddc_edid] drm: skipping non-existent adapter i915 gmbus dpc
+[    3.589494] [drm:intel_hdmi_set_edid] HDMI GMBUS EDID read failed, retry using GPIO bit-banging
+[    3.589840] [drm:intel_gmbus_force_bit] enabling bit-banging on i915 gmbus dpc. force bit now 1
+[    3.590822] [drm:drm_do_probe_ddc_edid] drm: skipping non-existent adapter i915 gmbus dpc
+[    3.591198] [drm:intel_gmbus_force_bit] disabling bit-banging on i915 gmbus dpc. force bit now 0
+[    3.591717] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0040 w(1)
+[    3.592007] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK on first message, retry
+[    3.592474] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpc] NAK for addr: 0040 w(1)
+[    3.592763] [drm:drm_dp_dual_mode_detect] DP dual mode HDMI ID:  (err -6)
+[    3.593034] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:72:HDMI-A-1] disconnected
+[    3.593383] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:76:DP-2]
+[    3.593667] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    3.593667] XXXX Forcing connector 0
+[    3.593959] [drm:intel_dp_detect] [CONNECTOR:76:DP-2]
+[    3.600096] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.606259] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.612609] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.619014] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.625400] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.631767] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.638125] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.644490] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.651080] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.657760] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.664518] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.671310] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.678173] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.685002] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.691791] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.698644] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.705485] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.712249] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.719029] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.725819] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.732664] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.739468] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.746268] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.752988] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.759758] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.766577] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.773323] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.780134] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.786962] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.793666] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.800492] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.807304] [drm:intel_dp_aux_xfer] dp_aux_ch timeout status 0x71450048
+[    3.807965] [drm:drm_dp_dpcd_access] Too many retries, giving up. First error: -110
+[    3.808704] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:76:DP-2] disconnected
+[    3.809508] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:81:HDMI-A-2]
+[    3.810237] XXXXXXXXXXXX FORCING CONNECTING MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[    3.810239] XXXX Forcing connector 0
+[    3.810945] [drm:intel_hdmi_detect] [CONNECTOR:81:HDMI-A-2]
+[    3.837432] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpd] NAK for addr: 0040 w(1)
+[    3.837808] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpd] NAK on first message, retry
+[    3.838364] [drm:do_gmbus_xfer] GMBUS [i915 gmbus dpd] NAK for addr: 0040 w(1)
+[    3.838729] [drm:drm_dp_dual_mode_detect] DP dual mode HDMI ID:  (err -6)
+[    3.839071] [drm:drm_detect_monitor_audio] Monitor has basic audio support
+[    3.839418] [drm:drm_add_display_info] non_desktop set to 0
+[    3.839700] [drm:drm_add_display_info] HDMI: DVI dual 0, max TMDS clock 0 kHz
+[    3.840064] [drm:drm_mode_object_put.part.2] OBJ ID: 95 (1)
+[    3.840348] [drm:drm_add_edid_modes] ELD monitor 27MU67
+[    3.840613] [drm:drm_add_edid_modes] HDMI: latency present 0 0, video latency 0 0, audio latency 0 0
+[    3.841071] [drm:drm_add_edid_modes] ELD size 32, SAD count 1
+[    3.841361] [drm:drm_add_display_info] non_desktop set to 0
+[    3.841644] [drm:drm_add_display_info] HDMI: DVI dual 0, max TMDS clock 0 kHz
+[    3.842084] [drm:drm_helper_probe_single_connector_modes] [CONNECTOR:81:HDMI-A-2] probed modes :
+[    3.842527] [drm:drm_mode_debug_printmodeline] Modeline 84:"1920x2160" 60 277250 1920 1968 2000 2080 2160 2163 2173 2222 0x48 0xa
+[    3.843109] [drm:drm_mode_debug_printmodeline] Modeline 85:"1920x1080" 60 148500 1920 2008 2052 2200 1080 1084 1089 1125 0x40 0x5
+[    3.843700] [drm:drm_mode_debug_printmodeline] Modeline 98:"1920x1080" 60 148352 1920 2008 2052 2200 1080 1084 1089 1125 0x40 0x5
+[    3.844281] [drm:drm_mode_debug_printmodeline] Modeline 90:"1600x900" 60 108000 1600 1624 1704 1800 900 901 904 1000 0x40 0x5
+[    3.844844] [drm:drm_mode_debug_printmodeline] Modeline 88:"1280x1024" 60 108000 1280 1328 1440 1688 1024 1025 1028 1066 0x40 0x5
+[    3.845426] [drm:drm_mode_debug_printmodeline] Modeline 87:"1152x864" 60 81579 1152 1216 1336 1520 864 865 868 895 0x0 0x6
+[    3.845977] [drm:drm_mode_debug_printmodeline] Modeline 89:"1280x720" 60 74250 1280 1390 1430 1650 720 725 730 750 0x40 0x5
+[    3.846533] [drm:drm_mode_debug_printmodeline] Modeline 100:"1280x720" 60 74176 1280 1390 1430 1650 720 725 730 750 0x40 0x5
+[    3.847093] [drm:drm_mode_debug_printmodeline] Modeline 93:"1024x768" 60 65000 1024 1048 1184 1344 768 771 777 806 0x40 0xa
+[    3.847657] [drm:drm_mode_debug_printmodeline] Modeline 91:"800x600" 60 40000 800 840 968 1056 600 601 605 628 0x40 0x5
+[    3.848197] [drm:drm_mode_debug_printmodeline] Modeline 104:"720x480" 60 27027 720 736 798 858 480 489 495 525 0x40 0xa
+[    3.848736] [drm:drm_mode_debug_printmodeline] Modeline 96:"720x480" 60 27000 720 736 798 858 480 489 495 525 0x40 0xa
+[    3.849279] [drm:drm_mode_debug_printmodeline] Modeline 101:"640x480" 60 25200 640 656 752 800 480 490 492 525 0x40 0xa
+[    3.849817] [drm:drm_mode_debug_printmodeline] Modeline 92:"640x480" 60 25175 640 656 752 800 480 490 492 525 0x40 0xa
+[    3.850355] [drm:drm_setup_crtcs] connector 65 enabled? no
+[    3.850632] [drm:drm_setup_crtcs] connector 72 enabled? no
+[    3.850909] [drm:drm_setup_crtcs] connector 76 enabled? no
+[    3.851187] [drm:drm_setup_crtcs] connector 81 enabled? yes
+[    3.851469] [drm:intel_fb_initial_config] Not using firmware configuration
+[    3.851815] [drm:drm_setup_crtcs] looking for cmdline mode on connector 81
+[    3.852160] [drm:drm_setup_crtcs] looking for preferred mode on connector 81 0
+[    3.852523] [drm:drm_setup_crtcs] found mode 1920x2160
+[    3.852783] [drm:drm_setup_crtcs] picking CRTCs for 1920x2160 config
+[    3.853103] [drm:drm_mode_object_put.part.2] OBJ ID: 81 (4)
+[    3.853402] [drm:drm_setup_crtcs] desired mode 1920x2160 set on crtc 39 (0,0)
+[    3.853686] [drm:drm_mode_object_get] OBJ ID: 81 (3)
+[    3.853887] [drm:drm_atomic_state_init] Allocated atomic state         (ptrval)
+[    3.854182] [drm:drm_mode_object_get] OBJ ID: 94 (3)
+[    3.854382] [drm:drm_atomic_get_plane_state] Added [PLANE:28:primary A]         (ptrval) state to         (ptrval)
+[    3.854792] [drm:drm_mode_object_get] OBJ ID: 86 (1)
+[    3.854992] [drm:drm_atomic_get_crtc_state] Added [CRTC:39:pipe A]         (ptrval) state to         (ptrval)
+[    3.855386] [drm:drm_atomic_get_plane_state] Added [PLANE:31:sprite A]         (ptrval) state to         (ptrval)
+[    3.855792] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.856131] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.856457] [drm:drm_atomic_get_plane_state] Added [PLANE:36:cursor A]         (ptrval) state to         (ptrval)
+[    3.856863] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.857201] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.857527] [drm:drm_atomic_get_plane_state] Added [PLANE:40:primary B]         (ptrval) state to         (ptrval)
+[    3.857937] [drm:drm_atomic_get_plane_state] Added [PLANE:43:sprite B]         (ptrval) state to         (ptrval)
+[    3.858343] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.858682] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.859008] [drm:drm_atomic_get_plane_state] Added [PLANE:48:cursor B]         (ptrval) state to         (ptrval)
+[    3.859414] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.859753] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.860082] [drm:drm_atomic_get_plane_state] Added [PLANE:52:primary C]         (ptrval) state to         (ptrval)
+[    3.860493] [drm:drm_atomic_get_plane_state] Added [PLANE:55:sprite C]         (ptrval) state to         (ptrval)
+[    3.860900] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.861239] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.861565] [drm:drm_atomic_get_plane_state] Added [PLANE:60:cursor C]         (ptrval) state to         (ptrval)
+[    3.861972] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.862310] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.862636] [drm:drm_mode_object_put.part.2] OBJ ID: 86 (2)
+[    3.862861] [drm:drm_atomic_set_mode_for_crtc] Set [MODE:1920x2160] for CRTC state         (ptrval)
+[    3.863221] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [CRTC:39:pipe A]
+[    3.863594] [drm:drm_atomic_set_fb_for_plane] Set [FB:94] for plane state         (ptrval)
+[    3.863923] [drm:drm_mode_object_get] OBJ ID: 94 (4)
+[    3.864128] [drm:drm_mode_object_put.part.2] OBJ ID: 94 (5)
+[    3.864352] [drm:drm_atomic_add_affected_connectors] Adding all current connectors for [CRTC:39:pipe A] to         (ptrval)
+[    3.864795] [drm:drm_mode_object_get] OBJ ID: 81 (5)
+[    3.864994] [drm:drm_mode_object_get] OBJ ID: 81 (6)
+[    3.865195] [drm:drm_atomic_get_connector_state] Added [CONNECTOR:81:HDMI-A-2]         (ptrval) state to         (ptrval)
+[    3.865629] [drm:drm_mode_object_put.part.2] OBJ ID: 81 (6)
+[    3.865852] [drm:drm_atomic_set_crtc_for_connector] Link connector state         (ptrval) to [NOCRTC]
+[    3.866219] [drm:drm_mode_object_get] OBJ ID: 81 (5)
+[    3.866419] [drm:drm_atomic_set_crtc_for_connector] Link connector state         (ptrval) to [CRTC:39:pipe A]
+[    3.866812] [drm:drm_atomic_get_crtc_state] Added [CRTC:51:pipe B]         (ptrval) state to         (ptrval)
+[    3.867206] [drm:drm_atomic_set_mode_for_crtc] Set [NOMODE] for CRTC state         (ptrval)
+[    3.867537] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.867876] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.868201] [drm:drm_atomic_add_affected_connectors] Adding all current connectors for [CRTC:51:pipe B] to         (ptrval)
+[    3.868646] [drm:drm_atomic_get_crtc_state] Added [CRTC:63:pipe C]         (ptrval) state to         (ptrval)
+[    3.869039] [drm:drm_atomic_set_mode_for_crtc] Set [NOMODE] for CRTC state         (ptrval)
+[    3.869372] [drm:drm_atomic_set_crtc_for_plane] Link plane state         (ptrval) to [NOCRTC]
+[    3.869712] [drm:drm_atomic_set_fb_for_plane] Set [NOFB] for plane state         (ptrval)
+[    3.870042] [drm:drm_atomic_add_affected_connectors] Adding all current connectors for [CRTC:63:pipe C] to         (ptrval)
+[    3.870484] [drm:drm_atomic_check_only] checking         (ptrval)
+[    3.870730] [drm:drm_atomic_helper_check_modeset] Updating routing for [CONNECTOR:81:HDMI-A-2]
+[    3.871073] [drm:drm_atomic_helper_check_modeset] [CONNECTOR:81:HDMI-A-2] keeps [ENCODER:75:DDI D], now on [CRTC:39:pipe A]
+[    3.871517] [drm:intel_plane_atomic_calc_changes] [CRTC:39:pipe A] has [PLANE:28:primary A] with fb 94
+[    3.871888] [drm:intel_plane_atomic_calc_changes] [PLANE:28:primary A] visible 1 -> 1, off 0, on 0, ms 0
+[    3.872266] [drm:drm_atomic_commit] committing         (ptrval)
+[    3.872511] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,888)@ 3.872509 -> 3.865847 [e 0 us, 0 rep]
+[    3.872919] [drm:drm_vblank_restore] missed 21 vblanks in 349750025 ns, frame duration=16670009 ns, hw_diff=21
+[    3.873317] [drm:drm_vblank_enable] enabling vblank on crtc 0, ret: 0
+[    3.873579] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,1030)@ 3.873577 -> 3.865850 [e 0 us, 0 rep]
+[    3.873989] [drm:drm_update_vblank_count] updating vblank count on crtc 0: current=24, diff=0, hw=24 hw_last=24
+[    3.874392] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,1139)@ 3.874390 -> 3.865845 [e 0 us, 0 rep]
+[    3.874802] [drm:drm_update_vblank_count] updating vblank count on crtc 0: current=24, diff=0, hw=24 hw_last=24
+[    3.882082] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,-57)@ 3.882080 -> 3.882507 [e 0 us, 0 rep]
+[    3.882493] [drm:drm_update_vblank_count] updating vblank count on crtc 0: current=24, diff=1, hw=25 hw_last=24
+[    3.882895] [drm:drm_handle_vblank] vblank event on 25, current 25
+[    3.883152] [drm:drm_mode_object_get] OBJ ID: 94 (4)
+[    3.883353] [drm:drm_mode_object_put.part.2] OBJ ID: 94 (5)
+[    3.883702] [drm:drm_atomic_state_default_clear] Clearing atomic state         (ptrval)
+[    3.884174] [drm:drm_mode_object_put.part.2] OBJ ID: 81 (6)
+[    3.884505] [drm:drm_mode_object_put.part.2] OBJ ID: 81 (5)
+[    3.884836] [drm:drm_mode_object_put.part.2] OBJ ID: 86 (1)
+[    3.885168] [drm:drm_mode_object_put.part.2] OBJ ID: 94 (4)
+[    3.885499] [drm:__drm_atomic_state_free] Freeing atomic state         (ptrval)
+[    3.898770] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,-53)@ 3.898766 -> 3.899163 [e 0 us, 0 rep]
+[    3.899476] [drm:drm_update_vblank_count] updating vblank count on crtc 0: current=25, diff=1, hw=26 hw_last=25
+[    3.900157] [drm:vblank_disable_fn] disabling vblank on crtc 0
+[    3.900555] [drm:drm_calc_vbltimestamp_from_scanoutpos] crtc 0 : v p(0,185)@ 3.900553 -> 3.899165 [e 0 us, 0 rep]
+[    3.901245] [drm:drm_update_vblank_count] updating vblank count on crtc 0: current=26, diff=0, hw=26 hw_last=26

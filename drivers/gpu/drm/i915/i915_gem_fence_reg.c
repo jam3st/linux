@@ -257,10 +257,7 @@ static int fence_update(struct drm_i915_fence_reg *fence,
 	 * If the device is currently powered down, we will defer the write
 	 * to the runtime resume, see i915_gem_restore_fences().
 	 */
-	if (intel_runtime_pm_get_if_in_use(fence->i915)) {
-		fence_write(fence, vma);
-		intel_runtime_pm_put(fence->i915);
-	}
+
 
 	if (vma) {
 		if (fence->vma != vma) {

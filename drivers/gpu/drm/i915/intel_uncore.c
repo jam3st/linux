@@ -1586,55 +1586,7 @@ static const struct reg_whitelist {
 	.size = 8
 } };
 
-int i915_reg_read_ioctl(struct drm_device *dev,
-			void *data, struct drm_file *file)
-{
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	struct drm_i915_reg_read *reg = data;
-	struct reg_whitelist const *entry;
-	unsigned int flags;
-	int remain;
-	int ret = 0;
 
-	entry = reg_read_whitelist;
-	remain = ARRAY_SIZE(reg_read_whitelist);
-	while (remain) {
-		u32 entry_offset = i915_mmio_reg_offset(entry->offset_ldw);
-
-		GEM_BUG_ON(!is_power_of_2(entry->size));
-		GEM_BUG_ON(entry->size > 8);
-		GEM_BUG_ON(entry_offset & (entry->size - 1));
-
-		if (INTEL_INFO(dev_priv)->gen_mask & entry->gen_mask &&
-		    entry_offset == (reg->offset & -entry->size))
-			break;
-		entry++;
-		remain--;
-	}
-
-	if (!remain)
-		return -EINVAL;
-
-	flags = reg->offset & (entry->size - 1);
-
-	intel_runtime_pm_get(dev_priv);
-	if (entry->size == 8 && flags == I915_REG_READ_8B_WA)
-		reg->val = I915_READ64_2x32(entry->offset_ldw,
-					    entry->offset_udw);
-	else if (entry->size == 8 && flags == 0)
-		reg->val = I915_READ64(entry->offset_ldw);
-	else if (entry->size == 4 && flags == 0)
-		reg->val = I915_READ(entry->offset_ldw);
-	else if (entry->size == 2 && flags == 0)
-		reg->val = I915_READ16(entry->offset_ldw);
-	else if (entry->size == 1 && flags == 0)
-		reg->val = I915_READ8(entry->offset_ldw);
-	else
-		ret = -EINVAL;
-	intel_runtime_pm_put(dev_priv);
-
-	return ret;
-}
 
 static void gen3_stop_engine(struct intel_engine_cs *engine)
 {

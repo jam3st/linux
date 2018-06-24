@@ -49,23 +49,6 @@
 
 static struct drm_driver driver;
 
-#if IS_ENABLED(CONFIG_DRM_I915_DEBUG)
-static unsigned int i915_load_fail_count;
-
-bool __i915_inject_load_failure(const char *func, int line)
-{
-	if (i915_load_fail_count >= i915_modparams.inject_load_failure)
-		return false;
-
-	if (++i915_load_fail_count == i915_modparams.inject_load_failure) {
-		DRM_INFO("Injecting failure at checkpoint %u [%s:%d]\n",
-			 i915_modparams.inject_load_failure, func, line);
-		return true;
-	}
-
-	return false;
-}
-#endif
 
 #define FDO_BUG_URL "https://bugs.freedesktop.org/enter_bug.cgi?product=DRI"
 #define FDO_BUG_MSG "Please file a bug at " FDO_BUG_URL " against DRM/Intel " \
@@ -2300,12 +2283,6 @@ static const struct file_operations i915_driver_fops = {
 	.llseek = noop_llseek,
 };
 
-static int
-i915_gem_reject_pin_ioctl(struct drm_device *dev, void *data,
-			  struct drm_file *file)
-{
-	return -ENODEV;
-}
 
 static const struct drm_ioctl_desc i915_ioctls[] = {
 
@@ -2327,16 +2304,16 @@ static struct drm_driver driver = {
 	.gem_free_object_unlocked = i915_gem_free_object,
 	.gem_vm_ops = &i915_gem_vm_ops,
 
-	.prime_handle_to_fd = drm_gem_prime_handle_to_fd,
-	.prime_fd_to_handle = drm_gem_prime_fd_to_handle,
-	.gem_prime_export = i915_gem_prime_export,
-	.gem_prime_import = i915_gem_prime_import,
+    .prime_handle_to_fd = NULL,
+    .prime_fd_to_handle = NULL,
+    .gem_prime_export = NULL,
+    .gem_prime_import = NULL,
 
-	.dumb_create = i915_gem_dumb_create,
-	.dumb_map_offset = i915_gem_mmap_gtt,
-	.ioctls = i915_ioctls,
+    .dumb_create = NULL,
+    .dumb_map_offset = NULL,
+    .ioctls = i915_ioctls,
 	.num_ioctls = ARRAY_SIZE(i915_ioctls),
-	.fops = &i915_driver_fops,
+    .fops = NULL,
 	.name = DRIVER_NAME,
 	.desc = DRIVER_DESC,
 	.date = DRIVER_DATE,

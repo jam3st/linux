@@ -203,7 +203,6 @@ static void gen2_assert_iir_is_zero(struct drm_i915_private *dev_priv,
 } while (0)
 
 static void gen6_rps_irq_handler(struct drm_i915_private *dev_priv, u32 pm_iir);
-static void gen9_guc_irq_handler(struct drm_i915_private *dev_priv, u32 pm_iir);
 
 /* For display hotplug interrupt */
 static inline void
@@ -1240,26 +1239,6 @@ out:
 	spin_unlock_irq(&dev_priv->irq_lock);
 
 	mutex_unlock(&dev_priv->drm.struct_mutex);
-}
-
-static void ivybridge_parity_error_irq_handler(struct drm_i915_private *dev_priv,
-					       u32 iir)
-{
-	if (!HAS_L3_DPF(dev_priv))
-		return;
-
-	spin_lock(&dev_priv->irq_lock);
-	gen5_disable_gt_irq(dev_priv, GT_PARITY_ERROR(dev_priv));
-	spin_unlock(&dev_priv->irq_lock);
-
-	iir &= GT_PARITY_ERROR(dev_priv);
-	if (iir & GT_RENDER_L3_PARITY_ERROR_INTERRUPT_S1)
-		dev_priv->l3_parity.which_slice |= 1 << 1;
-
-	if (iir & GT_RENDER_L3_PARITY_ERROR_INTERRUPT)
-		dev_priv->l3_parity.which_slice |= 1 << 0;
-
-	queue_work(dev_priv->wq, &dev_priv->l3_parity.error_work);
 }
 
 

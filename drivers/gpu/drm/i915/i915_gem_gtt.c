@@ -2601,7 +2601,7 @@ static int ggtt_bind_vma(struct i915_vma *vma,
 			 enum i915_cache_level cache_level,
 			 u32 flags)
 {
-	struct drm_i915_private *i915 = vma->vm->i915;
+    struct drm_i915_private *i915 = vma->vm->i915;
 	struct drm_i915_gem_object *obj = vma->obj;
 	u32 pte_flags;
 

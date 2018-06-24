@@ -48,7 +48,6 @@ i915-y += i915_cmd_parser.o \
 	  i915_gem_batch_pool.o \
 	  i915_gem_clflush.o \
 	  i915_gem_context.o \
-	  i915_gem_dmabuf.o \
 	  i915_gem_evict.o \
 	  i915_gem_execbuffer.o \
 	  i915_gem_fence_reg.o \

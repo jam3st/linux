@@ -611,6 +611,8 @@ static int init_render_ring(struct intel_engine_cs *engine)
 	struct drm_i915_private *dev_priv = engine->i915;
 printk("init_render_ring will be deleted xxxxxxxxxxxxxxxxxxxxxxx");
 return 0;
+
+
     int ret = init_ring_common(engine);
 	if (ret)
 		return ret;

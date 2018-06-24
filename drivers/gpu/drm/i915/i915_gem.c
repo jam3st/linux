@@ -2966,9 +2966,6 @@ i915_gem_reset_prepare_engine(struct intel_engine_cs *engine)
 	 * Let's make sure that all workers scheduled before disabling the
 	 * tasklet are completed before continuing with the reset.
 	 */
-	if (engine->i915->guc.preempt_wq)
-		flush_workqueue(engine->i915->guc.preempt_wq);
-
 	if (engine->irq_seqno_barrier)
 		engine->irq_seqno_barrier(engine);
 
@@ -4934,7 +4931,6 @@ int i915_gem_suspend(struct drm_i915_private *dev_priv)
 	i915_gem_contexts_lost(dev_priv);
 	mutex_unlock(&dev->struct_mutex);
 
-	intel_uc_suspend(dev_priv);
 
 	cancel_delayed_work_sync(&dev_priv->gpu_error.hangcheck_work);
 	cancel_delayed_work_sync(&dev_priv->gt.retire_work);
@@ -5001,7 +4997,6 @@ void i915_gem_resume(struct drm_i915_private *i915)
 	if (i915_gem_init_hw(i915))
 		goto err_wedged;
 
-	intel_uc_resume(i915);
 
 	/* Always reload a context for powersaving. */
 	if (i915_gem_switch_to_kernel_context(i915))
@@ -5137,12 +5132,6 @@ int i915_gem_init_hw(struct drm_i915_private *dev_priv)
 		goto out;
 	}
 
-	/* We can't enable contexts until all firmware is loaded */
-	ret = intel_uc_init_hw(dev_priv);
-	if (ret) {
-		DRM_ERROR("Enabling uc failed (%d)\n", ret);
-		goto out;
-	}
 
 	intel_mocs_init_l3cc_table(dev_priv);
 
@@ -5290,13 +5279,6 @@ int i915_gem_init(struct drm_i915_private *dev_priv)
 		dev_priv->gt.cleanup_engine = intel_engine_cleanup;
 	}
 
-	ret = i915_gem_init_userptr(dev_priv);
-	if (ret)
-		return ret;
-
-	ret = intel_uc_init_misc(dev_priv);
-	if (ret)
-		return ret;
 
 	/* This is just a security blanket to placate dragons.
 	 * On some systems, we very sporadically observe that the first TLBs
@@ -5327,9 +5309,7 @@ int i915_gem_init(struct drm_i915_private *dev_priv)
 
 	intel_init_gt_powersave(dev_priv);
 
-	ret = intel_uc_init(dev_priv);
-	if (ret)
-		goto err_pm;
+
 
 	ret = i915_gem_init_hw(dev_priv);
 	if (ret)
@@ -5374,9 +5354,7 @@ int i915_gem_init(struct drm_i915_private *dev_priv)
 err_init_hw:
 	i915_gem_wait_for_idle(dev_priv, I915_WAIT_LOCKED);
 	i915_gem_contexts_lost(dev_priv);
-	intel_uc_fini_hw(dev_priv);
 err_uc_init:
-	intel_uc_fini(dev_priv);
 err_pm:
 	if (ret != -EIO) {
 		intel_cleanup_gt_powersave(dev_priv);
@@ -5390,7 +5368,6 @@ err_unlock:
 	intel_uncore_forcewake_put(dev_priv, FORCEWAKE_ALL);
 	mutex_unlock(&dev_priv->drm.struct_mutex);
 
-	intel_uc_fini_misc(dev_priv);
 
 	if (ret != -EIO)
 		i915_gem_cleanup_userptr(dev_priv);

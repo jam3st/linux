@@ -405,36 +405,7 @@ static uint32_t *parse_csr_fw(struct drm_i915_private *dev_priv,
 
 static void csr_load_work_fn(struct work_struct *work)
 {
-	struct drm_i915_private *dev_priv;
-	struct intel_csr *csr;
-	const struct firmware *fw = NULL;
 
-	dev_priv = container_of(work, typeof(*dev_priv), csr.work);
-	csr = &dev_priv->csr;
-
-	request_firmware(&fw, dev_priv->csr.fw_path, &dev_priv->drm.pdev->dev);
-	if (fw)
-		dev_priv->csr.dmc_payload = parse_csr_fw(dev_priv, fw);
-
-	if (dev_priv->csr.dmc_payload) {
-		intel_csr_load_program(dev_priv);
-
-		intel_display_power_put(dev_priv, POWER_DOMAIN_INIT);
-
-		DRM_INFO("Finished loading DMC firmware %s (v%u.%u)\n",
-			 dev_priv->csr.fw_path,
-			 CSR_VERSION_MAJOR(csr->version),
-			 CSR_VERSION_MINOR(csr->version));
-	} else {
-		dev_notice(dev_priv->drm.dev,
-			   "Failed to load DMC firmware %s."
-			   " Disabling runtime power management.\n",
-			   csr->fw_path);
-		dev_notice(dev_priv->drm.dev, "DMC firmware homepage: %s",
-			   INTEL_UC_FIRMWARE_URL);
-	}
-
-	release_firmware(fw);
 }
 
 /**

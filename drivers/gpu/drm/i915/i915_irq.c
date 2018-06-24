@@ -456,43 +456,7 @@ void gen6_disable_rps_interrupts(struct drm_i915_private *dev_priv)
 	gen6_reset_rps_interrupts(dev_priv);
 }
 
-void gen9_reset_guc_interrupts(struct drm_i915_private *dev_priv)
-{
-	assert_rpm_wakelock_held(dev_priv);
 
-	spin_lock_irq(&dev_priv->irq_lock);
-	gen6_reset_pm_iir(dev_priv, dev_priv->pm_guc_events);
-	spin_unlock_irq(&dev_priv->irq_lock);
-}
-
-void gen9_enable_guc_interrupts(struct drm_i915_private *dev_priv)
-{
-	assert_rpm_wakelock_held(dev_priv);
-
-	spin_lock_irq(&dev_priv->irq_lock);
-	if (!dev_priv->guc.interrupts_enabled) {
-		WARN_ON_ONCE(I915_READ(gen6_pm_iir(dev_priv)) &
-				       dev_priv->pm_guc_events);
-		dev_priv->guc.interrupts_enabled = true;
-		gen6_enable_pm_irq(dev_priv, dev_priv->pm_guc_events);
-	}
-	spin_unlock_irq(&dev_priv->irq_lock);
-}
-
-void gen9_disable_guc_interrupts(struct drm_i915_private *dev_priv)
-{
-	assert_rpm_wakelock_held(dev_priv);
-
-	spin_lock_irq(&dev_priv->irq_lock);
-	dev_priv->guc.interrupts_enabled = false;
-
-	gen6_disable_pm_irq(dev_priv, dev_priv->pm_guc_events);
-
-	spin_unlock_irq(&dev_priv->irq_lock);
-	synchronize_irq(dev_priv->drm.irq);
-
-	gen9_reset_guc_interrupts(dev_priv);
-}
 
 /**
  * bdw_update_port_irq - update DE port interrupt
@@ -515,6 +479,7 @@ static void bdw_update_port_irq(struct drm_i915_private *dev_priv,
 		return;
 
 	old_val = I915_READ(GEN8_DE_PORT_IMR);
+
 
 	new_val = old_val;
 	new_val &= ~interrupt_mask;
@@ -1075,60 +1040,6 @@ static void ironlake_rps_change_irq_handler(struct drm_i915_private *dev_priv)
 	return;
 }
 
-static void notify_ring(struct intel_engine_cs *engine)
-{
-	struct i915_request *rq = NULL;
-	struct intel_wait *wait;
-
-	if (!engine->breadcrumbs.irq_armed)
-		return;
-
-	atomic_inc(&engine->irq_count);
-	set_bit(ENGINE_IRQ_BREADCRUMB, &engine->irq_posted);
-
-	spin_lock(&engine->breadcrumbs.irq_lock);
-	wait = engine->breadcrumbs.irq_wait;
-	if (wait) {
-		bool wakeup = engine->irq_seqno_barrier;
-
-		/* We use a callback from the dma-fence to submit
-		 * requests after waiting on our own requests. To
-		 * ensure minimum delay in queuing the next request to
-		 * hardware, signal the fence now rather than wait for
-		 * the signaler to be woken up. We still wake up the
-		 * waiter in order to handle the irq-seqno coherency
-		 * issues (we may receive the interrupt before the
-		 * seqno is written, see __i915_request_irq_complete())
-		 * and to handle coalescing of multiple seqno updates
-		 * and many waiters.
-		 */
-		if (i915_seqno_passed(intel_engine_get_seqno(engine),
-				      wait->seqno)) {
-			struct i915_request *waiter = wait->request;
-
-			wakeup = true;
-			if (!test_bit(DMA_FENCE_FLAG_SIGNALED_BIT,
-				      &waiter->fence.flags) &&
-			    intel_wait_check_request(wait, waiter))
-				rq = i915_request_get(waiter);
-		}
-
-		if (wakeup)
-			wake_up_process(wait->tsk);
-	} else {
-		if (engine->breadcrumbs.irq_armed)
-			__intel_engine_disarm_breadcrumbs(engine);
-	}
-	spin_unlock(&engine->breadcrumbs.irq_lock);
-
-	if (rq) {
-		dma_fence_signal(&rq->fence);
-		GEM_BUG_ON(!i915_request_completed(rq));
-		i915_request_put(rq);
-	}
-
-	trace_intel_engine_notify(engine, wait);
-}
 
 static void vlv_c0_read(struct drm_i915_private *dev_priv,
 			struct intel_rps_ei *ei)
@@ -1370,33 +1281,8 @@ static void ivybridge_parity_error_irq_handler(struct drm_i915_private *dev_priv
 	queue_work(dev_priv->wq, &dev_priv->l3_parity.error_work);
 }
 
-static void ilk_gt_irq_handler(struct drm_i915_private *dev_priv,
-			       u32 gt_iir)
-{
-	if (gt_iir & GT_RENDER_USER_INTERRUPT)
-		notify_ring(dev_priv->engine[RCS]);
-	if (gt_iir & ILK_BSD_USER_INTERRUPT)
-		notify_ring(dev_priv->engine[VCS]);
-}
 
-static void snb_gt_irq_handler(struct drm_i915_private *dev_priv,
-			       u32 gt_iir)
-{
-	if (gt_iir & GT_RENDER_USER_INTERRUPT)
-		notify_ring(dev_priv->engine[RCS]);
-	if (gt_iir & GT_BSD_USER_INTERRUPT)
-		notify_ring(dev_priv->engine[VCS]);
-	if (gt_iir & GT_BLT_USER_INTERRUPT)
-		notify_ring(dev_priv->engine[BCS]);
 
-	if (gt_iir & (GT_BLT_CS_ERROR_INTERRUPT |
-		      GT_BSD_CS_ERROR_INTERRUPT |
-		      GT_RENDER_CS_MASTER_ERROR_INTERRUPT))
-		DRM_DEBUG("Command parser error, gt_iir 0x%08x\n", gt_iir);
-
-	if (gt_iir & GT_PARITY_ERROR(dev_priv))
-		ivybridge_parity_error_irq_handler(dev_priv, gt_iir);
-}
 
 static void
 gen8_cs_irq_handler(struct intel_engine_cs *engine, u32 iir, int test_shift)
@@ -1411,10 +1297,6 @@ gen8_cs_irq_handler(struct intel_engine_cs *engine, u32 iir, int test_shift)
 		}
 	}
 
-	if (iir & (GT_RENDER_USER_INTERRUPT << test_shift)) {
-		notify_ring(engine);
-		tasklet |= USES_GUC_SUBMISSION(engine->i915);
-	}
 
 	if (tasklet)
 		tasklet_hi_schedule(&execlists->tasklet);
@@ -1461,33 +1343,6 @@ static void gen8_gt_irq_ack(struct drm_i915_private *i915,
 	}
 }
 
-static void gen8_gt_irq_handler(struct drm_i915_private *i915,
-				u32 master_ctl, u32 gt_iir[4])
-{
-	if (master_ctl & (GEN8_GT_RCS_IRQ | GEN8_GT_BCS_IRQ)) {
-		gen8_cs_irq_handler(i915->engine[RCS],
-				    gt_iir[0], GEN8_RCS_IRQ_SHIFT);
-		gen8_cs_irq_handler(i915->engine[BCS],
-				    gt_iir[0], GEN8_BCS_IRQ_SHIFT);
-	}
-
-	if (master_ctl & (GEN8_GT_VCS1_IRQ | GEN8_GT_VCS2_IRQ)) {
-		gen8_cs_irq_handler(i915->engine[VCS],
-				    gt_iir[1], GEN8_VCS1_IRQ_SHIFT);
-		gen8_cs_irq_handler(i915->engine[VCS2],
-				    gt_iir[1], GEN8_VCS2_IRQ_SHIFT);
-	}
-
-	if (master_ctl & GEN8_GT_VECS_IRQ) {
-		gen8_cs_irq_handler(i915->engine[VECS],
-				    gt_iir[3], GEN8_VECS_IRQ_SHIFT);
-	}
-
-	if (master_ctl & (GEN8_GT_PM_IRQ | GEN8_GT_GUC_IRQ)) {
-		gen6_rps_irq_handler(i915, gt_iir[2]);
-		gen9_guc_irq_handler(i915, gt_iir[2]);
-	}
-}
 
 static bool bxt_port_hotplug_long_detect(enum port port, u32 val)
 {
@@ -1756,48 +1611,13 @@ static void gen6_rps_irq_handler(struct drm_i915_private *dev_priv, u32 pm_iir)
 		return;
 
 	if (HAS_VEBOX(dev_priv)) {
-		if (pm_iir & PM_VEBOX_USER_INTERRUPT)
-			notify_ring(dev_priv->engine[VECS]);
+
 
 		if (pm_iir & PM_VEBOX_CS_ERROR_INTERRUPT)
 			DRM_DEBUG("Command parser error, pm_iir 0x%08x\n", pm_iir);
 	}
 }
 
-static void gen9_guc_irq_handler(struct drm_i915_private *dev_priv, u32 gt_iir)
-{
-	if (gt_iir & GEN9_GUC_TO_HOST_INT_EVENT) {
-		/* Sample the log buffer flush related bits & clear them out now
-		 * itself from the message identity register to minimize the
-		 * probability of losing a flush interrupt, when there are back
-		 * to back flush interrupts.
-		 * There can be a new flush interrupt, for different log buffer
-		 * type (like for ISR), whilst Host is handling one (for DPC).
-		 * Since same bit is used in message register for ISR & DPC, it
-		 * could happen that GuC sets the bit for 2nd interrupt but Host
-		 * clears out the bit on handling the 1st interrupt.
-		 */
-		u32 msg, flush;
-
-		msg = I915_READ(SOFT_SCRATCH(15));
-		flush = msg & (INTEL_GUC_RECV_MSG_CRASH_DUMP_POSTED |
-			       INTEL_GUC_RECV_MSG_FLUSH_LOG_BUFFER);
-		if (flush) {
-			/* Clear the message bits that are handled */
-			I915_WRITE(SOFT_SCRATCH(15), msg & ~flush);
-
-			/* Handle flush interrupt in bottom half */
-			queue_work(dev_priv->guc.log.runtime.flush_wq,
-				   &dev_priv->guc.log.runtime.flush_work);
-
-			dev_priv->guc.log.flush_interrupt_count++;
-		} else {
-			/* Not clearing of unhandled event bits won't result in
-			 * re-triggering of the interrupt.
-			 */
-		}
-	}
-}
 
 static void i9xx_pipestat_irq_reset(struct drm_i915_private *dev_priv)
 {
@@ -2066,8 +1886,7 @@ static irqreturn_t valleyview_irq_handler(int irq, void *arg)
 		I915_WRITE(VLV_MASTER_IER, MASTER_INTERRUPT_ENABLE);
 		POSTING_READ(VLV_MASTER_IER);
 
-		if (gt_iir)
-			snb_gt_irq_handler(dev_priv, gt_iir);
+
 		if (pm_iir)
 			gen6_rps_irq_handler(dev_priv, pm_iir);
 
@@ -2150,7 +1969,6 @@ static irqreturn_t cherryview_irq_handler(int irq, void *arg)
 		I915_WRITE(GEN8_MASTER_IRQ, GEN8_MASTER_IRQ_CONTROL);
 		POSTING_READ(GEN8_MASTER_IRQ);
 
-		gen8_gt_irq_handler(dev_priv, master_ctl, gt_iir);
 
 		if (hotplug_status)
 			i9xx_hpd_irq_handler(dev_priv, hotplug_status);
@@ -2488,10 +2306,6 @@ static irqreturn_t ironlake_irq_handler(int irq, void *arg)
 	if (gt_iir) {
 		I915_WRITE(GTIIR, gt_iir);
 		ret = IRQ_HANDLED;
-		if (INTEL_GEN(dev_priv) >= 6)
-			snb_gt_irq_handler(dev_priv, gt_iir);
-		else
-			ilk_gt_irq_handler(dev_priv, gt_iir);
 	}
 
 	de_iir = I915_READ(DEIIR);
@@ -2702,8 +2516,6 @@ static irqreturn_t gen8_irq_handler(int irq, void *arg)
 	}
 
 	I915_WRITE_FW(GEN8_MASTER_IRQ, GEN8_MASTER_IRQ_CONTROL);
-
-	gen8_gt_irq_handler(dev_priv, master_ctl, gt_iir);
 
 	return IRQ_HANDLED;
 }
@@ -3013,22 +2825,6 @@ void i915_handle_error(struct drm_i915_private *dev_priv,
 	 * Try engine reset when available. We fall back to full reset if
 	 * single reset fails.
 	 */
-	if (intel_has_reset_engine(dev_priv)) {
-		for_each_engine_masked(engine, dev_priv, engine_mask, tmp) {
-			BUILD_BUG_ON(I915_RESET_MODESET >= I915_RESET_ENGINE);
-			if (test_and_set_bit(I915_RESET_ENGINE + engine->id,
-					     &dev_priv->gpu_error.flags))
-				continue;
-
-			if (i915_reset_engine(engine, 0) == 0)
-				engine_mask &= ~intel_engine_flag(engine);
-
-			clear_bit(I915_RESET_ENGINE + engine->id,
-				  &dev_priv->gpu_error.flags);
-			wake_up_bit(&dev_priv->gpu_error.flags,
-				    I915_RESET_ENGINE + engine->id);
-		}
-	}
 
 	if (!engine_mask)
 		goto out;
@@ -3977,8 +3773,7 @@ static irqreturn_t i8xx_irq_handler(int irq, void *arg)
 
 		I915_WRITE16(IIR, iir);
 
-		if (iir & I915_USER_INTERRUPT)
-			notify_ring(dev_priv->engine[RCS]);
+
 
 		if (iir & I915_RENDER_COMMAND_PARSER_ERROR_INTERRUPT)
 			DRM_DEBUG("Command parser error, iir 0x%08x\n", iir);
@@ -4081,8 +3876,7 @@ static irqreturn_t i915_irq_handler(int irq, void *arg)
 
 		I915_WRITE(IIR, iir);
 
-		if (iir & I915_USER_INTERRUPT)
-			notify_ring(dev_priv->engine[RCS]);
+
 
 		if (iir & I915_RENDER_COMMAND_PARSER_ERROR_INTERRUPT)
 			DRM_DEBUG("Command parser error, iir 0x%08x\n", iir);
@@ -4222,16 +4016,12 @@ static irqreturn_t i965_irq_handler(int irq, void *arg)
 		 * signalled in iir */
 		i9xx_pipestat_irq_ack(dev_priv, iir, pipe_stats);
 
-		I915_WRITE(IIR, iir);
+        I915_WRITE(IIR, iir);
 
-		if (iir & I915_USER_INTERRUPT)
-			notify_ring(dev_priv->engine[RCS]);
 
-		if (iir & I915_BSD_USER_INTERRUPT)
-			notify_ring(dev_priv->engine[VCS]);
 
-		if (iir & I915_RENDER_COMMAND_PARSER_ERROR_INTERRUPT)
-			DRM_DEBUG("Command parser error, iir 0x%08x\n", iir);
+        if (iir & I915_RENDER_COMMAND_PARSER_ERROR_INTERRUPT)
+            DRM_DEBUG("Command parser error, iir 0x%08x\n", iir);
 
 		if (hotplug_status)
 			i9xx_hpd_irq_handler(dev_priv, hotplug_status);

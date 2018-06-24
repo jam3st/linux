@@ -50,7 +50,6 @@
 #include "i915_query.h"
 #include "i915_vgpu.h"
 #include "intel_drv.h"
-#include "intel_uc.h"
 
 static struct drm_driver driver;
 
@@ -359,12 +358,7 @@ static int i915_getparam_ioctl(struct drm_device *dev, void *data,
 		if (!value)
 			return -ENODEV;
 		break;
-	case I915_PARAM_HAS_GPU_RESET:
-		value = i915_modparams.enable_hangcheck &&
-			intel_has_gpu_reset(dev_priv);
-		if (value && intel_has_reset_engine(dev_priv))
-			value = 2;
-		break;
+
 	case I915_PARAM_HAS_RESOURCE_STREAMER:
 		value = HAS_RESOURCE_STREAMER(dev_priv);
 		break;
@@ -374,11 +368,7 @@ static int i915_getparam_ioctl(struct drm_device *dev, void *data,
 	case I915_PARAM_MIN_EU_IN_POOL:
 		value = INTEL_INFO(dev_priv)->sseu.min_eu_in_pool;
 		break;
-	case I915_PARAM_HUC_STATUS:
-		intel_runtime_pm_get(dev_priv);
-		value = I915_READ(HUC_STATUS2) & HUC_FW_VERIFIED;
-		intel_runtime_pm_put(dev_priv);
-		break;
+
 	case I915_PARAM_MMAP_GTT_VERSION:
 		/* Though we've started our numbering from 1, and so class all
 		 * earlier versions as 0, in effect their value is undefined as
@@ -632,13 +622,11 @@ static void i915_gem_fini(struct drm_i915_private *dev_priv)
 	i915_gem_drain_workqueue(dev_priv);
 
 	mutex_lock(&dev_priv->drm.struct_mutex);
-	intel_uc_fini_hw(dev_priv);
-	intel_uc_fini(dev_priv);
+
 	i915_gem_cleanup_engines(dev_priv);
 	i915_gem_contexts_fini(dev_priv);
 	mutex_unlock(&dev_priv->drm.struct_mutex);
 
-	intel_uc_fini_misc(dev_priv);
 	i915_gem_cleanup_userptr(dev_priv);
 
 	i915_gem_drain_freed_objects(dev_priv);
@@ -692,7 +680,6 @@ static int i915_load_modeset_init(struct drm_device *dev)
 	if (ret)
 		goto cleanup_irq;
 
-	intel_uc_init_fw(dev_priv);
 
 	ret = i915_gem_init(dev_priv);
 	if (ret)
@@ -718,7 +705,6 @@ cleanup_gem:
 		DRM_ERROR("failed to idle hardware; continuing to unload!\n");
 	i915_gem_fini(dev_priv);
 cleanup_uc:
-	intel_uc_fini_fw(dev_priv);
 cleanup_irq:
 	drm_irq_uninstall(dev);
 	intel_teardown_gmbus(dev_priv);
@@ -920,7 +906,6 @@ static int i915_driver_init_early(struct drm_i915_private *dev_priv,
 	mutex_init(&dev_priv->wm.wm_mutex);
 	mutex_init(&dev_priv->pps_mutex);
 
-	intel_uc_init_early(dev_priv);
 	i915_memcpy_init_early(dev_priv);
 
 	ret = i915_workqueues_init(dev_priv);
@@ -1032,7 +1017,6 @@ static int i915_driver_init_mmio(struct drm_i915_private *dev_priv)
 
 	intel_uncore_init(dev_priv);
 
-	intel_uc_init_mmio(dev_priv);
 
 	ret = intel_engines_init_mmio(dev_priv);
 	if (ret)
@@ -1074,9 +1058,6 @@ static void intel_sanitize_options(struct drm_i915_private *dev_priv)
 					    i915_modparams.enable_ppgtt);
 	DRM_DEBUG_DRIVER("ppgtt mode: %i\n", i915_modparams.enable_ppgtt);
 
-	intel_uc_sanitize_options(dev_priv);
-
-	intel_gvt_sanitize_options(dev_priv);
 }
 
 /**
@@ -1185,9 +1166,6 @@ static int i915_driver_init_hw(struct drm_i915_private *dev_priv)
 			DRM_DEBUG_DRIVER("can't enable MSI");
 	}
 
-	ret = intel_gvt_init(dev_priv);
-	if (ret)
-		goto err_ggtt;
 
 	return 0;
 
@@ -1235,8 +1213,7 @@ static void i915_driver_register(struct drm_i915_private *dev_priv)
 
 	/* Reveal our presence to userspace */
 	if (drm_dev_register(dev, 0) == 0) {
-		i915_debugfs_register(dev_priv);
-		i915_guc_log_register(dev_priv);
+
 
 		/* Depends on sysfs having been initialized */
 	} else
@@ -1281,7 +1258,6 @@ static void i915_driver_unregister(struct drm_i915_private *dev_priv)
 	intel_gpu_ips_teardown();
 
 
-	i915_guc_log_unregister(dev_priv);
 	drm_dev_unregister(&dev_priv->drm);
 
 	i915_gem_shrinker_unregister(dev_priv);
@@ -1424,8 +1400,6 @@ void i915_driver_unload(struct drm_device *dev)
 
 	drm_atomic_helper_shutdown(dev);
 
-	intel_gvt_cleanup(dev_priv);
-
 	intel_modeset_cleanup(dev);
 
 	intel_bios_cleanup(dev_priv);
@@ -1440,7 +1414,6 @@ void i915_driver_unload(struct drm_device *dev)
 	i915_reset_error_state(dev_priv);
 
 	i915_gem_fini(dev_priv);
-	intel_uc_fini_fw(dev_priv);
 	intel_fbc_cleanup_cfb(dev_priv);
 
 	intel_power_domains_fini(dev_priv);
@@ -1973,11 +1946,6 @@ error:
 	goto finish;
 }
 
-static inline int intel_gt_reset_engine(struct drm_i915_private *dev_priv,
-					struct intel_engine_cs *engine)
-{
-	return intel_gpu_reset(dev_priv, intel_engine_flag(engine));
-}
 
 /**
  * i915_reset_engine - reset GPU engine to recover from a hang
@@ -2013,15 +1981,9 @@ int i915_reset_engine(struct intel_engine_cs *engine, unsigned int flags)
 	}
 	error->reset_engine_count[engine->id]++;
 
-	if (!engine->i915->guc.execbuf_client)
-		ret = intel_gt_reset_engine(engine->i915, engine);
-	else
-		ret = intel_guc_reset_engine(&engine->i915->guc, engine);
+
 	if (ret) {
-		/* If we fail here, we expect to fallback to a global reset */
-		DRM_DEBUG_DRIVER("%sFailed to reset %s, ret=%d\n",
-				 engine->i915->guc.execbuf_client ? "GuC " : "",
-				 engine->name, ret);
+
 		goto out;
 	}
 
@@ -2463,8 +2425,6 @@ static int intel_runtime_suspend(struct device *kdev)
 	 */
 	i915_gem_runtime_suspend(dev_priv);
 
-	intel_uc_suspend(dev_priv);
-
 	intel_runtime_pm_disable_interrupts(dev_priv);
 
 	intel_uncore_suspend(dev_priv);
@@ -2485,7 +2445,6 @@ static int intel_runtime_suspend(struct device *kdev)
 
 		intel_runtime_pm_enable_interrupts(dev_priv);
 
-		intel_uc_resume(dev_priv);
 
 		i915_gem_init_swizzling(dev_priv);
 		i915_gem_restore_fences(dev_priv);
@@ -2547,7 +2506,6 @@ static int intel_runtime_resume(struct device *kdev)
 
 	intel_runtime_pm_enable_interrupts(dev_priv);
 
-	intel_uc_resume(dev_priv);
 
 	/*
 	 * No point of rolling back things in case of an error, as the best

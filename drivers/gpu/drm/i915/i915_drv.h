@@ -64,7 +64,6 @@
 #include "intel_opregion.h"
 #include "intel_ringbuffer.h"
 #include "intel_uncore.h"
-#include "intel_uc.h"
 
 #include "i915_gem.h"
 #include "i915_gem_context.h"
@@ -76,7 +75,6 @@
 #include "i915_request.h"
 #include "i915_vma.h"
 
-#include "intel_gvt.h"
 
 /* General customization:
  */
@@ -474,12 +472,6 @@ struct i915_gpu_state {
 	struct intel_device_info device_info;
 	struct intel_driver_caps driver_caps;
 	struct i915_params params;
-
-	struct i915_error_uc {
-		struct intel_uc_fw guc_fw;
-		struct intel_uc_fw huc_fw;
-		struct drm_i915_error_object *guc_log;
-	} uc;
 
 	/* Generic register state */
 	u32 eir;
@@ -1858,10 +1850,6 @@ struct drm_i915_private {
 
 	struct i915_virtual_gpu vgpu;
 
-	struct intel_gvt *gvt;
-
-	struct intel_huc huc;
-	struct intel_guc guc;
 
 	struct intel_csr csr;
 
@@ -2392,15 +2380,6 @@ static inline struct drm_i915_private *kdev_to_i915(struct device *kdev)
 	return to_i915(dev_get_drvdata(kdev));
 }
 
-static inline struct drm_i915_private *guc_to_i915(struct intel_guc *guc)
-{
-	return container_of(guc, struct drm_i915_private, guc);
-}
-
-static inline struct drm_i915_private *huc_to_i915(struct intel_huc *huc)
-{
-	return container_of(huc, struct drm_i915_private, huc);
-}
 
 /* Simple iterator over all initialised engines */
 #define for_each_engine(engine__, dev_priv__, id__) \
@@ -2857,10 +2836,7 @@ intel_info(const struct drm_i915_private *dev_priv)
 #define HAS_HUC(dev_priv)	(HAS_GUC(dev_priv))
 #define HAS_HUC_UCODE(dev_priv)	(HAS_GUC(dev_priv))
 
-/* Having a GuC is not the same as using a GuC */
-#define USES_GUC(dev_priv)		intel_uc_is_using_guc()
-#define USES_GUC_SUBMISSION(dev_priv)	intel_uc_is_using_guc_submission()
-#define USES_HUC(dev_priv)		intel_uc_is_using_huc()
+
 
 #define HAS_RESOURCE_STREAMER(dev_priv) ((dev_priv)->info.has_resource_streamer)
 
@@ -2967,10 +2943,7 @@ extern void i915_reset(struct drm_i915_private *i915, unsigned int flags);
 extern int i915_reset_engine(struct intel_engine_cs *engine,
 			     unsigned int flags);
 
-extern bool intel_has_reset_engine(struct drm_i915_private *dev_priv);
-extern int intel_reset_guc(struct drm_i915_private *dev_priv);
-extern int intel_guc_reset_engine(struct intel_guc *guc,
-				  struct intel_engine_cs *engine);
+
 extern void intel_engine_init_hangcheck(struct intel_engine_cs *engine);
 extern void intel_hangcheck_init(struct drm_i915_private *dev_priv);
 extern unsigned long i915_chipset_val(struct drm_i915_private *dev_priv);
@@ -3023,10 +2996,6 @@ extern void intel_irq_fini(struct drm_i915_private *dev_priv);
 int intel_irq_install(struct drm_i915_private *dev_priv);
 void intel_irq_uninstall(struct drm_i915_private *dev_priv);
 
-static inline bool intel_gvt_active(struct drm_i915_private *dev_priv)
-{
-	return dev_priv->gvt;
-}
 
 static inline bool intel_vgpu_active(struct drm_i915_private *dev_priv)
 {

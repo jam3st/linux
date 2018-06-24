@@ -73,18 +73,6 @@ i915-y += i915_cmd_parser.o \
 	  intel_ringbuffer.o \
 	  intel_uncore.o
 
-# general-purpose microcontroller (GuC) support
-i915-y += intel_uc.o \
-	  intel_uc_fw.o \
-	  intel_guc.o \
-	  intel_guc_ads.o \
-	  intel_guc_ct.o \
-	  intel_guc_fw.o \
-	  intel_guc_log.o \
-	  intel_guc_submission.o \
-	  intel_huc.o \
-	  intel_huc_fw.o
-
 # modesetting core code
 i915-y +=  \
 	  intel_atomic.o \

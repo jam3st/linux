@@ -119,7 +119,6 @@ static void gen6_ggtt_invalidate(struct drm_i915_private *dev_priv)
 static void guc_ggtt_invalidate(struct drm_i915_private *dev_priv)
 {
 	gen6_ggtt_invalidate(dev_priv);
-	I915_WRITE(GEN8_GTCR, GEN8_GTCR_INVALIDATE);
 }
 
 static void gmch_ggtt_invalidate(struct drm_i915_private *dev_priv)
@@ -3474,10 +3473,7 @@ int i915_ggtt_probe_hw(struct drm_i915_private *dev_priv)
 	 * currently don't have any bits spare to pass in this upper
 	 * restriction!
 	 */
-	if (USES_GUC(dev_priv)) {
-		ggtt->base.total = min_t(u64, ggtt->base.total, GUC_GGTT_TOP);
-		ggtt->mappable_end = min_t(u64, ggtt->mappable_end, ggtt->base.total);
-	}
+
 
 	if ((ggtt->base.total - 1) >> 32) {
 		DRM_ERROR("We never expected a Global GTT with more than 32bits"

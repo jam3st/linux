@@ -1018,13 +1018,6 @@ void intel_lvds_init(struct drm_i915_private *dev_priv)
 	}
 
 	pin = GMBUS_PIN_PANEL;
-	if (!intel_bios_is_lvds_present(dev_priv, &pin)) {
-		if ((lvds & LVDS_PORT_EN) == 0) {
-			DRM_DEBUG_KMS("LVDS is not present in VBT\n");
-			return;
-		}
-		DRM_DEBUG_KMS("LVDS is not present in VBT, but enabled anyway\n");
-	}
 
 	lvds_encoder = kzalloc(sizeof(*lvds_encoder), GFP_KERNEL);
 	if (!lvds_encoder)

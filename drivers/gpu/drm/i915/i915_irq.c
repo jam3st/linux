@@ -635,25 +635,6 @@ void i915_disable_pipestat(struct drm_i915_private *dev_priv,
 	POSTING_READ(reg);
 }
 
-/**
- * i915_enable_asle_pipestat - enable ASLE pipestat for OpRegion
- * @dev_priv: i915 device private
- */
-static void i915_enable_asle_pipestat(struct drm_i915_private *dev_priv)
-{
-	if (!dev_priv->opregion.asle || !IS_MOBILE(dev_priv))
-		return;
-
-	spin_lock_irq(&dev_priv->irq_lock);
-
-	i915_enable_pipestat(dev_priv, PIPE_B, PIPE_LEGACY_BLC_EVENT_STATUS);
-	if (INTEL_GEN(dev_priv) >= 4)
-		i915_enable_pipestat(dev_priv, PIPE_A,
-				     PIPE_LEGACY_BLC_EVENT_STATUS);
-
-	spin_unlock_irq(&dev_priv->irq_lock);
-}
-
 /*
  * This timing diagram depicts the video signal in and
  * around the vertical blanking period.
@@ -3838,7 +3819,6 @@ static int i915_irq_postinstall(struct drm_device *dev)
 	i915_enable_pipestat(dev_priv, PIPE_B, PIPE_CRC_DONE_INTERRUPT_STATUS);
 	spin_unlock_irq(&dev_priv->irq_lock);
 
-	i915_enable_asle_pipestat(dev_priv);
 
 	return 0;
 }
@@ -3956,7 +3936,6 @@ static int i965_irq_postinstall(struct drm_device *dev)
 	i915_enable_pipestat(dev_priv, PIPE_B, PIPE_CRC_DONE_INTERRUPT_STATUS);
 	spin_unlock_irq(&dev_priv->irq_lock);
 
-	i915_enable_asle_pipestat(dev_priv);
 
 	return 0;
 }

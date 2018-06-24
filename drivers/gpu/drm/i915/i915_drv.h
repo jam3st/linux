@@ -61,7 +61,6 @@
 #include "intel_display.h"
 #include "intel_dpll_mgr.h"
 #include "intel_lrc.h"
-#include "intel_opregion.h"
 #include "intel_ringbuffer.h"
 #include "intel_uncore.h"
 
@@ -1911,7 +1910,6 @@ struct drm_i915_private {
 	struct i915_hotplug hotplug;
 	struct intel_fbc fbc;
 	struct i915_drrs drrs;
-	struct intel_opregion opregion;
 	struct intel_vbt_data vbt;
 
 	bool preserve_bios_swizzle;

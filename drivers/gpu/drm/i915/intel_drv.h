@@ -1700,8 +1700,6 @@ void intel_dp_mst_encoder_cleanup(struct intel_digital_port *intel_dig_port);
 /* intel_dsi_dcs_backlight.c */
 int intel_dsi_dcs_init_backlight_funcs(struct intel_connector *intel_connector);
 
-/* intel_dvo.c */
-void intel_dvo_init(struct drm_i915_private *dev_priv);
 /* intel_hotplug.c */
 void intel_hpd_poll_init(struct drm_i915_private *dev_priv);
 bool intel_encoder_hotplug(struct intel_encoder *encoder,

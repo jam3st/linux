@@ -96,25 +96,17 @@ i915-y +=  \
 i915-$(CONFIG_DRM_FBDEV_EMULATION)	+= intel_fbdev.o
 
 # modesetting output/encoder code
-i915-y += dvo_ch7017.o \
-	  dvo_ch7xxx.o \
-	  dvo_ivch.o \
-	  dvo_ns2501.o \
-	  dvo_sil164.o \
-	  dvo_tfp410.o \
+i915-y += \
 	  intel_crt.o \
 	  intel_ddi.o \
 	  intel_dp_link_training.o \
 	  intel_dp_mst.o \
 	  intel_dp.o \
-	  intel_dvo.o \
 	  intel_hdmi.o \
 	  intel_i2c.o \
 	  intel_lspcon.o \
 	  intel_lvds.o \
 	  intel_panel.o \
-	  intel_sdvo.o \
-	  intel_tv.o
 
 
 obj-$(CONFIG_DRM_I915) += i915.o

@@ -13710,15 +13710,6 @@ static void intel_setup_outputs(struct drm_i915_private *dev_priv)
 		if (has_edp_a(dev_priv))
 			intel_dp_init(dev_priv, DP_A, PORT_A);
 
-		if (I915_READ(PCH_HDMIB) & SDVO_DETECTED) {
-			/* PCH SDVOB multiplex with HDMIB */
-			found = intel_sdvo_init(dev_priv, PCH_SDVOB, PORT_B);
-			if (!found)
-				intel_hdmi_init(dev_priv, PCH_HDMIB, PORT_B);
-			if (!found && (I915_READ(PCH_DP_B) & DP_DETECTED))
-				intel_dp_init(dev_priv, PCH_DP_B, PORT_B);
-		}
-
 		if (I915_READ(PCH_HDMIC) & SDVO_DETECTED)
 			intel_hdmi_init(dev_priv, PCH_HDMIC, PORT_C);
 
@@ -13774,45 +13765,8 @@ static void intel_setup_outputs(struct drm_i915_private *dev_priv)
 				intel_hdmi_init(dev_priv, CHV_HDMID, PORT_D);
 		}
 
-	} else if (!IS_GEN2(dev_priv) && !IS_PINEVIEW(dev_priv)) {
-		bool found = false;
+    }
 
-		if (I915_READ(GEN3_SDVOB) & SDVO_DETECTED) {
-			DRM_DEBUG_KMS("probing SDVOB\n");
-			found = intel_sdvo_init(dev_priv, GEN3_SDVOB, PORT_B);
-			if (!found && IS_G4X(dev_priv)) {
-				DRM_DEBUG_KMS("probing HDMI on SDVOB\n");
-				intel_hdmi_init(dev_priv, GEN4_HDMIB, PORT_B);
-			}
-
-			if (!found && IS_G4X(dev_priv))
-				intel_dp_init(dev_priv, DP_B, PORT_B);
-		}
-
-		/* Before G4X SDVOC doesn't have its own detect register */
-
-		if (I915_READ(GEN3_SDVOB) & SDVO_DETECTED) {
-			DRM_DEBUG_KMS("probing SDVOC\n");
-			found = intel_sdvo_init(dev_priv, GEN3_SDVOC, PORT_C);
-		}
-
-		if (!found && (I915_READ(GEN3_SDVOC) & SDVO_DETECTED)) {
-
-			if (IS_G4X(dev_priv)) {
-				DRM_DEBUG_KMS("probing HDMI on SDVOC\n");
-				intel_hdmi_init(dev_priv, GEN4_HDMIC, PORT_C);
-			}
-			if (IS_G4X(dev_priv))
-				intel_dp_init(dev_priv, DP_C, PORT_C);
-		}
-
-		if (IS_G4X(dev_priv) && (I915_READ(DP_D) & DP_DETECTED))
-			intel_dp_init(dev_priv, DP_D, PORT_D);
-	} else if (IS_GEN2(dev_priv))
-		intel_dvo_init(dev_priv);
-
-	if (SUPPORTS_TV(dev_priv))
-		intel_tv_init(dev_priv);
 
 	intel_psr_init(dev_priv);
 

@@ -30,7 +30,6 @@
 #include <drm/i915_drm.h>
 #include "i915_drv.h"
 #include "i915_gem_clflush.h"
-#include "i915_vgpu.h"
 #include "i915_trace.h"
 #include "intel_drv.h"
 #include "intel_frontbuffer.h"
@@ -5419,9 +5418,7 @@ i915_gem_load_init_fences(struct drm_i915_private *dev_priv)
 	else
 		dev_priv->num_fence_regs = 8;
 
-	if (intel_vgpu_active(dev_priv))
-		dev_priv->num_fence_regs =
-				I915_READ(vgtif_reg(avail_rs.fence_num));
+
 
 	/* Initialize fence registers to zero */
 	for (i = 0; i < dev_priv->num_fence_regs; i++) {

@@ -37,8 +37,6 @@
 #include <drm/i915_drm.h>
 
 #include "i915_drv.h"
-#include "i915_vgpu.h"
-#include "i915_trace.h"
 #include "intel_drv.h"
 #include "intel_frontbuffer.h"
 
@@ -1239,37 +1237,6 @@ free_scratch_page:
 	return ret;
 }
 
-static int gen8_ppgtt_notify_vgt(struct i915_hw_ppgtt *ppgtt, bool create)
-{
-	struct i915_address_space *vm = &ppgtt->base;
-	struct drm_i915_private *dev_priv = vm->i915;
-	enum vgt_g2v_type msg;
-	int i;
-
-	if (use_4lvl(vm)) {
-		const u64 daddr = px_dma(&ppgtt->pml4);
-
-		I915_WRITE(vgtif_reg(pdp[0].lo), lower_32_bits(daddr));
-		I915_WRITE(vgtif_reg(pdp[0].hi), upper_32_bits(daddr));
-
-		msg = (create ? VGT_G2V_PPGTT_L4_PAGE_TABLE_CREATE :
-				VGT_G2V_PPGTT_L4_PAGE_TABLE_DESTROY);
-	} else {
-		for (i = 0; i < GEN8_3LVL_PDPES; i++) {
-			const u64 daddr = i915_page_dir_dma_addr(ppgtt, i);
-
-			I915_WRITE(vgtif_reg(pdp[i].lo), lower_32_bits(daddr));
-			I915_WRITE(vgtif_reg(pdp[i].hi), upper_32_bits(daddr));
-		}
-
-		msg = (create ? VGT_G2V_PPGTT_L3_PAGE_TABLE_CREATE :
-				VGT_G2V_PPGTT_L3_PAGE_TABLE_DESTROY);
-	}
-
-	I915_WRITE(vgtif_reg(g2v_notify), msg);
-
-	return 0;
-}
 
 static void gen8_free_scratch(struct i915_address_space *vm)
 {
@@ -1316,8 +1283,7 @@ static void gen8_ppgtt_cleanup(struct i915_address_space *vm)
 	struct drm_i915_private *dev_priv = vm->i915;
 	struct i915_hw_ppgtt *ppgtt = i915_vm_to_ppgtt(vm);
 
-	if (intel_vgpu_active(dev_priv))
-		gen8_ppgtt_notify_vgt(ppgtt, false);
+
 
 	if (use_4lvl(vm))
 		gen8_ppgtt_cleanup_4lvl(ppgtt);
@@ -1622,8 +1588,7 @@ static int gen8_ppgtt_init(struct i915_hw_ppgtt *ppgtt)
 		ppgtt->base.clear_range = gen8_ppgtt_clear_3lvl;
 	}
 
-	if (intel_vgpu_active(dev_priv))
-		gen8_ppgtt_notify_vgt(ppgtt, true);
+
 
 	ppgtt->base.cleanup = gen8_ppgtt_cleanup;
 	ppgtt->base.unbind_vma = ppgtt_unbind_vma;

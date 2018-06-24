@@ -48,7 +48,6 @@
 #include "i915_trace.h"
 #include "i915_pmu.h"
 #include "i915_query.h"
-#include "i915_vgpu.h"
 #include "intel_drv.h"
 
 static struct drm_driver driver;
@@ -1204,12 +1203,6 @@ static void i915_driver_register(struct drm_i915_private *dev_priv)
 
 	i915_gem_shrinker_register(dev_priv);
 
-	/*
-	 * Notify a valid surface after modesetting,
-	 * when running inside a VM.
-	 */
-	if (intel_vgpu_active(dev_priv))
-		I915_WRITE(vgtif_reg(display_ready), VGT_DRV_DISPLAY_READY);
 
 	/* Reveal our presence to userspace */
 	if (drm_dev_register(dev, 0) == 0) {

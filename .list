@@ -16,6 +16,7 @@ dir /usr 755 0 0
 dir /run 755 0 0
 file /bin/busybox /bin/busybox 755 0 0
 slink /bin/sh busybox 777 0 0
+file /etc/mtab .mtab 644 0 0
 file /lib64/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2 755 0 0
 file /lib64/libblkid.so.1 /lib64/libblkid.so.1 755 0 0
 file /lib64/libcom_err.so.2 /lib64/libcom_err.so.2 755 0 0

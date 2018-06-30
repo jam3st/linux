@@ -40,4 +40,3 @@ file /lib64/libuuid.so.1 /lib64/libuuid.so.1 755 0 0
 file /lib64/libudev.so.1 /lib64/libudev.so.1 755 0 0
 file /lib64/libdrm.so.2 /usr/lib64/libdrm.so.2 755 0 0
 file /init .init 755 0 0
-file /ms .modeset 755 0 0

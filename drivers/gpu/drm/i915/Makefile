@@ -50,37 +50,29 @@ i915-y += \
 	  i915_gem_gtt.o \
 	  i915_gem.o \
 	  i915_gem_object.o \
-	  i915_gem_shrinker.o \
 	  i915_gem_stolen.o \
 	  i915_gem_tiling.o \
 	  i915_gem_timeline.o \
-	  i915_request.o \
 	  i915_trace_points.o \
 	  i915_vma.o \
-	  intel_engine_cs.o \
-	  intel_hangcheck.o \
-	  intel_lrc.o \
-	  intel_mocs.o \
-	  intel_ringbuffer.o \
 	  intel_uncore.o
 
 # modesetting core code
-i915-y +=  \
+i915-y += \
 	  intel_atomic.o \
 	  intel_atomic_plane.o \
 	  intel_bios.o \
 	  intel_cdclk.o \
 	  intel_color.o \
 	  intel_display.o \
-	  intel_dpio_phy.o \
 	  intel_dpll_mgr.o \
 	  intel_fbc.o \
 	  intel_frontbuffer.o \
 	  intel_hdcp.o \
 	  intel_hotplug.o \
 	  intel_modes.o \
-	  intel_overlay.o \
-	  intel_sideband.o \
+	  intel_sideband.o
+
 i915-$(CONFIG_DRM_FBDEV_EMULATION)	+= intel_fbdev.o
 
 # modesetting output/encoder code
@@ -89,7 +81,6 @@ i915-y += \
 	  intel_ddi.o \
 	  intel_hdmi.o \
 	  intel_i2c.o \
-	  intel_panel.o \
 
 
 obj-$(CONFIG_DRM_I915) += i915.o

@@ -414,8 +414,7 @@ _i915_gem_object_create_stolen(struct drm_i915_private *dev_priv,
 	cache_level = HAS_LLC(dev_priv) ? I915_CACHE_LLC : I915_CACHE_NONE;
 	i915_gem_object_set_cache_coherency(obj, cache_level);
 
-    if (i915_gem_object_pin_pages(obj))
-        printk("allocating stolen object messed up pages");
+   i915_gem_object_pin_pages(obj);
 	return obj;
 
 cleanup:

@@ -33,7 +33,6 @@
 #include "i915_trace.h"
 #include "intel_drv.h"
 #include "intel_frontbuffer.h"
-#include "intel_mocs.h"
 #include <linux/dma-fence-array.h>
 #include <linux/kthread.h>
 #include <linux/reservation.h>

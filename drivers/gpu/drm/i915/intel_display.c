@@ -11338,31 +11338,6 @@ static bool has_edp_a(struct drm_i915_private *dev_priv)
 	return true;
 }
 
-static bool intel_crt_present(struct drm_i915_private *dev_priv)
-{
-	if (INTEL_GEN(dev_priv) >= 9)
-		return false;
-
-	if (IS_HSW_ULT(dev_priv) || IS_BDW_ULT(dev_priv))
-		return false;
-
-	if (IS_CHERRYVIEW(dev_priv))
-		return false;
-
-	if (HAS_PCH_LPT_H(dev_priv) &&
-	    I915_READ(SFUSE_STRAP) & SFUSE_STRAP_CRT_DISABLED)
-		return false;
-
-	/* DDI E can't be used if DDI A requires 4 lanes */
-	if (HAS_DDI(dev_priv) && I915_READ(DDI_BUF_CTL(PORT_A)) & DDI_A_4_LANES)
-		return false;
-
-	if (!dev_priv->vbt.int_crt_support)
-		return false;
-
-	return true;
-}
-
 void intel_pps_unlock_regs_wa(struct drm_i915_private *dev_priv)
 {
 	int pps_num;
@@ -11412,8 +11387,6 @@ static void intel_setup_outputs(struct drm_i915_private *dev_priv)
 	 * sharing of the PPS.
 	 */
 
-	if (intel_crt_present(dev_priv))
-		intel_crt_init(dev_priv);
 
     if (HAS_DDI(dev_priv)) {
 		int found;

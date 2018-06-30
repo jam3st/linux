@@ -68,7 +68,6 @@ i915-$(CONFIG_DRM_FBDEV_EMULATION)	+= intel_fbdev.o
 
 # modesetting output/encoder code
 i915-y += \
-	  intel_crt.o \
 	  intel_ddi.o \
 	  intel_hdmi.o \
 	  intel_i2c.o \

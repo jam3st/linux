@@ -386,7 +386,6 @@ printk("F %d %x %x", i, fence->i915, dev_priv);
     printk("i915_gem_load_init_fences end");
     //i915_gem_restore_fences(dev_priv);
 
-	i915_gem_detect_bit_6_swizzle(dev_priv);
 }
 
 static void i915_gem_init__mm(struct drm_i915_private *i915)

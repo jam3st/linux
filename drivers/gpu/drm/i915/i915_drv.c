@@ -44,7 +44,6 @@
 
 #include "i915_drv.h"
 #include "i915_trace.h"
-#include "i915_pmu.h"
 #include "intel_drv.h"
 
 static struct drm_driver driver;

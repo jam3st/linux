@@ -64,7 +64,6 @@ i915-y += \
 	  intel_dpll_mgr.o \
 	  intel_fbc.o \
 	  intel_frontbuffer.o \
-	  intel_hdcp.o \
 	  intel_hotplug.o \
 	  intel_sideband.o
 

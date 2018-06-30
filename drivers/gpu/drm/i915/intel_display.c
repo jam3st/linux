@@ -3612,15 +3612,6 @@ u32 glk_plane_color_ctl(const struct intel_crtc_state *crtc_state,
 	plane_color_ctl |= PLANE_COLOR_PLANE_GAMMA_DISABLE;
 	plane_color_ctl |= glk_plane_color_ctl_alpha(fb->format->format);
 
-	if (intel_format_is_yuv(fb->format->format)) {
-		if (plane_state->base.color_encoding == DRM_COLOR_YCBCR_BT709)
-			plane_color_ctl |= PLANE_COLOR_CSC_MODE_YUV709_TO_RGB709;
-		else
-			plane_color_ctl |= PLANE_COLOR_CSC_MODE_YUV601_TO_RGB709;
-
-		if (plane_state->base.color_range == DRM_COLOR_YCBCR_FULL_RANGE)
-			plane_color_ctl |= PLANE_COLOR_YUV_RANGE_CORRECTION_DISABLE;
-	}
 
 	return plane_color_ctl;
 }
@@ -11300,9 +11291,6 @@ static void intel_begin_crtc_commit(struct drm_crtc *crtc,
 		intel_color_load_luts(&intel_cstate->base);
 	}
 
-	/* Perform vblank evasion around commit operation */
-	intel_pipe_update_start(intel_cstate);
-
 	if (modeset)
 		goto out;
 
@@ -11327,7 +11315,6 @@ static void intel_finish_crtc_commit(struct drm_crtc *crtc,
 	struct intel_crtc_state *new_crtc_state =
 		intel_atomic_get_new_crtc_state(old_intel_state, intel_crtc);
 
-	intel_pipe_update_end(new_crtc_state);
 
 	if (new_crtc_state->update_pipe &&
 	    !needs_modeset(&new_crtc_state->base) &&
@@ -11670,19 +11657,7 @@ intel_primary_plane_create(struct drm_i915_private *dev_priv, enum pipe pipe)
 
 	primary->check_plane = intel_check_primary_plane;
 
-	if (INTEL_GEN(dev_priv) >= 9) {
-		intel_primary_formats = skl_primary_formats;
-		num_formats = ARRAY_SIZE(skl_primary_formats);
-
-		if (skl_plane_has_ccs(dev_priv, pipe, PLANE_PRIMARY))
-			modifiers = skl_format_modifiers_ccs;
-		else
-			modifiers = skl_format_modifiers_noccs;
-
-		primary->update_plane = skl_update_plane;
-		primary->disable_plane = skl_disable_plane;
-		primary->get_hw_state = skl_plane_get_hw_state;
-	} else if (INTEL_GEN(dev_priv) >= 4) {
+    if (INTEL_GEN(dev_priv) >= 4) {
 		intel_primary_formats = i965_primary_formats;
 		num_formats = ARRAY_SIZE(i965_primary_formats);
 		modifiers = i9xx_format_modifiers;
@@ -11690,74 +11665,26 @@ intel_primary_plane_create(struct drm_i915_private *dev_priv, enum pipe pipe)
 		primary->update_plane = i9xx_update_plane;
 		primary->disable_plane = i9xx_disable_plane;
 		primary->get_hw_state = i9xx_plane_get_hw_state;
-	} else {
-		intel_primary_formats = i8xx_primary_formats;
-		num_formats = ARRAY_SIZE(i8xx_primary_formats);
-		modifiers = i9xx_format_modifiers;
+    }
 
-		primary->update_plane = i9xx_update_plane;
-		primary->disable_plane = i9xx_disable_plane;
-		primary->get_hw_state = i9xx_plane_get_hw_state;
-	}
-
-	if (INTEL_GEN(dev_priv) >= 9)
-		ret = drm_universal_plane_init(&dev_priv->drm, &primary->base,
-					       0, &intel_plane_funcs,
-					       intel_primary_formats, num_formats,
-					       modifiers,
-					       DRM_PLANE_TYPE_PRIMARY,
-					       "plane 1%c", pipe_name(pipe));
-	else if (INTEL_GEN(dev_priv) >= 5 || IS_G4X(dev_priv))
+    if (INTEL_GEN(dev_priv) >= 5 || IS_G4X(dev_priv))
 		ret = drm_universal_plane_init(&dev_priv->drm, &primary->base,
 					       0, &intel_plane_funcs,
 					       intel_primary_formats, num_formats,
 					       modifiers,
 					       DRM_PLANE_TYPE_PRIMARY,
 					       "primary %c", pipe_name(pipe));
-	else
-		ret = drm_universal_plane_init(&dev_priv->drm, &primary->base,
-					       0, &intel_plane_funcs,
-					       intel_primary_formats, num_formats,
-					       modifiers,
-					       DRM_PLANE_TYPE_PRIMARY,
-					       "plane %c",
-					       plane_name(primary->i9xx_plane));
-	if (ret)
+    if (ret)
 		goto fail;
 
-	if (INTEL_GEN(dev_priv) >= 10) {
-		supported_rotations =
-			DRM_MODE_ROTATE_0 | DRM_MODE_ROTATE_90 |
-			DRM_MODE_ROTATE_180 | DRM_MODE_ROTATE_270 |
-			DRM_MODE_REFLECT_X;
-	} else if (INTEL_GEN(dev_priv) >= 9) {
-		supported_rotations =
-			DRM_MODE_ROTATE_0 | DRM_MODE_ROTATE_90 |
-			DRM_MODE_ROTATE_180 | DRM_MODE_ROTATE_270;
-	} else if (IS_CHERRYVIEW(dev_priv) && pipe == PIPE_B) {
-		supported_rotations =
-			DRM_MODE_ROTATE_0 | DRM_MODE_ROTATE_180 |
-			DRM_MODE_REFLECT_X;
-	} else if (INTEL_GEN(dev_priv) >= 4) {
-		supported_rotations =
-			DRM_MODE_ROTATE_0 | DRM_MODE_ROTATE_180;
-	} else {
-		supported_rotations = DRM_MODE_ROTATE_0;
-	}
 
-	if (INTEL_GEN(dev_priv) >= 4)
+    supported_rotations =
+        DRM_MODE_ROTATE_0 | DRM_MODE_ROTATE_180;
+
+
 		drm_plane_create_rotation_property(&primary->base,
 						   DRM_MODE_ROTATE_0,
 						   supported_rotations);
-
-	if (INTEL_GEN(dev_priv) >= 9)
-		drm_plane_create_color_properties(&primary->base,
-						  BIT(DRM_COLOR_YCBCR_BT601) |
-						  BIT(DRM_COLOR_YCBCR_BT709),
-						  BIT(DRM_COLOR_YCBCR_LIMITED_RANGE) |
-						  BIT(DRM_COLOR_YCBCR_FULL_RANGE),
-						  DRM_COLOR_YCBCR_BT709,
-						  DRM_COLOR_YCBCR_LIMITED_RANGE);
 
 	drm_plane_helper_add(&primary->base, &intel_plane_helper_funcs);
 
@@ -11889,16 +11816,6 @@ static int intel_crtc_init(struct drm_i915_private *dev_priv, enum pipe pipe)
 	}
 	intel_crtc->plane_ids_mask |= BIT(primary->id);
 
-	for_each_sprite(dev_priv, pipe, sprite) {
-		struct intel_plane *plane;
-
-		plane = intel_sprite_plane_create(dev_priv, pipe, sprite);
-		if (IS_ERR(plane)) {
-			ret = PTR_ERR(plane);
-			goto fail;
-		}
-		intel_crtc->plane_ids_mask |= BIT(plane->id);
-	}
 
 	cursor = intel_cursor_plane_create(dev_priv, pipe);
 	if (IS_ERR(cursor)) {

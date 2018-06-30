@@ -2072,7 +2072,6 @@ static void intel_ddi_pre_enable_dp(struct intel_encoder *encoder,
 
 		intel_prepare_dp_ddi_buffers(encoder, crtc_state);
 
-	intel_ddi_init_dp_buf_reg(encoder);
 }
 
 static void intel_ddi_pre_enable_hdmi(struct intel_encoder *encoder,
@@ -2600,24 +2599,7 @@ static const struct drm_encoder_funcs intel_ddi_funcs = {
 	.destroy = NULL,
 };
 
-static struct intel_connector *
-intel_ddi_init_dp_connector(struct intel_digital_port *intel_dig_port)
-{
-	struct intel_connector *connector;
-	enum port port = intel_dig_port->base.port;
 
-	connector = intel_connector_alloc();
-	if (!connector)
-		return NULL;
-
-	intel_dig_port->dp.output_reg = DDI_BUF_CTL(port);
-	if (!intel_dp_init_connector(intel_dig_port, connector)) {
-		kfree(connector);
-		return NULL;
-	}
-
-	return connector;
-}
 
 static int modeset_pipe(struct drm_crtc *crtc,
 			struct drm_modeset_acquire_ctx *ctx)
@@ -2745,8 +2727,6 @@ static bool intel_ddi_hotplug(struct intel_encoder *encoder,
 	for (;;) {
 		if (connector->base.connector_type == DRM_MODE_CONNECTOR_HDMIA)
 			ret = intel_hdmi_reset_link(encoder, &ctx);
-		else
-			ret = intel_dp_retrain_link(encoder, &ctx);
 
 		if (ret == -EDEADLK) {
 			drm_modeset_backoff(&ctx);
@@ -2934,13 +2914,7 @@ void intel_ddi_init(struct drm_i915_private *dev_priv, enum port port)
 
 	intel_infoframe_init(intel_dig_port);
 
-	if (init_dp) {
-		if (!intel_ddi_init_dp_connector(intel_dig_port))
-			goto err;
 
-		intel_dig_port->hpd_pulse = NULL;
-		dev_priv->hotplug.irq_port[port] = intel_dig_port;
-	}
 
 	/* In theory we don't need the encoder->type check, but leave it just in
 	 * case we have some really bad VBTs... */
@@ -2949,19 +2923,7 @@ void intel_ddi_init(struct drm_i915_private *dev_priv, enum port port)
 			goto err;
 	}
 
-	if (init_lspcon) {
-		if (lspcon_init(intel_dig_port))
-			/* TODO: handle hdmi info frame part */
-			DRM_DEBUG_KMS("LSPCON init success on port %c\n",
-				port_name(port));
-		else
-			/*
-			 * LSPCON init faied, but DP init was success, so
-			 * lets try to drive as DP++ port.
-			 */
-			DRM_ERROR("LSPCON init failed on port %c\n",
-				port_name(port));
-	}
+
 
 	return;
 

@@ -108,7 +108,6 @@ static void intel_frontbuffer_flush(struct drm_i915_private *dev_priv,
 		return;
 
 	might_sleep();
-	intel_edp_drrs_flush(dev_priv, frontbuffer_bits);
 	intel_psr_flush(dev_priv, frontbuffer_bits, origin);
 	intel_fbc_flush(dev_priv, frontbuffer_bits, origin);
 }

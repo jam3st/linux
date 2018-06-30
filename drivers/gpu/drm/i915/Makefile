@@ -48,7 +48,6 @@ i915-y += \
 	  i915_gem_evict.o \
 	  i915_gem_fence_reg.o \
 	  i915_gem_gtt.o \
-	  i915_gem_internal.o \
 	  i915_gem.o \
 	  i915_gem_object.o \
 	  i915_gem_shrinker.o \

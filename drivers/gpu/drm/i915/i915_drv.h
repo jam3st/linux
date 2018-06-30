@@ -3916,7 +3916,6 @@ wait_remaining_ms_from_jiffies(unsigned long timestamp_jiffies, int to_wait_ms)
 static inline bool
 __i915_request_irq_complete(const struct i915_request *rq)
 {
-	struct intel_engine_cs *engine = rq->engine;
 	u32 seqno;
 
 	/* Note that the engine may have wrapped around the seqno, and

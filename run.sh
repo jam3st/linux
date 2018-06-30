@@ -1,5 +1,5 @@
 mkdir -p stag/efi/boot
-cp arch/x86/boot/bzImage stag/efi/boot/bootx64.efi ; 
+cp arch/x86/boot/bzImage stag/efi/boot/bootx64.efi &&
 /usr/bin/qemu-system-x86_64 -m 2048 -L /mnt/work/vm/etc/ \
     -vga none -device vfio-pci,host=00:00:02.0,x-vga=off,addr=0x2,x-igd-opregion=on -net none \
     -smp 4,threads=2 -machine q35,accel=kvm,usb=off,vmport=off,kernel_irqchip=on,igd-passthru=on \

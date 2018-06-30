@@ -551,20 +551,7 @@ static void ibx_hpd_irq_handler(struct drm_i915_private *dev_priv,
 }
 
 
-static void cpt_serr_int_handler(struct drm_i915_private *dev_priv)
-{
-	u32 serr_int = I915_READ(SERR_INT);
-	enum pipe pipe;
 
-	if (serr_int & SERR_INT_POISON)
-		DRM_ERROR("PCH poison interrupt\n");
-
-	for_each_pipe(dev_priv, pipe)
-		if (serr_int & SERR_INT_TRANS_FIFO_UNDERRUN(pipe))
-			intel_pch_fifo_underrun_irq_handler(dev_priv, pipe);
-
-	I915_WRITE(SERR_INT, serr_int);
-}
 
 static void cpt_irq_handler(struct drm_i915_private *dev_priv, u32 pch_iir)
 {
@@ -598,8 +585,7 @@ static void cpt_irq_handler(struct drm_i915_private *dev_priv, u32 pch_iir)
 					 pipe_name(pipe),
 					 I915_READ(FDI_RX_IIR(pipe)));
 
-	if (pch_iir & SDE_ERROR_CPT)
-		cpt_serr_int_handler(dev_priv);
+
 }
 
 static void ivb_display_irq_handler(struct drm_i915_private *dev_priv,

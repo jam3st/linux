@@ -158,56 +158,8 @@ struct intel_limit {
 	} p2;
 };
 
-/* returns HPLL frequency in kHz */
-int vlv_get_hpll_vco(struct drm_i915_private *dev_priv)
-{
-	int hpll_freq, vco_freq[] = { 800, 1600, 2000, 2400 };
-
-	/* Obtain SKU information */
-	mutex_lock(&dev_priv->sb_lock);
-	hpll_freq = vlv_cck_read(dev_priv, CCK_FUSE_REG) &
-		CCK_FUSE_HPLL_FREQ_MASK;
-	mutex_unlock(&dev_priv->sb_lock);
-
-	return vco_freq[hpll_freq] * 1000;
-}
-
-int vlv_get_cck_clock(struct drm_i915_private *dev_priv,
-		      const char *name, u32 reg, int ref_freq)
-{
-	u32 val;
-	int divider;
-
-	mutex_lock(&dev_priv->sb_lock);
-	val = vlv_cck_read(dev_priv, reg);
-	mutex_unlock(&dev_priv->sb_lock);
-
-	divider = val & CCK_FREQUENCY_VALUES;
-
-	WARN((val & CCK_FREQUENCY_STATUS) !=
-	     (divider << CCK_FREQUENCY_STATUS_SHIFT),
-	     "%s change in progress\n", name);
-
-	return DIV_ROUND_CLOSEST(ref_freq << 1, divider + 1);
-}
-
-int vlv_get_cck_clock_hpll(struct drm_i915_private *dev_priv,
-			   const char *name, u32 reg)
-{
-	if (dev_priv->hpll_freq == 0)
-		dev_priv->hpll_freq = vlv_get_hpll_vco(dev_priv);
-
-	return vlv_get_cck_clock(dev_priv, name, reg,
-				 dev_priv->hpll_freq);
-}
-
 static void intel_update_czclk(struct drm_i915_private *dev_priv)
 {
-	if (!(IS_VALLEYVIEW(dev_priv) || IS_CHERRYVIEW(dev_priv)))
-		return;
-
-	dev_priv->czclk_freq = vlv_get_cck_clock_hpll(dev_priv, "czclk",
-						      CCK_CZ_CLOCK_CONTROL);
 
 	DRM_DEBUG_DRIVER("CZ clock rate: %d kHz\n", dev_priv->czclk_freq);
 }
@@ -4975,29 +4927,7 @@ static void intel_crtc_dpms_overlay_disable(struct intel_crtc *intel_crtc)
  * re-enable that is caused when a sprite plane is updated to no longer
  * completely hide the primary plane.
  */
-static void
-intel_post_enable_primary(struct drm_crtc *crtc,
-			  const struct intel_crtc_state *new_crtc_state)
-{
-	struct drm_device *dev = crtc->dev;
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	int pipe = intel_crtc->pipe;
 
-	/*
-	 * Gen2 reports pipe underruns whenever all planes are disabled.
-	 * So don't enable underrun reporting before at least some planes
-	 * are enabled.
-	 * FIXME: Need to fix the logic to work when we turn off all planes
-	 * but leave the pipe running.
-	 */
-	if (IS_GEN2(dev_priv))
-		intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, true);
-
-	/* Underruns don't always raise interrupts, so check manually. */
-	intel_check_cpu_fifo_underruns(dev_priv);
-	intel_check_pch_fifo_underruns(dev_priv);
-}
 
 /* FIXME get rid of this and use pre_plane_update */
 static void
@@ -5012,8 +4942,6 @@ intel_pre_disable_primary_noatomic(struct drm_crtc *crtc)
 	 * Gen2 reports pipe underruns whenever all planes are disabled.
 	 * So disable underrun reporting before all the planes get disabled.
 	 */
-	if (IS_GEN2(dev_priv))
-		intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, false);
 
 	hsw_disable_ips(to_intel_crtc_state(crtc->state));
 
@@ -5090,10 +5018,6 @@ static void intel_post_plane_update(struct intel_crtc_state *old_crtc_state)
 
 		intel_fbc_post_update(crtc);
 
-		if (primary_state->base.visible &&
-		    (needs_modeset(&pipe_config->base) ||
-		     !old_primary_state->base.visible))
-			intel_post_enable_primary(&crtc->base, pipe_config);
 	}
 }
 
@@ -5123,9 +5047,7 @@ static void intel_pre_plane_update(struct intel_crtc_state *old_crtc_state,
 		 * Gen2 reports pipe underruns whenever all planes are disabled.
 		 * So disable underrun reporting before all the planes get disabled.
 		 */
-		if (IS_GEN2(dev_priv) && old_primary_state->base.visible &&
-		    (modeset || !primary_state->base.visible))
-			intel_set_cpu_fifo_underrun_reporting(dev_priv, crtc->pipe, false);
+
 	}
 
 	/*
@@ -5338,10 +5260,6 @@ static void ironlake_crtc_enable(struct intel_crtc_state *pipe_config,
 	 *
 	 * Spurious PCH underruns also occur during PCH enabling.
 	 */
-	if (intel_crtc->config->has_pch_encoder || IS_GEN5(dev_priv))
-		intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, false);
-	if (intel_crtc->config->has_pch_encoder)
-		intel_set_pch_fifo_underrun_reporting(dev_priv, pipe, false);
 
 	if (intel_crtc->config->has_pch_encoder)
 		intel_prepare_shared_dpll(intel_crtc);
@@ -5399,8 +5317,7 @@ static void ironlake_crtc_enable(struct intel_crtc_state *pipe_config,
 	/* Must wait for vblank to avoid spurious PCH FIFO underruns */
 	if (intel_crtc->config->has_pch_encoder)
 		intel_wait_for_vblank(dev_priv, pipe);
-	intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, true);
-	intel_set_pch_fifo_underrun_reporting(dev_priv, pipe, true);
+
 }
 
 /* IPS only exists on ULT machines and is tied to pipe A. */
@@ -5575,10 +5492,6 @@ static void ironlake_crtc_disable(struct intel_crtc_state *old_crtc_state,
 	 * pipe is already disabled, but FDI RX/TX is still enabled.
 	 * Happens at least with VGA+HDMI cloning. Suppress them.
 	 */
-	if (intel_crtc->config->has_pch_encoder) {
-		intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, false);
-		intel_set_pch_fifo_underrun_reporting(dev_priv, pipe, false);
-	}
 
 	intel_encoders_disable(crtc, old_crtc_state, old_state);
 
@@ -5618,8 +5531,6 @@ static void ironlake_crtc_disable(struct intel_crtc_state *old_crtc_state,
 		ironlake_fdi_pll_disable(intel_crtc);
 	}
 
-	intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, true);
-	intel_set_pch_fifo_underrun_reporting(dev_priv, pipe, true);
 }
 
 static void haswell_crtc_disable(struct intel_crtc_state *old_crtc_state,
@@ -5797,7 +5708,6 @@ static void valleyview_crtc_enable(struct intel_crtc_state *pipe_config,
 
 	intel_crtc->active = true;
 
-	intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, true);
 
 	intel_encoders_pre_pll_enable(crtc, pipe_config, old_state);
 
@@ -5860,8 +5770,7 @@ static void i9xx_crtc_enable(struct intel_crtc_state *pipe_config,
 
 	intel_crtc->active = true;
 
-	if (!IS_GEN2(dev_priv))
-		intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, true);
+
 
 	intel_encoders_pre_enable(crtc, pipe_config, old_state);
 
@@ -5937,8 +5846,6 @@ static void i9xx_crtc_disable(struct intel_crtc_state *old_crtc_state,
 
 	intel_encoders_post_pll_disable(crtc, old_crtc_state, old_state);
 
-	if (!IS_GEN2(dev_priv))
-		intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, false);
 
 	if (!dev_priv->display.initial_watermarks)
 		intel_update_watermarks(intel_crtc);
@@ -6548,34 +6455,6 @@ static void i9xx_update_pll_dividers(struct intel_crtc *crtc,
 	}
 }
 
-static void vlv_pllb_recal_opamp(struct drm_i915_private *dev_priv, enum pipe
-		pipe)
-{
-	u32 reg_val;
-
-	/*
-	 * PLLB opamp always calibrates to max value of 0x3f, force enable it
-	 * and set it to a reasonable value instead.
-	 */
-	reg_val = vlv_dpio_read(dev_priv, pipe, VLV_PLL_DW9(1));
-	reg_val &= 0xffffff00;
-	reg_val |= 0x00000030;
-	vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW9(1), reg_val);
-
-	reg_val = vlv_dpio_read(dev_priv, pipe, VLV_REF_DW13);
-	reg_val &= 0x00ffffff;
-	reg_val |= 0x8c000000;
-	vlv_dpio_write(dev_priv, pipe, VLV_REF_DW13, reg_val);
-
-	reg_val = vlv_dpio_read(dev_priv, pipe, VLV_PLL_DW9(1));
-	reg_val &= 0xffffff00;
-	vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW9(1), reg_val);
-
-	reg_val = vlv_dpio_read(dev_priv, pipe, VLV_REF_DW13);
-	reg_val &= 0x00ffffff;
-	reg_val |= 0xb0000000;
-	vlv_dpio_write(dev_priv, pipe, VLV_REF_DW13, reg_val);
-}
 
 static void intel_pch_transcoder_set_m_n(struct intel_crtc *crtc,
 					 struct intel_link_m_n *m_n)
@@ -6646,298 +6525,6 @@ void intel_dp_set_m_n(struct intel_crtc *crtc, enum link_m_n_set m_n)
 		intel_pch_transcoder_set_m_n(crtc, &crtc->config->dp_m_n);
 	else
 		intel_cpu_transcoder_set_m_n(crtc, dp_m_n, dp_m2_n2);
-}
-
-static void vlv_compute_dpll(struct intel_crtc *crtc,
-			     struct intel_crtc_state *pipe_config)
-{
-	pipe_config->dpll_hw_state.dpll = DPLL_INTEGRATED_REF_CLK_VLV |
-		DPLL_REF_CLK_ENABLE_VLV | DPLL_VGA_MODE_DIS;
-	if (crtc->pipe != PIPE_A)
-		pipe_config->dpll_hw_state.dpll |= DPLL_INTEGRATED_CRI_CLK_VLV;
-
-	/* DPLL not used with DSI, but still need the rest set up */
-	if (!intel_crtc_has_type(pipe_config, INTEL_OUTPUT_DSI))
-		pipe_config->dpll_hw_state.dpll |= DPLL_VCO_ENABLE |
-			DPLL_EXT_BUFFER_ENABLE_VLV;
-
-	pipe_config->dpll_hw_state.dpll_md =
-		(pipe_config->pixel_multiplier - 1) << DPLL_MD_UDI_MULTIPLIER_SHIFT;
-}
-
-static void chv_compute_dpll(struct intel_crtc *crtc,
-			     struct intel_crtc_state *pipe_config)
-{
-	pipe_config->dpll_hw_state.dpll = DPLL_SSC_REF_CLK_CHV |
-		DPLL_REF_CLK_ENABLE_VLV | DPLL_VGA_MODE_DIS;
-	if (crtc->pipe != PIPE_A)
-		pipe_config->dpll_hw_state.dpll |= DPLL_INTEGRATED_CRI_CLK_VLV;
-
-	/* DPLL not used with DSI, but still need the rest set up */
-	if (!intel_crtc_has_type(pipe_config, INTEL_OUTPUT_DSI))
-		pipe_config->dpll_hw_state.dpll |= DPLL_VCO_ENABLE;
-
-	pipe_config->dpll_hw_state.dpll_md =
-		(pipe_config->pixel_multiplier - 1) << DPLL_MD_UDI_MULTIPLIER_SHIFT;
-}
-
-static void vlv_prepare_pll(struct intel_crtc *crtc,
-			    const struct intel_crtc_state *pipe_config)
-{
-	struct drm_device *dev = crtc->base.dev;
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	enum pipe pipe = crtc->pipe;
-	u32 mdiv;
-	u32 bestn, bestm1, bestm2, bestp1, bestp2;
-	u32 coreclk, reg_val;
-
-	/* Enable Refclk */
-	I915_WRITE(DPLL(pipe),
-		   pipe_config->dpll_hw_state.dpll &
-		   ~(DPLL_VCO_ENABLE | DPLL_EXT_BUFFER_ENABLE_VLV));
-
-	/* No need to actually set up the DPLL with DSI */
-	if ((pipe_config->dpll_hw_state.dpll & DPLL_VCO_ENABLE) == 0)
-		return;
-
-	mutex_lock(&dev_priv->sb_lock);
-
-	bestn = pipe_config->dpll.n;
-	bestm1 = pipe_config->dpll.m1;
-	bestm2 = pipe_config->dpll.m2;
-	bestp1 = pipe_config->dpll.p1;
-	bestp2 = pipe_config->dpll.p2;
-
-	/* See eDP HDMI DPIO driver vbios notes doc */
-
-	/* PLL B needs special handling */
-	if (pipe == PIPE_B)
-		vlv_pllb_recal_opamp(dev_priv, pipe);
-
-	/* Set up Tx target for periodic Rcomp update */
-	vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW9_BCAST, 0x0100000f);
-
-	/* Disable target IRef on PLL */
-	reg_val = vlv_dpio_read(dev_priv, pipe, VLV_PLL_DW8(pipe));
-	reg_val &= 0x00ffffff;
-	vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW8(pipe), reg_val);
-
-	/* Disable fast lock */
-	vlv_dpio_write(dev_priv, pipe, VLV_CMN_DW0, 0x610);
-
-	/* Set idtafcrecal before PLL is enabled */
-	mdiv = ((bestm1 << DPIO_M1DIV_SHIFT) | (bestm2 & DPIO_M2DIV_MASK));
-	mdiv |= ((bestp1 << DPIO_P1_SHIFT) | (bestp2 << DPIO_P2_SHIFT));
-	mdiv |= ((bestn << DPIO_N_SHIFT));
-	mdiv |= (1 << DPIO_K_SHIFT);
-
-	/*
-	 * Post divider depends on pixel clock rate, DAC vs digital (and LVDS,
-	 * but we don't support that).
-	 * Note: don't use the DAC post divider as it seems unstable.
-	 */
-	mdiv |= (DPIO_POST_DIV_HDMIDP << DPIO_POST_DIV_SHIFT);
-	vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW3(pipe), mdiv);
-
-	mdiv |= DPIO_ENABLE_CALIBRATION;
-	vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW3(pipe), mdiv);
-
-	/* Set HBR and RBR LPF coefficients */
-	if (pipe_config->port_clock == 162000 ||
-	    intel_crtc_has_type(crtc->config, INTEL_OUTPUT_ANALOG) ||
-	    intel_crtc_has_type(crtc->config, INTEL_OUTPUT_HDMI))
-		vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW10(pipe),
-				 0x009f0003);
-	else
-		vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW10(pipe),
-				 0x00d0000f);
-
-	if (intel_crtc_has_dp_encoder(pipe_config)) {
-		/* Use SSC source */
-		if (pipe == PIPE_A)
-			vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW5(pipe),
-					 0x0df40000);
-		else
-			vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW5(pipe),
-					 0x0df70000);
-	} else { /* HDMI or VGA */
-		/* Use bend source */
-		if (pipe == PIPE_A)
-			vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW5(pipe),
-					 0x0df70000);
-		else
-			vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW5(pipe),
-					 0x0df40000);
-	}
-
-	coreclk = vlv_dpio_read(dev_priv, pipe, VLV_PLL_DW7(pipe));
-	coreclk = (coreclk & 0x0000ff00) | 0x01c00000;
-	if (intel_crtc_has_dp_encoder(crtc->config))
-		coreclk |= 0x01000000;
-	vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW7(pipe), coreclk);
-
-	vlv_dpio_write(dev_priv, pipe, VLV_PLL_DW11(pipe), 0x87871000);
-	mutex_unlock(&dev_priv->sb_lock);
-}
-
-static void chv_prepare_pll(struct intel_crtc *crtc,
-			    const struct intel_crtc_state *pipe_config)
-{
-	struct drm_device *dev = crtc->base.dev;
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	enum pipe pipe = crtc->pipe;
-	enum dpio_channel port = vlv_pipe_to_channel(pipe);
-	u32 loopfilter, tribuf_calcntr;
-	u32 bestn, bestm1, bestm2, bestp1, bestp2, bestm2_frac;
-	u32 dpio_val;
-	int vco;
-
-	/* Enable Refclk and SSC */
-	I915_WRITE(DPLL(pipe),
-		   pipe_config->dpll_hw_state.dpll & ~DPLL_VCO_ENABLE);
-
-	/* No need to actually set up the DPLL with DSI */
-	if ((pipe_config->dpll_hw_state.dpll & DPLL_VCO_ENABLE) == 0)
-		return;
-
-	bestn = pipe_config->dpll.n;
-	bestm2_frac = pipe_config->dpll.m2 & 0x3fffff;
-	bestm1 = pipe_config->dpll.m1;
-	bestm2 = pipe_config->dpll.m2 >> 22;
-	bestp1 = pipe_config->dpll.p1;
-	bestp2 = pipe_config->dpll.p2;
-	vco = pipe_config->dpll.vco;
-	dpio_val = 0;
-	loopfilter = 0;
-
-	mutex_lock(&dev_priv->sb_lock);
-
-	/* p1 and p2 divider */
-	vlv_dpio_write(dev_priv, pipe, CHV_CMN_DW13(port),
-			5 << DPIO_CHV_S1_DIV_SHIFT |
-			bestp1 << DPIO_CHV_P1_DIV_SHIFT |
-			bestp2 << DPIO_CHV_P2_DIV_SHIFT |
-			1 << DPIO_CHV_K_DIV_SHIFT);
-
-	/* Feedback post-divider - m2 */
-	vlv_dpio_write(dev_priv, pipe, CHV_PLL_DW0(port), bestm2);
-
-	/* Feedback refclk divider - n and m1 */
-	vlv_dpio_write(dev_priv, pipe, CHV_PLL_DW1(port),
-			DPIO_CHV_M1_DIV_BY_2 |
-			1 << DPIO_CHV_N_DIV_SHIFT);
-
-	/* M2 fraction division */
-	vlv_dpio_write(dev_priv, pipe, CHV_PLL_DW2(port), bestm2_frac);
-
-	/* M2 fraction division enable */
-	dpio_val = vlv_dpio_read(dev_priv, pipe, CHV_PLL_DW3(port));
-	dpio_val &= ~(DPIO_CHV_FEEDFWD_GAIN_MASK | DPIO_CHV_FRAC_DIV_EN);
-	dpio_val |= (2 << DPIO_CHV_FEEDFWD_GAIN_SHIFT);
-	if (bestm2_frac)
-		dpio_val |= DPIO_CHV_FRAC_DIV_EN;
-	vlv_dpio_write(dev_priv, pipe, CHV_PLL_DW3(port), dpio_val);
-
-	/* Program digital lock detect threshold */
-	dpio_val = vlv_dpio_read(dev_priv, pipe, CHV_PLL_DW9(port));
-	dpio_val &= ~(DPIO_CHV_INT_LOCK_THRESHOLD_MASK |
-					DPIO_CHV_INT_LOCK_THRESHOLD_SEL_COARSE);
-	dpio_val |= (0x5 << DPIO_CHV_INT_LOCK_THRESHOLD_SHIFT);
-	if (!bestm2_frac)
-		dpio_val |= DPIO_CHV_INT_LOCK_THRESHOLD_SEL_COARSE;
-	vlv_dpio_write(dev_priv, pipe, CHV_PLL_DW9(port), dpio_val);
-
-	/* Loop filter */
-	if (vco == 5400000) {
-		loopfilter |= (0x3 << DPIO_CHV_PROP_COEFF_SHIFT);
-		loopfilter |= (0x8 << DPIO_CHV_INT_COEFF_SHIFT);
-		loopfilter |= (0x1 << DPIO_CHV_GAIN_CTRL_SHIFT);
-		tribuf_calcntr = 0x9;
-	} else if (vco <= 6200000) {
-		loopfilter |= (0x5 << DPIO_CHV_PROP_COEFF_SHIFT);
-		loopfilter |= (0xB << DPIO_CHV_INT_COEFF_SHIFT);
-		loopfilter |= (0x3 << DPIO_CHV_GAIN_CTRL_SHIFT);
-		tribuf_calcntr = 0x9;
-	} else if (vco <= 6480000) {
-		loopfilter |= (0x4 << DPIO_CHV_PROP_COEFF_SHIFT);
-		loopfilter |= (0x9 << DPIO_CHV_INT_COEFF_SHIFT);
-		loopfilter |= (0x3 << DPIO_CHV_GAIN_CTRL_SHIFT);
-		tribuf_calcntr = 0x8;
-	} else {
-		/* Not supported. Apply the same limits as in the max case */
-		loopfilter |= (0x4 << DPIO_CHV_PROP_COEFF_SHIFT);
-		loopfilter |= (0x9 << DPIO_CHV_INT_COEFF_SHIFT);
-		loopfilter |= (0x3 << DPIO_CHV_GAIN_CTRL_SHIFT);
-		tribuf_calcntr = 0;
-	}
-	vlv_dpio_write(dev_priv, pipe, CHV_PLL_DW6(port), loopfilter);
-
-	dpio_val = vlv_dpio_read(dev_priv, pipe, CHV_PLL_DW8(port));
-	dpio_val &= ~DPIO_CHV_TDC_TARGET_CNT_MASK;
-	dpio_val |= (tribuf_calcntr << DPIO_CHV_TDC_TARGET_CNT_SHIFT);
-	vlv_dpio_write(dev_priv, pipe, CHV_PLL_DW8(port), dpio_val);
-
-	/* AFC Recal */
-	vlv_dpio_write(dev_priv, pipe, CHV_CMN_DW14(port),
-			vlv_dpio_read(dev_priv, pipe, CHV_CMN_DW14(port)) |
-			DPIO_AFC_RECAL);
-
-	mutex_unlock(&dev_priv->sb_lock);
-}
-
-/**
- * vlv_force_pll_on - forcibly enable just the PLL
- * @dev_priv: i915 private structure
- * @pipe: pipe PLL to enable
- * @dpll: PLL configuration
- *
- * Enable the PLL for @pipe using the supplied @dpll config. To be used
- * in cases where we need the PLL enabled even when @pipe is not going to
- * be enabled.
- */
-int vlv_force_pll_on(struct drm_i915_private *dev_priv, enum pipe pipe,
-		     const struct dpll *dpll)
-{
-	struct intel_crtc *crtc = intel_get_crtc_for_pipe(dev_priv, pipe);
-	struct intel_crtc_state *pipe_config;
-
-	pipe_config = kzalloc(sizeof(*pipe_config), GFP_KERNEL);
-	if (!pipe_config)
-		return -ENOMEM;
-
-	pipe_config->base.crtc = &crtc->base;
-	pipe_config->pixel_multiplier = 1;
-	pipe_config->dpll = *dpll;
-
-	if (IS_CHERRYVIEW(dev_priv)) {
-		chv_compute_dpll(crtc, pipe_config);
-		chv_prepare_pll(crtc, pipe_config);
-		chv_enable_pll(crtc, pipe_config);
-	} else {
-		vlv_compute_dpll(crtc, pipe_config);
-		vlv_prepare_pll(crtc, pipe_config);
-		vlv_enable_pll(crtc, pipe_config);
-	}
-
-	kfree(pipe_config);
-
-	return 0;
-}
-
-/**
- * vlv_force_pll_off - forcibly disable just the PLL
- * @dev_priv: i915 private structure
- * @pipe: pipe PLL to disable
- *
- * Disable the PLL for @pipe. To be used in cases where we need
- * the PLL enabled even when @pipe is not going to be enabled.
- */
-void vlv_force_pll_off(struct drm_i915_private *dev_priv, enum pipe pipe)
-{
-	if (IS_CHERRYVIEW(dev_priv))
-		chv_disable_pll(dev_priv, pipe);
-	else
-		vlv_disable_pll(dev_priv, pipe);
 }
 
 static void i9xx_compute_dpll(struct intel_crtc *crtc,
@@ -7401,47 +6988,7 @@ static int i9xx_crtc_compute_clock(struct intel_crtc *crtc,
 	return 0;
 }
 
-static int chv_crtc_compute_clock(struct intel_crtc *crtc,
-				  struct intel_crtc_state *crtc_state)
-{
-	int refclk = 100000;
-	const struct intel_limit *limit = &intel_limits_chv;
 
-	memset(&crtc_state->dpll_hw_state, 0,
-	       sizeof(crtc_state->dpll_hw_state));
-
-	if (!crtc_state->clock_set &&
-	    !chv_find_best_dpll(limit, crtc_state, crtc_state->port_clock,
-				refclk, NULL, &crtc_state->dpll)) {
-		DRM_ERROR("Couldn't find PLL settings for mode!\n");
-		return -EINVAL;
-	}
-
-	chv_compute_dpll(crtc, crtc_state);
-
-	return 0;
-}
-
-static int vlv_crtc_compute_clock(struct intel_crtc *crtc,
-				  struct intel_crtc_state *crtc_state)
-{
-	int refclk = 100000;
-	const struct intel_limit *limit = &intel_limits_vlv;
-
-	memset(&crtc_state->dpll_hw_state, 0,
-	       sizeof(crtc_state->dpll_hw_state));
-
-	if (!crtc_state->clock_set &&
-	    !vlv_find_best_dpll(limit, crtc_state, crtc_state->port_clock,
-				refclk, NULL, &crtc_state->dpll)) {
-		DRM_ERROR("Couldn't find PLL settings for mode!\n");
-		return -EINVAL;
-	}
-
-	vlv_compute_dpll(crtc, crtc_state);
-
-	return 0;
-}
 
 static void i9xx_get_pfit_config(struct intel_crtc *crtc,
 				 struct intel_crtc_state *pipe_config)
@@ -8731,23 +8278,12 @@ static bool haswell_get_pipe_config(struct intel_crtc *crtc,
 	power_domain = POWER_DOMAIN_PIPE_PANEL_FITTER(crtc->pipe);
 	if (intel_display_power_get_if_enabled(dev_priv, power_domain)) {
 		power_domain_mask |= BIT_ULL(power_domain);
-		if (INTEL_GEN(dev_priv) >= 9)
-			skylake_get_pfit_config(crtc, pipe_config);
-		else
-			ironlake_get_pfit_config(crtc, pipe_config);
+		ironlake_get_pfit_config(crtc, pipe_config);
 	}
 
 	if (hsw_crtc_supports_ips(crtc)) {
 		if (IS_HASWELL(dev_priv))
 			pipe_config->ips_enabled = I915_READ(IPS_CTL) & IPS_ENABLE;
-		else {
-			/*
-			 * We cannot readout IPS state on broadwell, set to
-			 * true so we can set it to a defined state on first
-			 * commit.
-			 */
-			pipe_config->ips_enabled = true;
-		}
 	}
 
 	if (pipe_config->cpu_transcoder != TRANSCODER_EDP &&
@@ -10705,12 +10241,7 @@ static void intel_atomic_commit_tail(struct drm_atomic_state *state)
 			intel_crtc->active = false;
 			intel_fbc_disable(intel_crtc);
 
-			/*
-			 * Underruns don't always raise
-			 * interrupts, so check manually.
-			 */
-			intel_check_cpu_fifo_underruns(dev_priv);
-			intel_check_pch_fifo_underruns(dev_priv);
+
 
 			if (!new_crtc_state->active) {
 				/*
@@ -11319,15 +10850,7 @@ static void intel_finish_crtc_commit(struct drm_crtc *crtc,
 	if (new_crtc_state->update_pipe &&
 	    !needs_modeset(&new_crtc_state->base) &&
 	    old_crtc_state->mode.private_flags & I915_MODE_FLAG_INHERITED) {
-		if (!IS_GEN2(dev_priv))
-			intel_set_cpu_fifo_underrun_reporting(dev_priv, intel_crtc->pipe, true);
 
-		if (new_crtc_state->has_pch_encoder) {
-			enum pipe pch_transcoder =
-				intel_crtc_pch_transcoder(intel_crtc);
-
-			intel_set_pch_fifo_underrun_reporting(dev_priv, pch_transcoder, true);
-		}
 	}
 }
 

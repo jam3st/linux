@@ -24,7 +24,6 @@
  *	Eric Anholt <eric@anholt.net>
  */
 
-#include <linux/dmi.h>
 #include <linux/i2c.h>
 #include <linux/slab.h>
 #include <drm/drmP.h>
@@ -223,7 +222,6 @@ static void hsw_disable_crt(struct intel_encoder *encoder,
 
 	WARN_ON(!old_crtc_state->has_pch_encoder);
 
-	intel_set_pch_fifo_underrun_reporting(dev_priv, PIPE_A, false);
 }
 
 static void hsw_post_disable_crt(struct intel_encoder *encoder,
@@ -241,7 +239,6 @@ static void hsw_post_disable_crt(struct intel_encoder *encoder,
 
 	WARN_ON(!old_crtc_state->has_pch_encoder);
 
-	intel_set_pch_fifo_underrun_reporting(dev_priv, PIPE_A, true);
 }
 
 static void hsw_pre_pll_enable_crt(struct intel_encoder *encoder,
@@ -252,7 +249,6 @@ static void hsw_pre_pll_enable_crt(struct intel_encoder *encoder,
 
 	WARN_ON(!crtc_state->has_pch_encoder);
 
-	intel_set_pch_fifo_underrun_reporting(dev_priv, PIPE_A, false);
 }
 
 static void hsw_pre_enable_crt(struct intel_encoder *encoder,
@@ -265,7 +261,6 @@ static void hsw_pre_enable_crt(struct intel_encoder *encoder,
 
 	WARN_ON(!crtc_state->has_pch_encoder);
 
-	intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, false);
 
 	dev_priv->display.fdi_link_train(crtc, crtc_state);
 }
@@ -284,8 +279,7 @@ static void hsw_enable_crt(struct intel_encoder *encoder,
 
 	intel_wait_for_vblank(dev_priv, pipe);
 	intel_wait_for_vblank(dev_priv, pipe);
-	intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, true);
-	intel_set_pch_fifo_underrun_reporting(dev_priv, PIPE_A, true);
+
 }
 
 static void intel_enable_crt(struct intel_encoder *encoder,
@@ -748,9 +742,7 @@ intel_crt_detect(struct drm_connector *connector,
 		      connector->base.id, connector->name,
 		      force);
 
-	/* Skip machines without VGA that falsely report hotplug events */
-	if (dmi_check_system(intel_spurious_crt_detect))
-		return connector_status_disconnected;
+
 
 	intel_display_power_get(dev_priv, intel_encoder->power_domain);
 
@@ -955,8 +947,7 @@ void intel_crt_init(struct drm_i915_private *dev_priv)
 
 	crt->base.power_domain = POWER_DOMAIN_PORT_CRT;
 
-	if (I915_HAS_HOTPLUG(dev_priv) &&
-	    !dmi_check_system(intel_spurious_crt_detect)) {
+    if (I915_HAS_HOTPLUG(dev_priv) ) {
 		crt->base.hpd_pin = HPD_CRT;
 		crt->base.hotplug = intel_encoder_hotplug;
 	}

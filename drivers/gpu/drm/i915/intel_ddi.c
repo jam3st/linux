@@ -2123,7 +2123,6 @@ static void intel_ddi_pre_enable(struct intel_encoder *encoder,
 
 	WARN_ON(crtc_state->has_pch_encoder);
 
-	intel_set_cpu_fifo_underrun_reporting(dev_priv, pipe, true);
 
 	if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_HDMI))
 		intel_ddi_pre_enable_hdmi(encoder, crtc_state, conn_state);

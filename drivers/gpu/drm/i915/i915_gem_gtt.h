@@ -38,9 +38,7 @@
 #include <linux/mm.h>
 #include <linux/pagevec.h>
 
-#include "i915_gem_timeline.h"
 
-#include "i915_request.h"
 
 #define I915_GTT_PAGE_SIZE_4K BIT(12)
 #define I915_GTT_PAGE_SIZE_64K BIT(16)

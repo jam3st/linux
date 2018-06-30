@@ -33,7 +33,6 @@
 #include "i915_gem_fence_reg.h"
 #include "i915_gem_object.h"
 
-#include "i915_request.h"
 
 enum i915_cache_level;
 

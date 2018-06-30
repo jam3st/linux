@@ -12024,7 +12024,6 @@ static void intel_setup_outputs(struct drm_i915_private *dev_priv)
 			intel_ddi_init(dev_priv, PORT_F);
     }
 
-	intel_psr_init(dev_priv);
 
 	for_each_intel_encoder(&dev_priv->drm, encoder) {
 		encoder->base.possible_crtcs = encoder->crtc_mask;

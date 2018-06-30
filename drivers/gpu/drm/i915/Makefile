@@ -43,7 +43,6 @@ i915-y := i915_drv.o \
 
 # GEM code
 i915-y += \
-	  i915_gem_clflush.o \
 	  i915_gem_gtt.o \
 	  i915_gem.o \
 	  i915_gem_object.o \

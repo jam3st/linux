@@ -60,8 +60,6 @@
 #include "intel_device_info.h"
 #include "intel_display.h"
 #include "intel_dpll_mgr.h"
-#include "intel_lrc.h"
-#include "intel_ringbuffer.h"
 #include "intel_uncore.h"
 
 #include "i915_gem.h"

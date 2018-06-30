@@ -25,7 +25,6 @@
 #include "i915_vma.h"
 
 #include "i915_drv.h"
-#include "intel_ringbuffer.h"
 #include "intel_frontbuffer.h"
 
 #include <drm/drm_gem.h>

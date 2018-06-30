@@ -33,7 +33,6 @@ subdir-ccflags-y += \
 i915-y := i915_drv.o \
 	  i915_irq.o \
 	  i915_memcpy.o \
-	  i915_mm.o \
 	  i915_params.o \
 	  i915_pci.o \
 	  i915_syncmap.o \
@@ -44,12 +43,9 @@ i915-y := i915_drv.o \
 	  intel_runtime_pm.o
 
 # GEM code
-i915-y += i915_cmd_parser.o \
-	  i915_gem_batch_pool.o \
+i915-y += \
 	  i915_gem_clflush.o \
-	  i915_gem_context.o \
 	  i915_gem_evict.o \
-	  i915_gem_execbuffer.o \
 	  i915_gem_fence_reg.o \
 	  i915_gem_gtt.o \
 	  i915_gem_internal.o \
@@ -62,7 +58,6 @@ i915-y += i915_cmd_parser.o \
 	  i915_request.o \
 	  i915_trace_points.o \
 	  i915_vma.o \
-	  intel_breadcrumbs.o \
 	  intel_engine_cs.o \
 	  intel_hangcheck.o \
 	  intel_lrc.o \
@@ -81,28 +76,20 @@ i915-y +=  \
 	  intel_dpio_phy.o \
 	  intel_dpll_mgr.o \
 	  intel_fbc.o \
-	  intel_fifo_underrun.o \
 	  intel_frontbuffer.o \
 	  intel_hdcp.o \
 	  intel_hotplug.o \
 	  intel_modes.o \
 	  intel_overlay.o \
-	  intel_psr.o \
 	  intel_sideband.o \
-	  intel_sprite.o
 i915-$(CONFIG_DRM_FBDEV_EMULATION)	+= intel_fbdev.o
 
 # modesetting output/encoder code
 i915-y += \
 	  intel_crt.o \
 	  intel_ddi.o \
-	  intel_dp_link_training.o \
-	  intel_dp_mst.o \
-	  intel_dp.o \
 	  intel_hdmi.o \
 	  intel_i2c.o \
-	  intel_lspcon.o \
-	  intel_lvds.o \
 	  intel_panel.o \
 
 

@@ -80,8 +80,6 @@ void __intel_fb_obj_invalidate(struct drm_i915_gem_object *obj,
 	}
 
 	might_sleep();
-	intel_psr_invalidate(dev_priv, frontbuffer_bits);
-	intel_edp_drrs_invalidate(dev_priv, frontbuffer_bits);
 	intel_fbc_invalidate(dev_priv, frontbuffer_bits, origin);
 }
 
@@ -154,7 +152,6 @@ void intel_frontbuffer_flip_prepare(struct drm_i915_private *dev_priv,
 	dev_priv->fb_tracking.busy_bits &= ~frontbuffer_bits;
 	spin_unlock(&dev_priv->fb_tracking.lock);
 
-	intel_psr_single_frame_update(dev_priv, frontbuffer_bits);
 }
 
 /**

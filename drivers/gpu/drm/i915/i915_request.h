@@ -406,13 +406,7 @@ void i915_gem_retire_noop(struct i915_gem_active *,
  * associated with it. When the last request becomes idle, when it is retired
  * after completion, the optional callback @func is invoked.
  */
-static inline void
-init_request_active(struct i915_gem_active *active,
-		    i915_gem_retire_fn retire)
-{
-	INIT_LIST_HEAD(&active->link);
-	active->retire = retire ?: i915_gem_retire_noop;
-}
+
 
 /**
  * i915_gem_active_set - updates the tracker to watch the current request
@@ -441,14 +435,7 @@ i915_gem_active_set(struct i915_gem_active *active,
  * is called when the final request associated with the @active tracker
  * is retired.
  */
-static inline void
-i915_gem_active_set_retire_fn(struct i915_gem_active *active,
-			      i915_gem_retire_fn fn,
-			      struct mutex *mutex)
-{
-	lockdep_assert_held(mutex);
-	active->retire = fn ?: i915_gem_retire_noop;
-}
+
 
 static inline struct i915_request *
 __i915_gem_active_peek(const struct i915_gem_active *active)

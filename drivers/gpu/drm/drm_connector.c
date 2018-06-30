@@ -410,6 +410,7 @@ int drm_connector_register(struct drm_connector *connector)
 	if (ret)
 		goto unlock;
 
+    printk("About to drm_debugfs_connector_add");
 	ret = drm_debugfs_connector_add(connector);
 	if (ret) {
 		goto err_sysfs;

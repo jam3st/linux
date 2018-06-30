@@ -2479,7 +2479,7 @@ static void drm_setup_crtcs(struct drm_fb_helper *fb_helper,
 	struct drm_fb_offset *offsets;
 	bool *enabled;
 	int i;
-
+printk("XXXXXXXXXXXX THIS IS SETUP");
 	DRM_DEBUG_KMS("\n");
 	/* prevent concurrent modification of connector_count by hotplug */
 	lockdep_assert_held(&fb_helper->lock);
@@ -2501,7 +2501,7 @@ static void drm_setup_crtcs(struct drm_fb_helper *fb_helper,
 	if (drm_fb_helper_probe_connector_modes(fb_helper, width, height) == 0)
 		DRM_DEBUG_KMS("No connectors reported connected with modes\n");
 	drm_enable_connectors(fb_helper, enabled);
-
+printk("drm_enable_connectors xxx");
 	if (!(fb_helper->funcs->initial_config &&
 	      fb_helper->funcs->initial_config(fb_helper, crtcs, modes,
 					       offsets,
@@ -2628,7 +2628,9 @@ __drm_fb_helper_initial_config_and_unlock(struct drm_fb_helper *fb_helper,
 	width = dev->mode_config.max_width;
 	height = dev->mode_config.max_height;
 
+    printk("Before crts %x", dev);
 	drm_setup_crtcs(fb_helper, width, height);
+    printk("After crts %x", dev);
 	ret = drm_fb_helper_single_fb_probe(fb_helper, bpp_sel);
 	if (ret < 0) {
 		if (ret == -EAGAIN) {
@@ -2715,9 +2717,15 @@ int drm_fb_helper_initial_config(struct drm_fb_helper *fb_helper, int bpp_sel)
 {
 	int ret;
 
+printk("THIS IS GB EMUL\n");
 	if (!drm_fbdev_emulation)
 		return 0;
 
+printk("THIS IS GB EMUL\n");
+printk("THIS IS GB EMUL\n");
+printk("THIS IS GB EMUL\n");
+printk("THIS IS GB EMUL\n");
+printk("THIS IS GB EMUL\n");
 	mutex_lock(&fb_helper->lock);
 	ret = __drm_fb_helper_initial_config_and_unlock(fb_helper, bpp_sel);
     printk("Created fb0 of %d x %d at %x xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", fb_helper->fb->width, fb_helper->fb->height, fb_helper->fb->width, fb_helper->fbdev->screen_base);

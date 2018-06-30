@@ -545,7 +545,7 @@ intel_graphics_stolen(int num, int slot, int func,
 
 	size = early_ops->stolen_size(num, slot, func);
 	base = early_ops->stolen_base(num, slot, func, size);
-
+printk("size %d base %x", size, base);
 	if (!size || !base)
 		return;
 
@@ -554,7 +554,7 @@ intel_graphics_stolen(int num, int slot, int func,
 	intel_graphics_stolen_res.start = base;
 	intel_graphics_stolen_res.end = end;
 
-	printk(KERN_INFO "Reserving Intel graphics memory at %pR\n",
+	printk("Reserving Intel graphics memory at %pR\n",
 	       &intel_graphics_stolen_res);
 
 	/* Mark this space as reserved */
@@ -569,6 +569,9 @@ static void __init intel_graphics_quirks(int num, int slot, int func)
 	int i;
 
 	device = read_pci_config_16(num, slot, func, PCI_DEVICE_ID);
+printk("intel_graphics_quirks %d xxxx", device);
+		intel_graphics_stolen(0, 2, 0, &gen6_early_ops);
+        return;
 
 	for (i = 0; i < ARRAY_SIZE(intel_early_ids); i++) {
 		kernel_ulong_t driver_data = intel_early_ids[i].driver_data;
@@ -759,7 +762,7 @@ static void __init early_pci_scan_bus(int bus)
 	int slot, func;
 
 	/* Poor man's PCI discovery */
-	for (slot = 0; slot < 32; slot++)
+	for (slot = 0; slot < 32; slot++) 
 		for (func = 0; func < 8; func++) {
 			/* Only probe function 0 on single fn devices */
 			if (check_dev_quirk(bus, slot, func))
@@ -769,8 +772,6 @@ static void __init early_pci_scan_bus(int bus)
 
 void __init early_quirks(void)
 {
-	if (!early_pci_allowed())
-		return;
-
+    printk("early_quirks");
 	early_pci_scan_bus(0);
 }

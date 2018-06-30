@@ -545,28 +545,6 @@ static void __intel_uncore_early_sanitize(struct drm_i915_private *dev_priv,
 	iosf_mbi_punit_release();
 }
 
-void intel_uncore_suspend(struct drm_i915_private *dev_priv)
-{
-	iosf_mbi_punit_acquire();
-	iosf_mbi_unregister_pmic_bus_access_notifier_unlocked(
-		&dev_priv->uncore.pmic_bus_access_nb);
-	intel_uncore_forcewake_reset(dev_priv, false);
-	iosf_mbi_punit_release();
-}
-
-void intel_uncore_resume_early(struct drm_i915_private *dev_priv)
-{
-	__intel_uncore_early_sanitize(dev_priv, true);
-	iosf_mbi_register_pmic_bus_access_notifier(
-		&dev_priv->uncore.pmic_bus_access_nb);
-	i915_check_and_clear_faults(dev_priv);
-}
-
-void intel_uncore_runtime_resume(struct drm_i915_private *dev_priv)
-{
-	iosf_mbi_register_pmic_bus_access_notifier(
-		&dev_priv->uncore.pmic_bus_access_nb);
-}
 
 void intel_uncore_sanitize(struct drm_i915_private *dev_priv)
 {
@@ -619,32 +597,6 @@ void intel_uncore_forcewake_get(struct drm_i915_private *dev_priv,
 	spin_lock_irqsave(&dev_priv->uncore.lock, irqflags);
 	__intel_uncore_forcewake_get(dev_priv, fw_domains);
 	spin_unlock_irqrestore(&dev_priv->uncore.lock, irqflags);
-}
-
-/**
- * intel_uncore_forcewake_user_get - claim forcewake on behalf of userspace
- * @dev_priv: i915 device instance
- *
- * This function is a wrapper around intel_uncore_forcewake_get() to acquire
- * the GT powerwell and in the process disable our debugging for the
- * duration of userspace's bypass.
- */
-void intel_uncore_forcewake_user_get(struct drm_i915_private *dev_priv)
-{
-	spin_lock_irq(&dev_priv->uncore.lock);
-	if (!dev_priv->uncore.user_forcewake.count++) {
-		intel_uncore_forcewake_get__locked(dev_priv, FORCEWAKE_ALL);
-
-		/* Save and disable mmio debugging for the user bypass */
-		dev_priv->uncore.user_forcewake.saved_mmio_check =
-			dev_priv->uncore.unclaimed_mmio_check;
-		dev_priv->uncore.user_forcewake.saved_mmio_debug =
-			i915_modparams.mmio_debug;
-
-		dev_priv->uncore.unclaimed_mmio_check = 0;
-		i915_modparams.mmio_debug = 0;
-	}
-	spin_unlock_irq(&dev_priv->uncore.lock);
 }
 
 /**

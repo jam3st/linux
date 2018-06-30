@@ -70,7 +70,6 @@ static const struct dma_fence_ops i915_clflush_ops = {
 
 static void __i915_do_clflush(struct drm_i915_gem_object *obj)
 {
-	GEM_BUG_ON(!i915_gem_object_has_pages(obj));
 	drm_clflush_sg(obj->mm.pages);
 	intel_fb_obj_flush(obj, ORIGIN_CPU);
 }
@@ -80,10 +79,7 @@ static void i915_clflush_work(struct work_struct *work)
 	struct clflush *clflush = container_of(work, typeof(*clflush), work);
 	struct drm_i915_gem_object *obj = clflush->obj;
 
-	if (i915_gem_object_pin_pages(obj)) {
-		DRM_ERROR("Failed to acquire obj->pages for clflushing\n");
-		goto out;
-	}
+
 
 	__i915_do_clflush(obj);
 

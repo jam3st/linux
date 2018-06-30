@@ -80,10 +80,15 @@ void drm_helper_mode_fill_fb_struct(struct drm_device *dev,
 {
 	int i;
 
+    printk("B4 FBDEV %x %x", dev, fb);
 	fb->dev = dev;
+    printk("AF FBDEV is dev %x ", dev );
 	fb->format = drm_get_format_info(dev, mode_cmd);
+    printk("AF FORMAT");
 	fb->width = mode_cmd->width;
+    printk("AF WIDTH");
 	fb->height = mode_cmd->height;
+    printk("AF HEIGHT");
 	for (i = 0; i < 4; i++) {
 		fb->pitches[i] = mode_cmd->pitches[i];
 		fb->offsets[i] = mode_cmd->offsets[i];

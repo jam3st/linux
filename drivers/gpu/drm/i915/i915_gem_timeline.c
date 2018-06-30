@@ -35,8 +35,7 @@ static void __intel_timeline_init(struct intel_timeline *tl,
 	tl->common = parent;
 	spin_lock_init(&tl->lock);
 	lockdep_set_class_and_name(&tl->lock, lockclass, lockname);
-	init_request_active(&tl->last_request, NULL);
-	INIT_LIST_HEAD(&tl->requests);
+    INIT_LIST_HEAD(&tl->requests);
 	i915_syncmap_init(&tl->sync);
 }
 

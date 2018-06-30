@@ -127,6 +127,10 @@ struct i915_vma {
 	u32 exec_handle;
 };
 
+
+int __i915_vma_do_pin(struct i915_vma *vma,
+              u64 size, u64 alignment, u64 flags);
+
 struct i915_vma *
 i915_vma_instance(struct drm_i915_gem_object *obj,
 		  struct i915_address_space *vm,
@@ -286,11 +290,12 @@ int __must_check i915_vma_unbind(struct i915_vma *vma);
 void i915_vma_unlink_ctx(struct i915_vma *vma);
 void i915_vma_close(struct i915_vma *vma);
 
-int __i915_vma_do_pin(struct i915_vma *vma,
+int i915_vma_do_pin(struct i915_vma *vma,
 		      u64 size, u64 alignment, u64 flags);
 static inline int __must_check
 i915_vma_pin(struct i915_vma *vma, u64 size, u64 alignment, u64 flags)
 {
+printk("i915_vma_pin start");
 	BUILD_BUG_ON(PIN_MBZ != I915_VMA_PIN_OVERFLOW);
 	BUILD_BUG_ON(PIN_GLOBAL != I915_VMA_GLOBAL_BIND);
 	BUILD_BUG_ON(PIN_USER != I915_VMA_LOCAL_BIND);
@@ -301,9 +306,11 @@ i915_vma_pin(struct i915_vma *vma, u64 size, u64 alignment, u64 flags)
 	if (likely(((++vma->flags ^ flags) & I915_VMA_BIND_MASK) == 0)) {
 		GEM_BUG_ON(!drm_mm_node_allocated(&vma->node));
 		GEM_BUG_ON(i915_vma_misplaced(vma, size, alignment, flags));
+        printk("Stupid alert");
 		return 0;
 	}
 
+printk("i915_vma_pin end");
 	return __i915_vma_do_pin(vma, size, alignment, flags);
 }
 
@@ -319,7 +326,9 @@ static inline bool i915_vma_is_pinned(const struct i915_vma *vma)
 
 static inline void __i915_vma_pin(struct i915_vma *vma)
 {
+printk("__i915_vma_pin start");
 	vma->flags++;
+printk("__i915_vma_pin end");
 	GEM_BUG_ON(vma->flags & I915_VMA_PIN_OVERFLOW);
 }
 

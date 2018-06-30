@@ -214,7 +214,7 @@ drm_fbdev_cma_create(struct drm_fb_helper *helper,
 	struct fb_info *fbi;
 	size_t size;
 	int ret;
-
+printk("drm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_createdrm_fbdev_cma_create");
 	DRM_DEBUG_KMS("surface width(%d), height(%d) and bpp(%d)\n",
 			sizes->surface_width, sizes->surface_height,
 			sizes->surface_bpp);

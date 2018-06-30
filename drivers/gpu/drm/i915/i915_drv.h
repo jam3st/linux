@@ -3071,8 +3071,6 @@ int i915_gem_sw_finish_ioctl(struct drm_device *dev, void *data,
 			     struct drm_file *file_priv);
 int i915_gem_execbuffer_ioctl(struct drm_device *dev, void *data,
 			      struct drm_file *file_priv);
-int i915_gem_execbuffer2_ioctl(struct drm_device *dev, void *data,
-			       struct drm_file *file_priv);
 int i915_gem_busy_ioctl(struct drm_device *dev, void *data,
 			struct drm_file *file_priv);
 int i915_gem_get_caching_ioctl(struct drm_device *dev, void *data,
@@ -3087,8 +3085,6 @@ int i915_gem_set_tiling_ioctl(struct drm_device *dev, void *data,
 			      struct drm_file *file_priv);
 int i915_gem_get_tiling_ioctl(struct drm_device *dev, void *data,
 			      struct drm_file *file_priv);
-int i915_gem_init_userptr(struct drm_i915_private *dev_priv);
-void i915_gem_cleanup_userptr(struct drm_i915_private *dev_priv);
 int i915_gem_userptr_ioctl(struct drm_device *dev, void *data,
 			   struct drm_file *file);
 int i915_gem_get_aperture_ioctl(struct drm_device *dev, void *data,
@@ -3186,7 +3182,22 @@ i915_gem_object_get_dma_address(struct drm_i915_gem_object *obj,
 void __i915_gem_object_set_pages(struct drm_i915_gem_object *obj,
 				 struct sg_table *pages,
 				 unsigned int sg_page_sizes);
+
 int __i915_gem_object_get_pages(struct drm_i915_gem_object *obj);
+
+static inline bool
+i915_gem_object_has_pages(struct drm_i915_gem_object *obj)
+{
+    return !IS_ERR_OR_NULL(READ_ONCE(obj->mm.pages));
+}
+
+
+static inline void
+__i915_gem_object_pin_pages(struct drm_i915_gem_object *obj)
+{
+
+	atomic_inc(&obj->mm.pages_pin_count);
+}
 
 static inline int __must_check
 i915_gem_object_pin_pages(struct drm_i915_gem_object *obj)
@@ -3200,20 +3211,6 @@ i915_gem_object_pin_pages(struct drm_i915_gem_object *obj)
 }
 
 static inline bool
-i915_gem_object_has_pages(struct drm_i915_gem_object *obj)
-{
-	return !IS_ERR_OR_NULL(READ_ONCE(obj->mm.pages));
-}
-
-static inline void
-__i915_gem_object_pin_pages(struct drm_i915_gem_object *obj)
-{
-	GEM_BUG_ON(!i915_gem_object_has_pages(obj));
-
-	atomic_inc(&obj->mm.pages_pin_count);
-}
-
-static inline bool
 i915_gem_object_has_pinned_pages(struct drm_i915_gem_object *obj)
 {
 	return atomic_read(&obj->mm.pages_pin_count);
@@ -3222,9 +3219,6 @@ i915_gem_object_has_pinned_pages(struct drm_i915_gem_object *obj)
 static inline void
 __i915_gem_object_unpin_pages(struct drm_i915_gem_object *obj)
 {
-	GEM_BUG_ON(!i915_gem_object_has_pages(obj));
-	GEM_BUG_ON(!i915_gem_object_has_pinned_pages(obj));
-
 	atomic_dec(&obj->mm.pages_pin_count);
 }
 
@@ -3284,8 +3278,7 @@ static inline void i915_gem_object_unpin_map(struct drm_i915_gem_object *obj)
 	i915_gem_object_unpin_pages(obj);
 }
 
-int i915_gem_obj_prepare_shmem_read(struct drm_i915_gem_object *obj,
-				    unsigned int *needs_clflush);
+
 int i915_gem_obj_prepare_shmem_write(struct drm_i915_gem_object *obj,
 				     unsigned int *needs_clflush);
 #define CLFLUSH_BEFORE	BIT(0)
@@ -3461,18 +3454,6 @@ void i915_oa_init_reg_state(struct intel_engine_cs *engine,
 			    struct i915_gem_context *ctx,
 			    uint32_t *reg_state);
 
-/* i915_gem_evict.c */
-int __must_check i915_gem_evict_something(struct i915_address_space *vm,
-					  u64 min_size, u64 alignment,
-					  unsigned cache_level,
-					  u64 start, u64 end,
-					  unsigned flags);
-int __must_check i915_gem_evict_for_node(struct i915_address_space *vm,
-					 struct drm_mm_node *node,
-					 unsigned int flags);
-int i915_gem_evict_vm(struct i915_address_space *vm);
-
-void i915_gem_flush_ggtt_writes(struct drm_i915_private *dev_priv);
 
 /* belongs in i915_gem_gtt.h */
 static inline void i915_gem_chipset_flush(struct drm_i915_private *dev_priv)
@@ -3720,8 +3701,7 @@ int sandybridge_pcode_read(struct drm_i915_private *dev_priv, u32 mbox, u32 *val
 int sandybridge_pcode_write_timeout(struct drm_i915_private *dev_priv, u32 mbox,
 				    u32 val, int fast_timeout_us,
 				    int slow_timeout_ms);
-#define sandybridge_pcode_write(dev_priv, mbox, val)	\
-	sandybridge_pcode_write_timeout(dev_priv, mbox, val, 500, 0)
+
 
 int skl_pcode_request(struct drm_i915_private *dev_priv, u32 mbox, u32 request,
 		      u32 reply_mask, u32 reply, int timeout_base_ms);

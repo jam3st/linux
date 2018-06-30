@@ -115,7 +115,7 @@ static int intelfb_alloc(struct drm_fb_helper *helper,
 		container_of(helper, struct intel_fbdev, helper);
 	struct drm_framebuffer *fb;
 	struct drm_device *dev = helper->dev;
-	struct drm_i915_private *dev_priv = to_i915(dev);
+    struct drm_i915_private *dev_priv = to_i915(dev);
 	struct drm_mode_fb_cmd2 mode_cmd = {};
 	struct drm_i915_gem_object *obj;
 	int size, ret;
@@ -139,27 +139,36 @@ static int intelfb_alloc(struct drm_fb_helper *helper,
 	 * important and we should probably use that space with FBC or other
 	 * features. */
 	obj = NULL;
-	if (size * 2 < dev_priv->stolen_usable_size)
-		obj = i915_gem_object_create_stolen(dev_priv, size);
-	if (obj == NULL)
-		obj = i915_gem_object_create(dev_priv, size);
+    if (obj == NULL) {
+        printk("intelfb_alloc  stolen obj y %x size %d stolen size %d", obj, size,  dev_priv->stolen_usable_size);
+
+        obj = i915_gem_object_create_stolen(dev_priv, size);
+        printk("intelfb_alloc  stolen obj y %x size %d", obj, size);
+
+    }
+
+printk("intelfb_alloc  10 obj %x size %d", obj, size);
 	if (IS_ERR(obj)) {
 		DRM_ERROR("failed to allocate framebuffer\n");
 		ret = PTR_ERR(obj);
 		goto err;
-	}
-
+}
+printk("intelfb_alloc  20 %x", obj);
 	fb = intel_framebuffer_create(obj, &mode_cmd);
+printk("intelfb_alloc  24");
 	if (IS_ERR(fb)) {
 		ret = PTR_ERR(fb);
 		goto err_obj;
 	}
 
+printk("intelfb_alloc  30");
 	ifbdev->fb = to_intel_framebuffer(fb);
+printk("intelfb_alloc  40");
 
 	return 0;
 
 err_obj:
+printk("intelfb_alloc  50");
 	i915_gem_object_put(obj);
 err:
 	return ret;
@@ -194,10 +203,12 @@ static int intelfb_create(struct drm_fb_helper *helper,
 		intel_fb = ifbdev->fb = NULL;
 	}
 	if (!intel_fb || WARN_ON(!intel_fb->obj)) {
-		DRM_DEBUG_KMS("no BIOS fb, allocating a new one\n");
+		DRM_DEBUG_KMS("no BIOS fb, allocating a new one helper %x\n", helper);
 		ret = intelfb_alloc(helper, sizes);
-		if (ret)
+        if (ret) {
+            printk(" FRAME VBUFFEAWRDASD ASDA failed %d", ret);
 			return ret;
+        }
 		intel_fb = ifbdev->fb;
 	} else {
 		DRM_DEBUG_KMS("re-using BIOS fb\n");
@@ -212,9 +223,12 @@ static int intelfb_create(struct drm_fb_helper *helper,
 	 * This also validates that any existing fb inherited from the
 	 * BIOS is suitable for own access.
 	 */
+    printk("NO ho oooo");
 	vma = intel_pin_and_fence_fb_obj(&ifbdev->fb->base,
 					 DRM_MODE_ROTATE_0,
 					 false, &flags);
+    printk("wHOOHOOOoooo");
+
 	if (IS_ERR(vma)) {
 		ret = PTR_ERR(vma);
 		goto out_unlock;

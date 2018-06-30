@@ -1223,6 +1223,7 @@ void __init setup_arch(char **cmdline_p)
 
 	generic_apic_probe();
 
+    printk("early quirks");
 	early_quirks();
 
 	/*

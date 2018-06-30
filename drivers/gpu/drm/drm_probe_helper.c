@@ -462,6 +462,7 @@ printk("XXXX Forcing connector %d", connector->force);
 		 * locks. Fire up the poll struct instead, it will
 		 * disable itself again.
 		 */
+        printk("OUTPUT WORK POLL IS %x", &dev->mode_config.output_poll_work);
 		dev->mode_config.delayed_event = true;
 		if (dev->mode_config.poll_enabled)
 			schedule_delayed_work(&dev->mode_config.output_poll_work,
@@ -481,6 +482,7 @@ printk("XXXX Forcing connector %d", connector->force);
 		verbose_prune = false;
 		goto prune;
 	}
+
 
 	count = (*connector_funcs->get_modes)(connector);
 

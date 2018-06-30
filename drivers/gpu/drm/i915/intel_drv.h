@@ -1157,7 +1157,7 @@ struct intel_digital_port {
 				const struct intel_crtc_state *crtc_state,
 				unsigned int type,
 				const void *frame, ssize_t len);
-	void (*set_infoframes)(struct drm_encoder *encoder,
+    void (*set_infoframes)(struct drm_encoder *encoder,
 			       bool enable,
 			       const struct intel_crtc_state *crtc_state,
 			       const struct drm_connector_state *conn_state);
@@ -1515,6 +1515,8 @@ intel_pin_and_fence_fb_obj(struct drm_framebuffer *fb,
 			   bool uses_fence,
 			   unsigned long *out_flags);
 void intel_unpin_fb_vma(struct i915_vma *vma, unsigned long flags);
+
+
 struct drm_framebuffer *
 intel_framebuffer_create(struct drm_i915_gem_object *obj,
 			 struct drm_mode_fb_cmd2 *mode_cmd);
@@ -1912,9 +1914,9 @@ assert_rpm_device_not_suspended(struct drm_i915_private *dev_priv)
 static inline void
 assert_rpm_wakelock_held(struct drm_i915_private *dev_priv)
 {
-	assert_rpm_device_not_suspended(dev_priv);
-	WARN_ONCE(!atomic_read(&dev_priv->runtime_pm.wakeref_count),
-		  "RPM wakelock ref not held during HW access");
+	//assert_rpm_device_not_suspended(dev_priv);
+	//WARN_ONCE(!atomic_read(&dev_priv->runtime_pm.wakeref_count),
+	//	  "RPM wakelock ref not held during HW access");
 }
 
 /**

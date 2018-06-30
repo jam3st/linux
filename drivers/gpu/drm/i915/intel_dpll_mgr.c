@@ -89,70 +89,6 @@ intel_get_shared_dpll_by_id(struct drm_i915_private *dev_priv,
 }
 
 /**
- * intel_get_shared_dpll_id - get the id of a DPLL
- * @dev_priv: i915 device instance
- * @pll: the DPLL
- *
- * Returns:
- * The id of @pll
- */
-enum intel_dpll_id
-intel_get_shared_dpll_id(struct drm_i915_private *dev_priv,
-			 struct intel_shared_dpll *pll)
-{
-	if (WARN_ON(pll < dev_priv->shared_dplls||
-		    pll > &dev_priv->shared_dplls[dev_priv->num_shared_dpll]))
-		return -1;
-
-	return (enum intel_dpll_id) (pll - dev_priv->shared_dplls);
-}
-
-/* For ILK+ */
-void assert_shared_dpll(struct drm_i915_private *dev_priv,
-			struct intel_shared_dpll *pll,
-			bool state)
-{
-	bool cur_state;
-	struct intel_dpll_hw_state hw_state;
-
-	if (WARN(!pll, "asserting DPLL %s with no DPLL\n", onoff(state)))
-		return;
-
-	cur_state = pll->funcs.get_hw_state(dev_priv, pll, &hw_state);
-	I915_STATE_WARN(cur_state != state,
-	     "%s assertion failure (expected %s, current %s)\n",
-			pll->name, onoff(state), onoff(cur_state));
-}
-
-/**
- * intel_prepare_shared_dpll - call a dpll's prepare hook
- * @crtc: CRTC which has a shared dpll
- *
- * This calls the PLL's prepare hook if it has one and if the PLL is not
- * already enabled. The prepare hook is platform specific.
- */
-void intel_prepare_shared_dpll(struct intel_crtc *crtc)
-{
-	struct drm_device *dev = crtc->base.dev;
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	struct intel_shared_dpll *pll = crtc->config->shared_dpll;
-
-	if (WARN_ON(pll == NULL))
-		return;
-
-	mutex_lock(&dev_priv->dpll_lock);
-	WARN_ON(!pll->state.crtc_mask);
-	if (!pll->active_mask) {
-		DRM_DEBUG_DRIVER("setting up %s\n", pll->name);
-		WARN_ON(pll->on);
-		assert_shared_dpll_disabled(dev_priv, pll);
-
-		pll->funcs.prepare(dev_priv, pll);
-	}
-	mutex_unlock(&dev_priv->dpll_lock);
-}
-
-/**
  * intel_enable_shared_dpll - enable a CRTC's shared DPLL
  * @crtc: CRTC which has a shared DPLL
  *
@@ -184,7 +120,7 @@ void intel_enable_shared_dpll(struct intel_crtc *crtc)
 
 	if (old_mask) {
 		WARN_ON(!pll->on);
-		assert_shared_dpll_enabled(dev_priv, pll);
+		//assert_shared_dpll_enabled(dev_priv, pll);
 		goto out;
 	}
 	WARN_ON(pll->on);
@@ -192,48 +128,6 @@ void intel_enable_shared_dpll(struct intel_crtc *crtc)
 	DRM_DEBUG_KMS("enabling %s\n", pll->name);
 	pll->funcs.enable(dev_priv, pll);
 	pll->on = true;
-
-out:
-	mutex_unlock(&dev_priv->dpll_lock);
-}
-
-/**
- * intel_disable_shared_dpll - disable a CRTC's shared DPLL
- * @crtc: CRTC which has a shared DPLL
- *
- * Disable the shared DPLL used by @crtc.
- */
-void intel_disable_shared_dpll(struct intel_crtc *crtc)
-{
-	struct drm_i915_private *dev_priv = to_i915(crtc->base.dev);
-	struct intel_shared_dpll *pll = crtc->config->shared_dpll;
-	unsigned crtc_mask = 1 << drm_crtc_index(&crtc->base);
-
-	/* PCH only available on ILK+ */
-	if (INTEL_GEN(dev_priv) < 5)
-		return;
-
-	if (pll == NULL)
-		return;
-
-	mutex_lock(&dev_priv->dpll_lock);
-	if (WARN_ON(!(pll->active_mask & crtc_mask)))
-		goto out;
-
-	DRM_DEBUG_KMS("disable %s (active %x, on? %d) for crtc %d\n",
-		      pll->name, pll->active_mask, pll->on,
-		      crtc->base.base.id);
-
-	assert_shared_dpll_enabled(dev_priv, pll);
-	WARN_ON(!pll->on);
-
-	pll->active_mask &= ~crtc_mask;
-	if (pll->active_mask)
-		goto out;
-
-	DRM_DEBUG_KMS("disabling %s\n", pll->name);
-	pll->funcs.disable(dev_priv, pll);
-	pll->on = false;
 
 out:
 	mutex_unlock(&dev_priv->dpll_lock);
@@ -337,131 +231,6 @@ void intel_shared_dpll_swap_state(struct drm_atomic_state *state)
 	}
 }
 
-static bool ibx_pch_dpll_get_hw_state(struct drm_i915_private *dev_priv,
-				      struct intel_shared_dpll *pll,
-				      struct intel_dpll_hw_state *hw_state)
-{
-	uint32_t val;
-
-	if (!intel_display_power_get_if_enabled(dev_priv, POWER_DOMAIN_PLLS))
-		return false;
-
-	val = I915_READ(PCH_DPLL(pll->id));
-	hw_state->dpll = val;
-	hw_state->fp0 = I915_READ(PCH_FP0(pll->id));
-	hw_state->fp1 = I915_READ(PCH_FP1(pll->id));
-
-	intel_display_power_put(dev_priv, POWER_DOMAIN_PLLS);
-
-	return val & DPLL_VCO_ENABLE;
-}
-
-static void ibx_pch_dpll_prepare(struct drm_i915_private *dev_priv,
-				 struct intel_shared_dpll *pll)
-{
-	I915_WRITE(PCH_FP0(pll->id), pll->state.hw_state.fp0);
-	I915_WRITE(PCH_FP1(pll->id), pll->state.hw_state.fp1);
-}
-
-static void ibx_assert_pch_refclk_enabled(struct drm_i915_private *dev_priv)
-{
-	u32 val;
-	bool enabled;
-
-	I915_STATE_WARN_ON(!(HAS_PCH_IBX(dev_priv) || HAS_PCH_CPT(dev_priv)));
-
-	val = I915_READ(PCH_DREF_CONTROL);
-	enabled = !!(val & (DREF_SSC_SOURCE_MASK | DREF_NONSPREAD_SOURCE_MASK |
-			    DREF_SUPERSPREAD_SOURCE_MASK));
-	I915_STATE_WARN(!enabled, "PCH refclk assertion failure, should be active but is disabled\n");
-}
-
-static void ibx_pch_dpll_enable(struct drm_i915_private *dev_priv,
-				struct intel_shared_dpll *pll)
-{
-	/* PCH refclock must be enabled first */
-	ibx_assert_pch_refclk_enabled(dev_priv);
-
-	I915_WRITE(PCH_DPLL(pll->id), pll->state.hw_state.dpll);
-
-	/* Wait for the clocks to stabilize. */
-	POSTING_READ(PCH_DPLL(pll->id));
-	udelay(150);
-
-	/* The pixel multiplier can only be updated once the
-	 * DPLL is enabled and the clocks are stable.
-	 *
-	 * So write it again.
-	 */
-	I915_WRITE(PCH_DPLL(pll->id), pll->state.hw_state.dpll);
-	POSTING_READ(PCH_DPLL(pll->id));
-	udelay(200);
-}
-
-static void ibx_pch_dpll_disable(struct drm_i915_private *dev_priv,
-				 struct intel_shared_dpll *pll)
-{
-	struct drm_device *dev = &dev_priv->drm;
-	struct intel_crtc *crtc;
-
-	/* Make sure no transcoder isn't still depending on us. */
-	for_each_intel_crtc(dev, crtc) {
-		if (crtc->config->shared_dpll == pll)
-			assert_pch_transcoder_disabled(dev_priv, crtc->pipe);
-	}
-
-	I915_WRITE(PCH_DPLL(pll->id), 0);
-	POSTING_READ(PCH_DPLL(pll->id));
-	udelay(200);
-}
-
-static struct intel_shared_dpll *
-ibx_get_dpll(struct intel_crtc *crtc, struct intel_crtc_state *crtc_state,
-	     struct intel_encoder *encoder)
-{
-	struct drm_i915_private *dev_priv = to_i915(crtc->base.dev);
-	struct intel_shared_dpll *pll;
-	enum intel_dpll_id i;
-
-	if (HAS_PCH_IBX(dev_priv)) {
-		/* Ironlake PCH has a fixed PLL->PCH pipe mapping. */
-		i = (enum intel_dpll_id) crtc->pipe;
-		pll = &dev_priv->shared_dplls[i];
-
-		DRM_DEBUG_KMS("[CRTC:%d:%s] using pre-allocated %s\n",
-			      crtc->base.base.id, crtc->base.name, pll->name);
-	} else {
-		pll = intel_find_shared_dpll(crtc, crtc_state,
-					     DPLL_ID_PCH_PLL_A,
-					     DPLL_ID_PCH_PLL_B);
-	}
-
-	if (!pll)
-		return NULL;
-
-	/* reference the pll */
-	intel_reference_shared_dpll(pll, crtc_state);
-
-	return pll;
-}
-
-static void ibx_dump_hw_state(struct drm_i915_private *dev_priv,
-			      struct intel_dpll_hw_state *hw_state)
-{
-	DRM_DEBUG_KMS("dpll_hw_state: dpll: 0x%x, dpll_md: 0x%x, "
-		      "fp0: 0x%x, fp1: 0x%x\n",
-		      hw_state->dpll,
-		      hw_state->dpll_md,
-		      hw_state->fp0,
-		      hw_state->fp1);
-}
-
-static const struct intel_shared_dpll_funcs ibx_pch_dpll_funcs = {
-	.prepare = ibx_pch_dpll_prepare,
-	.enable = ibx_pch_dpll_enable,
-	.disable = ibx_pch_dpll_disable,
-	.get_hw_state = ibx_pch_dpll_get_hw_state,
-};
 
 static void hsw_ddi_wrpll_enable(struct drm_i915_private *dev_priv,
 			       struct intel_shared_dpll *pll)
@@ -1895,17 +1664,6 @@ struct intel_dpll_mgr {
 			      struct intel_dpll_hw_state *hw_state);
 };
 
-static const struct dpll_info pch_plls[] = {
-	{ "PCH DPLL A", DPLL_ID_PCH_PLL_A, &ibx_pch_dpll_funcs, 0 },
-	{ "PCH DPLL B", DPLL_ID_PCH_PLL_B, &ibx_pch_dpll_funcs, 0 },
-	{ NULL, -1, NULL, 0 },
-};
-
-static const struct intel_dpll_mgr pch_pll_mgr = {
-	.dpll_info = pch_plls,
-	.get_dpll = ibx_get_dpll,
-	.dump_hw_state = ibx_dump_hw_state,
-};
 
 static const struct dpll_info hsw_plls[] = {
 	{ "WRPLL 1",    DPLL_ID_WRPLL1,     &hsw_ddi_wrpll_funcs, 0 },
@@ -2397,16 +2155,7 @@ void intel_shared_dpll_init(struct drm_device *dev)
 	const struct dpll_info *dpll_info;
 	int i;
 
-	if (IS_CANNONLAKE(dev_priv))
-		dpll_mgr = &cnl_pll_mgr;
-	else if (IS_GEN9_BC(dev_priv))
-		dpll_mgr = &skl_pll_mgr;
-	else if (IS_GEN9_LP(dev_priv))
-		dpll_mgr = &bxt_pll_mgr;
-	else if (HAS_DDI(dev_priv))
 		dpll_mgr = &hsw_pll_mgr;
-	else if (HAS_PCH_IBX(dev_priv) || HAS_PCH_CPT(dev_priv))
-		dpll_mgr = &pch_pll_mgr;
 
 	if (!dpll_mgr) {
 		dev_priv->num_shared_dpll = 0;

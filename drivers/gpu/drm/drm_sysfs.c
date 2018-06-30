@@ -266,6 +266,7 @@ void drm_sysfs_hotplug_event(struct drm_device *dev)
 	DRM_DEBUG("generating hotplug event\n");
 
 	kobject_uevent_env(&dev->primary->kdev->kobj, KOBJ_CHANGE, envp);
+	DRM_DEBUG("generad hotplug event\n");
 }
 EXPORT_SYMBOL(drm_sysfs_hotplug_event);
 

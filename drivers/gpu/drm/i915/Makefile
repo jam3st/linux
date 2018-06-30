@@ -66,7 +66,6 @@ i915-y += \
 	  intel_frontbuffer.o \
 	  intel_hdcp.o \
 	  intel_hotplug.o \
-	  intel_modes.o \
 	  intel_sideband.o
 
 i915-$(CONFIG_DRM_FBDEV_EMULATION)	+= intel_fbdev.o

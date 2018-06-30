@@ -1310,12 +1310,15 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
 static int intel_hdmi_get_modes(struct drm_connector *connector)
 {
 	struct edid *edid;
+    int ret = 0;
 
 	edid = to_intel_connector(connector)->detect_edid;
 	if (edid == NULL)
 		return 0;
 
-	return intel_connector_update_modes(connector, edid);
+        drm_mode_connector_update_edid_property(connector, edid);
+    ret = drm_add_edid_modes(connector, edid);
+return ret;
 }
 
 
@@ -1346,9 +1349,7 @@ static const struct drm_encoder_funcs intel_hdmi_enc_funcs = {
 static void
 intel_hdmi_add_properties(struct intel_hdmi *intel_hdmi, struct drm_connector *connector)
 {
-	intel_attach_force_audio_property(connector);
-	intel_attach_broadcast_rgb_property(connector);
-	intel_attach_aspect_ratio_property(connector);
+    printk("Deleted a lot here.......................");
 	connector->state->picture_aspect_ratio = HDMI_PICTURE_ASPECT_NONE;
 }
 

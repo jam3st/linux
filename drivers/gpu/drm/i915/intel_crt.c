@@ -544,9 +544,6 @@ static int intel_crt_ddc_get_modes(struct drm_connector *connector,
 	if (!edid)
 		return 0;
 
-	ret = intel_connector_update_modes(connector, edid);
-	kfree(edid);
-
 	return ret;
 }
 

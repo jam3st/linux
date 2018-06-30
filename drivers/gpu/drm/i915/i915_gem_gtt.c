@@ -139,6 +139,19 @@ int i915_gem_gtt_reserve(struct i915_address_space *vm,
     return err;
 }
 
+enum intel_engine_id {
+       RCS = 0,
+       BCS,
+       VCS,
+       VCS2,
+       VCS3,
+       VCS4,
+#define _VCS(n) (VCS + (n))
+       VECS,
+       VECS2
+#define _VECS(n) (VECS + (n))
+};
+
 static void gen7_ppgtt_enable(struct drm_i915_private *dev_priv)
 {
     struct intel_engine_cs *engine;
@@ -157,11 +170,7 @@ static void gen7_ppgtt_enable(struct drm_i915_private *dev_priv)
     }
     I915_WRITE(GAM_ECOCHK, ecochk);
 
-    for_each_engine(engine, dev_priv, id) {
-        /* GFX_MODE is per-ring on gen7+ */
-        I915_WRITE(RING_MODE_GEN7(engine),
-               _MASKED_BIT_ENABLE(GFX_PPGTT_ENABLE));
-    }
+
 }
 
 int i915_ppgtt_init_hw(struct drm_i915_private *dev_priv) {

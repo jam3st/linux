@@ -503,7 +503,6 @@ struct i915_gpu_state {
 		int num_waiters;
 		unsigned long hangcheck_timestamp;
 		bool hangcheck_stalled;
-		enum intel_engine_hangcheck_action hangcheck_action;
 		struct i915_address_space *vm;
 		int num_requests;
 		u32 reset_count;
@@ -536,7 +535,6 @@ struct i915_gpu_state {
 		u64 faddr;
 		u32 rc_psmi; /* sleep state */
 		u32 semaphore_mboxes[I915_NUM_ENGINES - 1];
-		struct intel_instdone instdone;
 
 		struct drm_i915_error_context {
 			char comm[TASK_COMM_LEN];
@@ -564,16 +562,7 @@ struct i915_gpu_state {
 		struct drm_i915_error_object *wa_ctx;
 		struct drm_i915_error_object *default_state;
 
-		struct drm_i915_error_request {
-			long jiffies;
-			pid_t pid;
-			u32 context;
-			int priority;
-			int ban_score;
-			u32 seqno;
-			u32 head;
-			u32 tail;
-		} *requests, execlist[EXECLIST_MAX_PORTS];
+
 		unsigned int num_ports;
 
 		struct drm_i915_error_waiter {
@@ -1987,7 +1976,6 @@ struct drm_i915_private {
 	struct i915_ggtt ggtt; /* VM representing the global address space */
 
 	struct i915_gem_mm mm;
-	DECLARE_HASHTABLE(mm_structs, 7);
 	struct mutex mm_lock;
 
 	struct intel_ppat ppat;
@@ -2360,7 +2348,6 @@ struct drm_i915_private {
 		int	irq;
 	} lpe_audio;
 
-	struct i915_pmu pmu;
 
 	/*
 	 * NOTE: This is the dri1/ums dungeon, don't add stuff here. Your patch
@@ -2719,23 +2706,13 @@ intel_info(const struct drm_i915_private *dev_priv)
 #define IS_GEN9_BC(dev_priv)	(IS_GEN9(dev_priv) && !IS_LP(dev_priv))
 
 #define ENGINE_MASK(id)	BIT(id)
-#define RENDER_RING	ENGINE_MASK(RCS)
-#define BSD_RING	ENGINE_MASK(VCS)
-#define BLT_RING	ENGINE_MASK(BCS)
-#define VEBOX_RING	ENGINE_MASK(VECS)
-#define BSD2_RING	ENGINE_MASK(VCS2)
-#define BSD3_RING	ENGINE_MASK(VCS3)
-#define BSD4_RING	ENGINE_MASK(VCS4)
-#define VEBOX2_RING	ENGINE_MASK(VECS2)
+
 #define ALL_ENGINES	(~0)
 
 #define HAS_ENGINE(dev_priv, id) \
 	(!!((dev_priv)->info.ring_mask & ENGINE_MASK(id)))
 
-#define HAS_BSD(dev_priv)	HAS_ENGINE(dev_priv, VCS)
-#define HAS_BSD2(dev_priv)	HAS_ENGINE(dev_priv, VCS2)
-#define HAS_BLT(dev_priv)	HAS_ENGINE(dev_priv, BCS)
-#define HAS_VEBOX(dev_priv)	HAS_ENGINE(dev_priv, VECS)
+
 
 #define HAS_LEGACY_SEMAPHORES(dev_priv) IS_GEN7(dev_priv)
 
@@ -3339,7 +3316,7 @@ static inline u32 i915_reset_count(struct i915_gpu_error *error)
 static inline u32 i915_reset_engine_count(struct i915_gpu_error *error,
 					  struct intel_engine_cs *engine)
 {
-	return READ_ONCE(error->reset_engine_count[engine->id]);
+    return 0;
 }
 
 struct i915_request *
@@ -3434,15 +3411,6 @@ i915_gem_context_lookup(struct drm_i915_file_private *file_priv, u32 id)
 	return ctx;
 }
 
-static inline struct intel_timeline *
-i915_gem_context_lookup_timeline(struct i915_gem_context *ctx,
-				 struct intel_engine_cs *engine)
-{
-	struct i915_address_space *vm;
-
-	vm = ctx->ppgtt ? &ctx->ppgtt->base : &ctx->i915->ggtt.base;
-	return &vm->timeline.engine[engine->id];
-}
 
 int i915_perf_open_ioctl(struct drm_device *dev, void *data,
 			 struct drm_file *file);
@@ -3989,44 +3957,6 @@ __i915_request_irq_complete(const struct i915_request *rq)
 	 * but it is easier and safer to do it every time the waiter
 	 * is woken.
 	 */
-	if (engine->irq_seqno_barrier &&
-	    test_and_clear_bit(ENGINE_IRQ_BREADCRUMB, &engine->irq_posted)) {
-		struct intel_breadcrumbs *b = &engine->breadcrumbs;
-
-		/* The ordering of irq_posted versus applying the barrier
-		 * is crucial. The clearing of the current irq_posted must
-		 * be visible before we perform the barrier operation,
-		 * such that if a subsequent interrupt arrives, irq_posted
-		 * is reasserted and our task rewoken (which causes us to
-		 * do another __i915_request_irq_complete() immediately
-		 * and reapply the barrier). Conversely, if the clear
-		 * occurs after the barrier, then an interrupt that arrived
-		 * whilst we waited on the barrier would not trigger a
-		 * barrier on the next pass, and the read may not see the
-		 * seqno update.
-		 */
-		engine->irq_seqno_barrier(engine);
-
-		/* If we consume the irq, but we are no longer the bottom-half,
-		 * the real bottom-half may not have serialised their own
-		 * seqno check with the irq-barrier (i.e. may have inspected
-		 * the seqno before we believe it coherent since they see
-		 * irq_posted == false but we are still running).
-		 */
-		spin_lock_irq(&b->irq_lock);
-		if (b->irq_wait && b->irq_wait->tsk != current)
-			/* Note that if the bottom-half is changed as we
-			 * are sending the wake-up, the new bottom-half will
-			 * be woken by whomever made the change. We only have
-			 * to worry about when we steal the irq-posted for
-			 * ourself.
-			 */
-			wake_up_process(b->irq_wait->tsk);
-		spin_unlock_irq(&b->irq_lock);
-
-		if (__i915_request_completed(rq, seqno))
-			return true;
-	}
 
 	return false;
 }
@@ -4054,13 +3984,5 @@ bool i915_memcpy_from_wc(void *dst, const void *src, unsigned long len);
 int remap_io_mapping(struct vm_area_struct *vma,
 		     unsigned long addr, unsigned long pfn, unsigned long size,
 		     struct io_mapping *iomap);
-
-static inline int intel_hws_csb_write_index(struct drm_i915_private *i915)
-{
-	if (INTEL_GEN(i915) >= 10)
-		return CNL_HWS_CSB_WRITE_INDEX;
-	else
-		return I915_HWS_CSB_WRITE_INDEX;
-}
 
 #endif

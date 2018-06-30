@@ -1306,8 +1306,6 @@ static void fw_domain_init(struct drm_i915_private *dev_priv,
 
 static void intel_uncore_fw_domains_init(struct drm_i915_private *dev_priv)
 {
-	if (INTEL_GEN(dev_priv) <= 5 || intel_vgpu_active(dev_priv))
-		return;
 
 	if (IS_GEN6(dev_priv)) {
 		dev_priv->uncore.fw_reset = 0;
@@ -1320,106 +1318,13 @@ static void intel_uncore_fw_domains_init(struct drm_i915_private *dev_priv)
 		dev_priv->uncore.fw_clear = _MASKED_BIT_DISABLE(FORCEWAKE_KERNEL);
 	}
 
-	if (INTEL_GEN(dev_priv) >= 11) {
-		int i;
-
-		dev_priv->uncore.funcs.force_wake_get = fw_domains_get;
-		dev_priv->uncore.funcs.force_wake_put = fw_domains_put;
-		fw_domain_init(dev_priv, FW_DOMAIN_ID_RENDER,
-			       FORCEWAKE_RENDER_GEN9,
-			       FORCEWAKE_ACK_RENDER_GEN9);
-		fw_domain_init(dev_priv, FW_DOMAIN_ID_BLITTER,
-			       FORCEWAKE_BLITTER_GEN9,
-			       FORCEWAKE_ACK_BLITTER_GEN9);
-		for (i = 0; i < I915_MAX_VCS; i++) {
-			if (!HAS_ENGINE(dev_priv, _VCS(i)))
-				continue;
-
-			fw_domain_init(dev_priv, FW_DOMAIN_ID_MEDIA_VDBOX0 + i,
-				       FORCEWAKE_MEDIA_VDBOX_GEN11(i),
-				       FORCEWAKE_ACK_MEDIA_VDBOX_GEN11(i));
-		}
-		for (i = 0; i < I915_MAX_VECS; i++) {
-			if (!HAS_ENGINE(dev_priv, _VECS(i)))
-				continue;
-
-			fw_domain_init(dev_priv, FW_DOMAIN_ID_MEDIA_VEBOX0 + i,
-				       FORCEWAKE_MEDIA_VEBOX_GEN11(i),
-				       FORCEWAKE_ACK_MEDIA_VEBOX_GEN11(i));
-		}
-	} else if (IS_GEN9(dev_priv) || IS_GEN10(dev_priv)) {
-		dev_priv->uncore.funcs.force_wake_get =
-			fw_domains_get_with_fallback;
-		dev_priv->uncore.funcs.force_wake_put = fw_domains_put;
-		fw_domain_init(dev_priv, FW_DOMAIN_ID_RENDER,
-			       FORCEWAKE_RENDER_GEN9,
-			       FORCEWAKE_ACK_RENDER_GEN9);
-		fw_domain_init(dev_priv, FW_DOMAIN_ID_BLITTER,
-			       FORCEWAKE_BLITTER_GEN9,
-			       FORCEWAKE_ACK_BLITTER_GEN9);
-		fw_domain_init(dev_priv, FW_DOMAIN_ID_MEDIA,
-			       FORCEWAKE_MEDIA_GEN9, FORCEWAKE_ACK_MEDIA_GEN9);
-	} else if (IS_VALLEYVIEW(dev_priv) || IS_CHERRYVIEW(dev_priv)) {
-		dev_priv->uncore.funcs.force_wake_get = fw_domains_get;
-		dev_priv->uncore.funcs.force_wake_put = fw_domains_put;
-		fw_domain_init(dev_priv, FW_DOMAIN_ID_RENDER,
-			       FORCEWAKE_VLV, FORCEWAKE_ACK_VLV);
-		fw_domain_init(dev_priv, FW_DOMAIN_ID_MEDIA,
-			       FORCEWAKE_MEDIA_VLV, FORCEWAKE_ACK_MEDIA_VLV);
-	} else if (IS_HASWELL(dev_priv) || IS_BROADWELL(dev_priv)) {
+     if (IS_HASWELL(dev_priv) || IS_BROADWELL(dev_priv)) {
 		dev_priv->uncore.funcs.force_wake_get =
 			fw_domains_get_with_thread_status;
 		dev_priv->uncore.funcs.force_wake_put = fw_domains_put;
 		fw_domain_init(dev_priv, FW_DOMAIN_ID_RENDER,
 			       FORCEWAKE_MT, FORCEWAKE_ACK_HSW);
-	} else if (IS_IVYBRIDGE(dev_priv)) {
-		u32 ecobus;
-
-		/* IVB configs may use multi-threaded forcewake */
-
-		/* A small trick here - if the bios hasn't configured
-		 * MT forcewake, and if the device is in RC6, then
-		 * force_wake_mt_get will not wake the device and the
-		 * ECOBUS read will return zero. Which will be
-		 * (correctly) interpreted by the test below as MT
-		 * forcewake being disabled.
-		 */
-		dev_priv->uncore.funcs.force_wake_get =
-			fw_domains_get_with_thread_status;
-		dev_priv->uncore.funcs.force_wake_put = fw_domains_put;
-
-		/* We need to init first for ECOBUS access and then
-		 * determine later if we want to reinit, in case of MT access is
-		 * not working. In this stage we don't know which flavour this
-		 * ivb is, so it is better to reset also the gen6 fw registers
-		 * before the ecobus check.
-		 */
-
-		__raw_i915_write32(dev_priv, FORCEWAKE, 0);
-		__raw_posting_read(dev_priv, ECOBUS);
-
-		fw_domain_init(dev_priv, FW_DOMAIN_ID_RENDER,
-			       FORCEWAKE_MT, FORCEWAKE_MT_ACK);
-
-		spin_lock_irq(&dev_priv->uncore.lock);
-		fw_domains_get_with_thread_status(dev_priv, FORCEWAKE_RENDER);
-		ecobus = __raw_i915_read32(dev_priv, ECOBUS);
-		fw_domains_put(dev_priv, FORCEWAKE_RENDER);
-		spin_unlock_irq(&dev_priv->uncore.lock);
-
-		if (!(ecobus & FORCEWAKE_MT_ENABLE)) {
-			DRM_INFO("No MT forcewake available on Ivybridge, this can result in issues\n");
-			DRM_INFO("when using vblank-synced partial screen updates.\n");
-			fw_domain_init(dev_priv, FW_DOMAIN_ID_RENDER,
-				       FORCEWAKE, FORCEWAKE_ACK);
-		}
-	} else if (IS_GEN6(dev_priv)) {
-		dev_priv->uncore.funcs.force_wake_get =
-			fw_domains_get_with_thread_status;
-		dev_priv->uncore.funcs.force_wake_put = fw_domains_put;
-		fw_domain_init(dev_priv, FW_DOMAIN_ID_RENDER,
-			       FORCEWAKE, FORCEWAKE_ACK);
-	}
+    }
 
 	/* All future platforms are expected to require complex power gating */
 	WARN_ON(dev_priv->uncore.fw_domains == 0);
@@ -1540,50 +1445,6 @@ static const struct reg_whitelist {
 
 
 
-static void gen3_stop_engine(struct intel_engine_cs *engine)
-{
-	struct drm_i915_private *dev_priv = engine->i915;
-	const u32 base = engine->mmio_base;
-	const i915_reg_t mode = RING_MI_MODE(base);
-
-	I915_WRITE_FW(mode, _MASKED_BIT_ENABLE(STOP_RING));
-	if (intel_wait_for_register_fw(dev_priv,
-				       mode,
-				       MODE_IDLE,
-				       MODE_IDLE,
-				       500))
-		DRM_DEBUG_DRIVER("%s: timed out on STOP_RING\n",
-				 engine->name);
-
-	I915_WRITE_FW(RING_HEAD(base), I915_READ_FW(RING_TAIL(base)));
-	POSTING_READ_FW(RING_HEAD(base)); /* paranoia */
-
-	I915_WRITE_FW(RING_HEAD(base), 0);
-	I915_WRITE_FW(RING_TAIL(base), 0);
-	POSTING_READ_FW(RING_TAIL(base));
-
-	/* The ring must be empty before it is disabled */
-	I915_WRITE_FW(RING_CTL(base), 0);
-
-	/* Check acts as a post */
-	if (I915_READ_FW(RING_HEAD(base)) != 0)
-		DRM_DEBUG_DRIVER("%s: ring head not parked\n",
-				 engine->name);
-}
-
-static void i915_stop_engines(struct drm_i915_private *dev_priv,
-			      unsigned engine_mask)
-{
-	struct intel_engine_cs *engine;
-	enum intel_engine_id id;
-
-	if (INTEL_GEN(dev_priv) < 3)
-		return;
-
-	for_each_engine_masked(engine, dev_priv, engine_mask, id)
-		gen3_stop_engine(engine);
-}
-
 static bool i915_in_reset(struct pci_dev *pdev)
 {
 	u8 gdrst;
@@ -1592,24 +1453,6 @@ static bool i915_in_reset(struct pci_dev *pdev)
 	return gdrst & GRDOM_RESET_STATUS;
 }
 
-static int i915_do_reset(struct drm_i915_private *dev_priv, unsigned engine_mask)
-{
-	struct pci_dev *pdev = dev_priv->drm.pdev;
-	int err;
-
-	/* Assert reset for at least 20 usec, and wait for acknowledgement. */
-	pci_write_config_byte(pdev, I915_GDRST, GRDOM_RESET_ENABLE);
-	usleep_range(50, 200);
-	err = wait_for(i915_in_reset(pdev), 500);
-
-	/* Clear the reset request. */
-	pci_write_config_byte(pdev, I915_GDRST, 0);
-	usleep_range(50, 200);
-	if (!err)
-		err = wait_for(!i915_in_reset(pdev), 500);
-
-	return err;
-}
 
 static bool g4x_reset_complete(struct pci_dev *pdev)
 {
@@ -1619,78 +1462,6 @@ static bool g4x_reset_complete(struct pci_dev *pdev)
 	return (gdrst & GRDOM_RESET_ENABLE) == 0;
 }
 
-static int g33_do_reset(struct drm_i915_private *dev_priv, unsigned engine_mask)
-{
-	struct pci_dev *pdev = dev_priv->drm.pdev;
-
-	pci_write_config_byte(pdev, I915_GDRST, GRDOM_RESET_ENABLE);
-	return wait_for(g4x_reset_complete(pdev), 500);
-}
-
-static int g4x_do_reset(struct drm_i915_private *dev_priv, unsigned engine_mask)
-{
-	struct pci_dev *pdev = dev_priv->drm.pdev;
-	int ret;
-
-	/* WaVcpClkGateDisableForMediaReset:ctg,elk */
-	I915_WRITE(VDECCLK_GATE_D,
-		   I915_READ(VDECCLK_GATE_D) | VCP_UNIT_CLOCK_GATE_DISABLE);
-	POSTING_READ(VDECCLK_GATE_D);
-
-	pci_write_config_byte(pdev, I915_GDRST,
-			      GRDOM_MEDIA | GRDOM_RESET_ENABLE);
-	ret =  wait_for(g4x_reset_complete(pdev), 500);
-	if (ret) {
-		DRM_DEBUG_DRIVER("Wait for media reset failed\n");
-		goto out;
-	}
-
-	pci_write_config_byte(pdev, I915_GDRST,
-			      GRDOM_RENDER | GRDOM_RESET_ENABLE);
-	ret =  wait_for(g4x_reset_complete(pdev), 500);
-	if (ret) {
-		DRM_DEBUG_DRIVER("Wait for render reset failed\n");
-		goto out;
-	}
-
-out:
-	pci_write_config_byte(pdev, I915_GDRST, 0);
-
-	I915_WRITE(VDECCLK_GATE_D,
-		   I915_READ(VDECCLK_GATE_D) & ~VCP_UNIT_CLOCK_GATE_DISABLE);
-	POSTING_READ(VDECCLK_GATE_D);
-
-	return ret;
-}
-
-static int ironlake_do_reset(struct drm_i915_private *dev_priv,
-			     unsigned engine_mask)
-{
-	int ret;
-
-	I915_WRITE(ILK_GDSR, ILK_GRDOM_RENDER | ILK_GRDOM_RESET_ENABLE);
-	ret = intel_wait_for_register(dev_priv,
-				      ILK_GDSR, ILK_GRDOM_RESET_ENABLE, 0,
-				      500);
-	if (ret) {
-		DRM_DEBUG_DRIVER("Wait for render reset failed\n");
-		goto out;
-	}
-
-	I915_WRITE(ILK_GDSR, ILK_GRDOM_MEDIA | ILK_GRDOM_RESET_ENABLE);
-	ret = intel_wait_for_register(dev_priv,
-				      ILK_GDSR, ILK_GRDOM_RESET_ENABLE, 0,
-				      500);
-	if (ret) {
-		DRM_DEBUG_DRIVER("Wait for media reset failed\n");
-		goto out;
-	}
-
-out:
-	I915_WRITE(ILK_GDSR, 0);
-	POSTING_READ(ILK_GDSR);
-	return ret;
-}
 
 /* Reset the hardware domains (GENX_GRDOM_*) specified by mask */
 static int gen6_hw_domain_reset(struct drm_i915_private *dev_priv,
@@ -1728,31 +1499,6 @@ static int gen6_hw_domain_reset(struct drm_i915_private *dev_priv,
  *
  * Returns 0 on success, nonzero on error.
  */
-static int gen6_reset_engines(struct drm_i915_private *dev_priv,
-			      unsigned engine_mask)
-{
-	struct intel_engine_cs *engine;
-	const u32 hw_engine_mask[I915_NUM_ENGINES] = {
-		[RCS] = GEN6_GRDOM_RENDER,
-		[BCS] = GEN6_GRDOM_BLT,
-		[VCS] = GEN6_GRDOM_MEDIA,
-		[VCS2] = GEN8_GRDOM_MEDIA2,
-		[VECS] = GEN6_GRDOM_VECS,
-	};
-	u32 hw_mask;
-
-	if (engine_mask == ALL_ENGINES) {
-		hw_mask = GEN6_GRDOM_FULL;
-	} else {
-		unsigned int tmp;
-
-		hw_mask = 0;
-		for_each_engine_masked(engine, dev_priv, engine_mask, tmp)
-			hw_mask |= hw_engine_mask[engine->id];
-	}
-
-	return gen6_hw_domain_reset(dev_priv, hw_mask);
-}
 
 /**
  * __intel_wait_for_register_fw - wait until register matches expected state
@@ -1864,114 +1610,15 @@ int __intel_wait_for_register(struct drm_i915_private *dev_priv,
 	return ret;
 }
 
-static int gen8_reset_engine_start(struct intel_engine_cs *engine)
-{
-	struct drm_i915_private *dev_priv = engine->i915;
-	int ret;
 
-	I915_WRITE_FW(RING_RESET_CTL(engine->mmio_base),
-		      _MASKED_BIT_ENABLE(RESET_CTL_REQUEST_RESET));
-
-	ret = intel_wait_for_register_fw(dev_priv,
-					 RING_RESET_CTL(engine->mmio_base),
-					 RESET_CTL_READY_TO_RESET,
-					 RESET_CTL_READY_TO_RESET,
-					 700);
-	if (ret)
-		DRM_ERROR("%s: reset request timeout\n", engine->name);
-
-	return ret;
-}
-
-static void gen8_reset_engine_cancel(struct intel_engine_cs *engine)
-{
-	struct drm_i915_private *dev_priv = engine->i915;
-
-	I915_WRITE_FW(RING_RESET_CTL(engine->mmio_base),
-		      _MASKED_BIT_DISABLE(RESET_CTL_REQUEST_RESET));
-}
-
-static int gen8_reset_engines(struct drm_i915_private *dev_priv,
-			      unsigned engine_mask)
-{
-	struct intel_engine_cs *engine;
-	unsigned int tmp;
-
-	for_each_engine_masked(engine, dev_priv, engine_mask, tmp)
-		if (gen8_reset_engine_start(engine))
-			goto not_ready;
-
-	return gen6_reset_engines(dev_priv, engine_mask);
-
-not_ready:
-	for_each_engine_masked(engine, dev_priv, engine_mask, tmp)
-		gen8_reset_engine_cancel(engine);
-
-	return -EIO;
-}
 
 typedef int (*reset_func)(struct drm_i915_private *, unsigned engine_mask);
 
 static reset_func intel_get_gpu_reset(struct drm_i915_private *dev_priv)
 {
-	if (!i915_modparams.reset)
-		return NULL;
-
-	if (INTEL_GEN(dev_priv) >= 8)
-		return gen8_reset_engines;
-	else if (INTEL_GEN(dev_priv) >= 6)
-		return gen6_reset_engines;
-	else if (IS_GEN5(dev_priv))
-		return ironlake_do_reset;
-	else if (IS_G4X(dev_priv))
-		return g4x_do_reset;
-	else if (IS_G33(dev_priv) || IS_PINEVIEW(dev_priv))
-		return g33_do_reset;
-	else if (INTEL_GEN(dev_priv) >= 3)
-		return i915_do_reset;
-	else
 		return NULL;
 }
 
-int intel_gpu_reset(struct drm_i915_private *dev_priv, unsigned engine_mask)
-{
-	reset_func reset = intel_get_gpu_reset(dev_priv);
-	int retry;
-	int ret;
-
-	might_sleep();
-
-	/* If the power well sleeps during the reset, the reset
-	 * request may be dropped and never completes (causing -EIO).
-	 */
-	intel_uncore_forcewake_get(dev_priv, FORCEWAKE_ALL);
-	for (retry = 0; retry < 3; retry++) {
-
-		/* We stop engines, otherwise we might get failed reset and a
-		 * dead gpu (on elk). Also as modern gpu as kbl can suffer
-		 * from system hang if batchbuffer is progressing when
-		 * the reset is issued, regardless of READY_TO_RESET ack.
-		 * Thus assume it is best to stop engines on all gens
-		 * where we have a gpu reset.
-		 *
-		 * WaMediaResetMainRingCleanup:ctg,elk (presumably)
-		 *
-		 * FIXME: Wa for more modern gens needs to be validated
-		 */
-		i915_stop_engines(dev_priv, engine_mask);
-
-		ret = -ENODEV;
-		if (reset)
-			ret = reset(dev_priv, engine_mask);
-		if (ret != -ETIMEDOUT)
-			break;
-
-		cond_resched();
-	}
-	intel_uncore_forcewake_put(dev_priv, FORCEWAKE_ALL);
-
-	return ret;
-}
 
 bool intel_has_gpu_reset(struct drm_i915_private *dev_priv)
 {

@@ -569,14 +569,6 @@ out_err:
 	return -ENOMEM;
 }
 
-static void i915_engines_cleanup(struct drm_i915_private *i915)
-{
-	struct intel_engine_cs *engine;
-	enum intel_engine_id id;
-
-	for_each_engine(engine, i915, id)
-		kfree(engine);
-}
 
 static void i915_workqueues_cleanup(struct drm_i915_private *dev_priv)
 {

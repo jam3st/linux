@@ -352,10 +352,7 @@ i915_gem_object_ggtt_pin(struct drm_i915_gem_object *obj,
 }
 
 
-static void
-frontbuffer_retire(struct i915_gem_active *active, struct i915_request *request)
-{
-}
+
 
 void i915_gem_object_init(struct drm_i915_gem_object *obj,
 			  const struct drm_i915_gem_object_ops *ops)
@@ -446,7 +443,7 @@ i915_gem_load_init(struct drm_i915_private *dev_priv)
 	if (!dev_priv->dependencies)
 		goto err_requests;
 
-	dev_priv->priorities = KMEM_CACHE(i915_priolist, SLAB_HWCACHE_ALIGN);
+    dev_priv->priorities = KMEM_CACHE(i915_priolist, SLAB_HWCACHE_ALIGN);
 	if (!dev_priv->priorities)
 		goto err_dependencies;
 

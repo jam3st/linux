@@ -57,6 +57,12 @@ struct i915_dependency {
 #define I915_DEPENDENCY_ALLOC BIT(0)
 };
 
+struct i915_priolist {
+       struct rb_node node;
+       struct list_head requests;
+       int priority;
+};
+
 /*
  * "People assume that time is a strict progression of cause to effect, but
  * actually, from a nonlinear, non-subjective viewpoint, it's more like a big

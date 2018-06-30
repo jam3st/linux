@@ -10153,29 +10153,7 @@ static void intel_atomic_helper_free_state_worker(struct work_struct *work)
 	intel_atomic_helper_free_state(dev_priv);
 }
 
-static void intel_atomic_commit_fence_wait(struct intel_atomic_state *intel_state)
-{
-	struct wait_queue_entry wait_fence, wait_reset;
-	struct drm_i915_private *dev_priv = to_i915(intel_state->base.dev);
 
-	init_wait_entry(&wait_fence, 0);
-	init_wait_entry(&wait_reset, 0);
-	for (;;) {
-		prepare_to_wait(&intel_state->commit_ready.wait,
-				&wait_fence, TASK_UNINTERRUPTIBLE);
-		prepare_to_wait(&dev_priv->gpu_error.wait_queue,
-				&wait_reset, TASK_UNINTERRUPTIBLE);
-
-
-		if (i915_sw_fence_done(&intel_state->commit_ready)
-		    || test_bit(I915_RESET_MODESET, &dev_priv->gpu_error.flags))
-			break;
-
-		schedule();
-	}
-	finish_wait(&intel_state->commit_ready.wait, &wait_fence);
-	finish_wait(&dev_priv->gpu_error.wait_queue, &wait_reset);
-}
 
 static void intel_atomic_commit_tail(struct drm_atomic_state *state)
 {
@@ -10188,7 +10166,6 @@ static void intel_atomic_commit_tail(struct drm_atomic_state *state)
 	u64 put_domains[I915_MAX_PIPES] = {};
 	int i;
 
-	intel_atomic_commit_fence_wait(intel_state);
 
 	drm_atomic_helper_wait_for_dependencies(state);
 
@@ -10339,30 +10316,6 @@ static void intel_atomic_commit_work(struct work_struct *work)
 	intel_atomic_commit_tail(state);
 }
 
-static int __i915_sw_fence_call
-intel_atomic_commit_ready(struct i915_sw_fence *fence,
-			  enum i915_sw_fence_notify notify)
-{
-	struct intel_atomic_state *state =
-		container_of(fence, struct intel_atomic_state, commit_ready);
-
-	switch (notify) {
-	case FENCE_COMPLETE:
-		/* we do blocking waits in the worker, nothing to do here */
-		break;
-	case FENCE_FREE:
-		{
-			struct intel_atomic_helper *helper =
-				&to_i915(state->base.dev)->atomic_helper;
-
-			if (llist_add(&state->freed, &helper->free_list))
-				schedule_work(&helper->free_work);
-			break;
-		}
-	}
-
-	return NOTIFY_DONE;
-}
 
 static void intel_atomic_track_fbs(struct drm_atomic_state *state)
 {
@@ -10397,8 +10350,7 @@ static int intel_atomic_commit(struct drm_device *dev,
 	int ret = 0;
 
 	drm_atomic_state_get(state);
-	i915_sw_fence_init(&intel_state->commit_ready,
-			   intel_atomic_commit_ready);
+
 
 	/*
 	 * The intel_legacy_cursor_update() fast path takes care
@@ -10431,7 +10383,6 @@ static int intel_atomic_commit(struct drm_device *dev,
 	ret = intel_atomic_prepare_commit(dev, state);
 	if (ret) {
 		DRM_DEBUG_ATOMIC("Preparing state failed with %i\n", ret);
-		i915_sw_fence_commit(&intel_state->commit_ready);
 		return ret;
 	}
 
@@ -10440,7 +10391,6 @@ static int intel_atomic_commit(struct drm_device *dev,
 		ret = drm_atomic_helper_swap_state(state, true);
 
 	if (ret) {
-		i915_sw_fence_commit(&intel_state->commit_ready);
 
 		drm_atomic_helper_cleanup_planes(dev, state);
 		return ret;
@@ -10463,7 +10413,6 @@ static int intel_atomic_commit(struct drm_device *dev,
 	drm_atomic_state_get(state);
 	INIT_WORK(&state->commit_work, intel_atomic_commit_work);
 
-	i915_sw_fence_commit(&intel_state->commit_ready);
 	if (nonblock && intel_state->modeset) {
 		queue_work(dev_priv->modeset_wq, &state->commit_work);
 	} else if (nonblock) {
@@ -10494,27 +10443,6 @@ struct wait_rps_boost {
 	struct i915_request *request;
 };
 
-static int do_rps_boost(struct wait_queue_entry *_wait,
-			unsigned mode, int sync, void *key)
-{
-	struct wait_rps_boost *wait = container_of(_wait, typeof(*wait), wait);
-	struct i915_request *rq = wait->request;
-
-	/*
-	 * If we missed the vblank, but the request is already running it
-	 * is reasonable to assume that it will complete before the next
-	 * vblank without our intervention, so leave RPS alone.
-	 */
-	if (!i915_request_started(rq))
-		gen6_rps_boost(rq, NULL);
-	i915_request_put(rq);
-
-	drm_crtc_vblank_put(wait->crtc);
-
-	list_del(&wait->wait.entry);
-	kfree(wait);
-	return 1;
-}
 
 static void add_rps_boost_after_vblank(struct drm_crtc *crtc,
 				       struct dma_fence *fence)
@@ -10612,20 +10540,14 @@ intel_prepare_plane_fb(struct drm_plane *plane,
 		 * can safely continue.
 		 */
 		if (needs_modeset(crtc_state)) {
-			ret = i915_sw_fence_await_reservation(&intel_state->commit_ready,
-							      old_obj->resv, NULL,
-							      false, 0,
-							      GFP_KERNEL);
+
 			if (ret < 0)
 				return ret;
 		}
 	}
 
 	if (new_state->fence) { /* explicit fencing */
-		ret = i915_sw_fence_await_dma_fence(&intel_state->commit_ready,
-						    new_state->fence,
-						    I915_FENCE_TIMEOUT,
-						    GFP_KERNEL);
+
 		if (ret < 0)
 			return ret;
 	}
@@ -10654,10 +10576,7 @@ intel_prepare_plane_fb(struct drm_plane *plane,
 	if (!new_state->fence) { /* implicit fencing */
 		struct dma_fence *fence;
 
-		ret = i915_sw_fence_await_reservation(&intel_state->commit_ready,
-						      obj->resv, NULL,
-						      false, I915_FENCE_TIMEOUT,
-						      GFP_KERNEL);
+
 		if (ret < 0)
 			return ret;
 
@@ -11817,7 +11736,6 @@ static void intel_atomic_state_free(struct drm_atomic_state *state)
 
 	drm_atomic_state_default_release(state);
 
-	i915_sw_fence_fini(&intel_state->commit_ready);
 
 	kfree(state);
 }

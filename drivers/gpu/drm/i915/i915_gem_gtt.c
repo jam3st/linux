@@ -318,7 +318,6 @@ static void i915_address_space_init(struct i915_address_space *vm,
 				    struct drm_i915_private *dev_priv,
 				    const char *name)
 {
-    i915_gem_timeline_init(dev_priv, &vm->timeline, name);
 
     drm_mm_init(&vm->mm, 0, vm->total);
     vm->mm.head_node.color = I915_COLOR_UNEVICTABLE;
@@ -566,8 +565,7 @@ int i915_ggtt_probe_hw(struct drm_i915_private *dev_priv)
 	DRM_DEBUG_DRIVER("GMADR size = %lluM\n", (u64)ggtt->mappable_end >> 20);
 	DRM_DEBUG_DRIVER("DSM size = %lluM\n",
 			 (u64)resource_size(&intel_graphics_stolen_res) >> 20);
-	if (intel_vtd_active())
-		DRM_INFO("VT-d active for gfx access\n");
+
 
 	return 0;
 }
@@ -588,9 +586,9 @@ printk("i915_ggtt_init_hw i915_ggtt_init_hw i915_ggtt_init_hw i915_ggtt_init_hw 
 	 * beyond the end of the batch buffer, across the page boundary,
 	 * and beyond the end of the GTT if we do not provide a guard.
 	 */
-	mutex_lock(&dev_priv->drm.struct_mutex);
+    //mutex_lock(&dev_priv->drm.struct_mutex);
 	i915_address_space_init(&ggtt->base, dev_priv, "[global]");
-	mutex_unlock(&dev_priv->drm.struct_mutex);
+    //mutex_unlock(&dev_priv->drm.struct_mutex);
 
 	if (!io_mapping_init_wc(&dev_priv->ggtt.iomap,
 				dev_priv->ggtt.gmadr.start,
@@ -618,8 +616,6 @@ out_gtt_cleanup:
 
 int i915_ggtt_enable_hw(struct drm_i915_private *dev_priv)
 {
-	if (INTEL_GEN(dev_priv) < 6 && !intel_enable_gtt())
-		return -EIO;
 
 	return 0;
 }

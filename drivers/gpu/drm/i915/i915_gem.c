@@ -134,7 +134,7 @@ printk("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx __i915_gem_object_s
 	GEM_BUG_ON(!HAS_PAGE_SIZES(i915, obj->mm.page_sizes.sg));
 
 	spin_lock(&i915->mm.obj_lock);
-	list_add(&obj->mm.link, &i915->mm.unbound_list);
+//	list_add(&obj->mm.link, &i915->mm.unbound_list);
 	spin_unlock(&i915->mm.obj_lock);
 }
 
@@ -144,21 +144,8 @@ void *i915_gem_object_alloc(struct drm_i915_private *dev_priv)
  {
     printk("i915_gem_object_alloc stolen");
 
-         return kmem_cache_zalloc(dev_priv->objects, GFP_KERNEL);
+        return kmem_cache_zalloc(dev_priv->objects, GFP_KERNEL);
  }
-
-
-static void __i915_gem_object_flush_for_display(struct drm_i915_gem_object *obj)
-{
-	/*
-	 * We manually flush the CPU domain so that we can override and
-	 * force the flush for the display, and perform it asyncrhonously.
-	 */
-	flush_write_domain(obj, ~I915_GEM_DOMAIN_CPU);
-	if (obj->cache_dirty)
-		i915_gem_clflush_object(obj, I915_CLFLUSH_FORCE);
-	obj->write_domain = 0;
-}
 
 
 int i915_gem_object_set_cache_level(struct drm_i915_gem_object *obj,
@@ -245,7 +232,6 @@ i915_gem_object_pin_to_display_plane(struct drm_i915_gem_object *obj,
 	vma->display_alignment = max_t(u64, vma->display_alignment, alignment);
 
 	/* Treat this as an end-of-frame, like intel_user_framebuffer_dirty() */
-	__i915_gem_object_flush_for_display(obj);
 	intel_fb_obj_flush(obj, ORIGIN_DIRTYFB);
 
 	/* It should now be out of any other write domains, and we can update
@@ -381,103 +367,41 @@ void
 i915_gem_load_init_fences(struct drm_i915_private *dev_priv)
 {
 	int i;
+    INIT_LIST_HEAD(&dev_priv->mm.fence_list);
+    dev_priv->objects = KMEM_CACHE(drm_i915_gem_object, SLAB_HWCACHE_ALIGN);
+dev_priv->vmas = KMEM_CACHE(i915_vma, SLAB_HWCACHE_ALIGN);
 
-		dev_priv->num_fence_regs = 32;
+        dev_priv->num_fence_regs = 32;
+printk("i915_gem_load_init_fences start");
+//	/* Initialize fence registers to zero */
+    for (i = 0; i < dev_priv->num_fence_regs; i++) {
+        struct drm_i915_fence_reg *fence = &dev_priv->fence_regs[i];
+printk("F %d %x %x", i, fence, dev_priv);
+        fence->i915 = dev_priv;
+        fence->id = i;
+printk("F %d %x %x", i, fence->i915, dev_priv);
 
-	/* Initialize fence registers to zero */
-	for (i = 0; i < dev_priv->num_fence_regs; i++) {
-		struct drm_i915_fence_reg *fence = &dev_priv->fence_regs[i];
-
-		fence->i915 = dev_priv;
-		fence->id = i;
-		list_add_tail(&fence->link, &dev_priv->mm.fence_list);
-	}
-	i915_gem_restore_fences(dev_priv);
+        list_add_tail(&fence->link, &dev_priv->mm.fence_list);
+    }
+    printk("i915_gem_load_init_fences end");
+    //i915_gem_restore_fences(dev_priv);
 
 	i915_gem_detect_bit_6_swizzle(dev_priv);
 }
 
 static void i915_gem_init__mm(struct drm_i915_private *i915)
 {
-	spin_lock_init(&i915->mm.object_stat_lock);
-	spin_lock_init(&i915->mm.obj_lock);
-	spin_lock_init(&i915->mm.free_lock);
+    spin_lock_init(&i915->mm.object_stat_lock);
+    spin_lock_init(&i915->mm.obj_lock);
+    spin_lock_init(&i915->mm.free_lock);
 
-	init_llist_head(&i915->mm.free_list);
+    init_llist_head(&i915->mm.free_list);
 
-	INIT_LIST_HEAD(&i915->mm.unbound_list);
-	INIT_LIST_HEAD(&i915->mm.bound_list);
-	INIT_LIST_HEAD(&i915->mm.fence_list);
-	INIT_LIST_HEAD(&i915->mm.userfault_list);
+    INIT_LIST_HEAD(&i915->mm.unbound_list);
+    INIT_LIST_HEAD(&i915->mm.bound_list);
+    INIT_LIST_HEAD(&i915->mm.fence_list);
+    INIT_LIST_HEAD(&i915->mm.userfault_list);
 
-}
-
-int
-i915_gem_load_init(struct drm_i915_private *dev_priv)
-{
-	int err = -ENOMEM;
-
-	dev_priv->objects = KMEM_CACHE(drm_i915_gem_object, SLAB_HWCACHE_ALIGN);
-	if (!dev_priv->objects)
-		goto err_out;
-
-	dev_priv->vmas = KMEM_CACHE(i915_vma, SLAB_HWCACHE_ALIGN);
-	if (!dev_priv->vmas)
-		goto err_objects;
-
-	dev_priv->luts = KMEM_CACHE(i915_lut_handle, 0);
-	if (!dev_priv->luts)
-		goto err_vmas;
-
-	dev_priv->requests = KMEM_CACHE(i915_request,
-					SLAB_HWCACHE_ALIGN |
-					SLAB_RECLAIM_ACCOUNT |
-					SLAB_TYPESAFE_BY_RCU);
-	if (!dev_priv->requests)
-		goto err_luts;
-
-	dev_priv->dependencies = KMEM_CACHE(i915_dependency,
-					    SLAB_HWCACHE_ALIGN |
-					    SLAB_RECLAIM_ACCOUNT);
-	if (!dev_priv->dependencies)
-		goto err_requests;
-
-    dev_priv->priorities = KMEM_CACHE(i915_priolist, SLAB_HWCACHE_ALIGN);
-	if (!dev_priv->priorities)
-		goto err_dependencies;
-
-	mutex_lock(&dev_priv->drm.struct_mutex);
-	INIT_LIST_HEAD(&dev_priv->gt.timelines);
-	err = i915_gem_timeline_init__global(dev_priv);
-	mutex_unlock(&dev_priv->drm.struct_mutex);
-	if (err)
-		goto err_priorities;
-
-	i915_gem_init__mm(dev_priv);
-
-	init_waitqueue_head(&dev_priv->gpu_error.wait_queue);
-	init_waitqueue_head(&dev_priv->gpu_error.reset_queue);
-
-	atomic_set(&dev_priv->mm.bsd_engine_dispatch_index, 0);
-
-	spin_lock_init(&dev_priv->fb_tracking.lock);
-
-	return 0;
-
-err_priorities:
-	kmem_cache_destroy(dev_priv->priorities);
-err_dependencies:
-	kmem_cache_destroy(dev_priv->dependencies);
-err_requests:
-	kmem_cache_destroy(dev_priv->requests);
-err_luts:
-	kmem_cache_destroy(dev_priv->luts);
-err_vmas:
-	kmem_cache_destroy(dev_priv->vmas);
-err_objects:
-	kmem_cache_destroy(dev_priv->objects);
-err_out:
-	return err;
 }
 
 static void __start_cpu_write(struct drm_i915_gem_object *obj)

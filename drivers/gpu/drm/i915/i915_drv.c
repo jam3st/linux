@@ -657,7 +657,6 @@ static int i915_driver_init_early(struct drm_i915_private *dev_priv,
 	intel_irq_init(dev_priv);
 	intel_init_display_hooks(dev_priv);
 	intel_init_clock_gating_hooks(dev_priv);
-    ret = i915_gem_load_init(dev_priv);
     if (ret < 0)
         goto err_irq;
 
@@ -724,9 +723,6 @@ static void i915_mmio_cleanup(struct drm_i915_private *dev_priv)
 static int i915_driver_init_mmio(struct drm_i915_private *dev_priv)
 {
 	int ret;
-
-	if (i915_inject_load_failure())
-		return -ENODEV;
 
 	if (i915_get_bridge_dev(dev_priv))
 		return -EIO;
@@ -960,15 +956,18 @@ int i915_driver_load(struct pci_dev *pdev, const struct pci_device_id *ent)
 		(struct intel_device_info *)ent->driver_data;
 	struct drm_i915_private *dev_priv;
 	int ret;
+    printk(" MMIO FAULED TO LOAD Why??????????????????????????????????????????");
 
-	/* Enable nuclear pageflip on ILK+ */
-	if (!i915_modparams.nuclear_pageflip && match_info->gen < 5)
-		driver.driver_features &= ~DRIVER_ATOMIC;
 
 	ret = -ENOMEM;
 	dev_priv = kzalloc(sizeof(*dev_priv), GFP_KERNEL);
-	if (dev_priv)
+    printk(" MMIO FAULED TO LOAD Why");
+
+    if (dev_priv) {
 		ret = drm_dev_init(&dev_priv->drm, &driver, &pdev->dev);
+    }
+    printk(" DRM INIT OK Why??????????????????????????????????????????");
+
 	if (ret) {
 		DRM_DEV_ERROR(&pdev->dev, "allocation failed\n");
 		goto out_free;
@@ -978,6 +977,8 @@ int i915_driver_load(struct pci_dev *pdev, const struct pci_device_id *ent)
 	dev_priv->drm.dev_private = dev_priv;
 
 	ret = pci_enable_device(pdev);
+    printk("pci_enable_device Why??????????????????????????????????????????");
+
 	if (ret)
 		goto out_fini;
 
@@ -991,16 +992,20 @@ int i915_driver_load(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * domain during system suspend.
 	 */
 	dev_pm_set_driver_flags(&pdev->dev, DPM_FLAG_NEVER_SKIP);
+    printk("before init early Why??????????????????????????????????????????");
 
-	ret = i915_driver_init_early(dev_priv, ent);
+    ret = i915_driver_init_early(dev_priv, ent);
 	if (ret < 0)
 		goto out_pci_disable;
+    printk("i915_driver_init_early was ok");
 
 	ret = i915_driver_init_mmio(dev_priv);
 	if (ret < 0) {
 
         printk(" MMIO FAULED TO LOAD");
         }
+    printk(" MMIO i915_driver_init_hw i915_driver_init_hw TO LOAD");
+
 	ret = i915_driver_init_hw(dev_priv);
 	if (ret < 0)
 		goto out_cleanup_mmio;

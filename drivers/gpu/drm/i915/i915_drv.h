@@ -2293,7 +2293,6 @@ struct drm_i915_private {
 		void (*cleanup_engine)(struct intel_engine_cs *engine);
 
 		struct list_head timelines;
-		struct i915_gem_timeline global_timeline;
 		u32 active_requests;
 
 		/**
@@ -3911,51 +3910,6 @@ wait_remaining_ms_from_jiffies(unsigned long timestamp_jiffies, int to_wait_ms)
 			remaining_jiffies =
 			    schedule_timeout_uninterruptible(remaining_jiffies);
 	}
-}
-
-static inline bool
-__i915_request_irq_complete(const struct i915_request *rq)
-{
-	u32 seqno;
-
-	/* Note that the engine may have wrapped around the seqno, and
-	 * so our request->global_seqno will be ahead of the hardware,
-	 * even though it completed the request before wrapping. We catch
-	 * this by kicking all the waiters before resetting the seqno
-	 * in hardware, and also signal the fence.
-	 */
-	if (test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &rq->fence.flags))
-		return true;
-
-	/* The request was dequeued before we were awoken. We check after
-	 * inspecting the hw to confirm that this was the same request
-	 * that generated the HWS update. The memory barriers within
-	 * the request execution are sufficient to ensure that a check
-	 * after reading the value from hw matches this request.
-	 */
-	seqno = i915_request_global_seqno(rq);
-	if (!seqno)
-		return false;
-
-	/* Before we do the heavier coherent read of the seqno,
-	 * check the value (hopefully) in the CPU cacheline.
-	 */
-	if (__i915_request_completed(rq, seqno))
-		return true;
-
-	/* Ensure our read of the seqno is coherent so that we
-	 * do not "miss an interrupt" (i.e. if this is the last
-	 * request and the seqno write from the GPU is not visible
-	 * by the time the interrupt fires, we will see that the
-	 * request is incomplete and go back to sleep awaiting
-	 * another interrupt that will never come.)
-	 *
-	 * Strictly, we only need to do this once after an interrupt,
-	 * but it is easier and safer to do it every time the waiter
-	 * is woken.
-	 */
-
-	return false;
 }
 
 void i915_memcpy_init_early(struct drm_i915_private *dev_priv);

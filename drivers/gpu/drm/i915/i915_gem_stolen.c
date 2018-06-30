@@ -198,7 +198,7 @@ static void gen7_get_stolen_reserved(struct drm_i915_private *dev_priv,
 		return;
 	}
 
-        printk(" GEN6_STOLEN_RESERVED_ENABLE xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx GEN6_STOLEN_RESERVED_ENABLE GEN6_STOLEN_RESERVED_ENABLE ");
+    printk(" GEN6_STOLEN_RESERVED_ENABLE xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx GEN6_STOLEN_RESERVED_ENABLE GEN6_STOLEN_RESERVED_ENABLE ");
 	*base = reg_val & GEN7_STOLEN_RESERVED_ADDR_MASK;
 
 	switch (reg_val & GEN7_STOLEN_RESERVED_SIZE_MASK) {
@@ -220,9 +220,10 @@ int i915_gem_init_stolen(struct drm_i915_private *dev_priv)
 	resource_size_t reserved_base, stolen_top;
 	resource_size_t reserved_total, reserved_size;
 	resource_size_t stolen_usable_start;
-    printk("xxxxxxxxxxxxxxxxxxx init start Stolen i");
+    printk("xxxxxxxxxxxxxxxxxxx init start Stolen ");
 
 	mutex_init(&dev_priv->mm.stolen_lock);
+    printk("xxxxxxxxxxxxxxxxxxx init start Stolen lockd ");
 
 	if (resource_size(&intel_graphics_stolen_res) == 0) {
         printk("Stolen is not found ");
@@ -243,9 +244,10 @@ int i915_gem_init_stolen(struct drm_i915_private *dev_priv)
 	reserved_base = 0;
 	reserved_size = 0;
 
-		gen7_get_stolen_reserved(dev_priv,
+    gen7_get_stolen_reserved(dev_priv,
 					 &reserved_base, &reserved_size);
 
+    printk("Stolen reserd %x %x", reserved_base, reserved_size);
 	/* It is possible for the reserved base to be zero, but the register
 	 * field for size doesn't have a zero option. */
 	if (reserved_base == 0) {
@@ -255,6 +257,7 @@ int i915_gem_init_stolen(struct drm_i915_private *dev_priv)
 
 	dev_priv->dsm_reserved =
 		(struct resource) DEFINE_RES_MEM(reserved_base, reserved_size);
+    printk("Sstolen resource created reserved_base, reserved_size");
 
 	if (!resource_contains(&dev_priv->dsm, &dev_priv->dsm_reserved)) {
 		DRM_ERROR("Stolen reserved area %pR outside stolen memory %pR\n",
@@ -272,15 +275,16 @@ int i915_gem_init_stolen(struct drm_i915_private *dev_priv)
 
 	stolen_usable_start = 0;
 	/* WaSkipStolenMemoryFirstPage:bdw+ */
-	if (INTEL_GEN(dev_priv) >= 8)
-		stolen_usable_start = 4096;
 
 	dev_priv->stolen_usable_size =
 		resource_size(&dev_priv->dsm) - reserved_total - stolen_usable_start;
 
+    printk("Sstolen before allocator");
+
 	/* Basic memrange allocator for stolen space. */
 	drm_mm_init(&dev_priv->mm.stolen, stolen_usable_start,
 		    dev_priv->stolen_usable_size);
+    printk("Sstolen after allocator");
 
 	return 0;
 }
@@ -403,8 +407,11 @@ _i915_gem_object_create_stolen(struct drm_i915_private *dev_priv,
     printk("allocating stolen _i915_gem_object_create_stolen");
 
 	obj = i915_gem_object_alloc(dev_priv);
-	if (obj == NULL)
+    if (obj == NULL) {
+        printk("allocating stolen returned null");
+
 		return NULL;
+    }
 
 	drm_gem_private_object_init(&dev_priv->drm, &obj->base, stolen->size);
 	i915_gem_object_init(obj, &i915_gem_object_stolen_ops);
@@ -429,10 +436,7 @@ i915_gem_object_create_stolen(struct drm_i915_private *dev_priv,
 	struct drm_mm_node *stolen;
 	int ret;
 
-	if (!drm_mm_initialized(&dev_priv->mm.stolen)) {
-printk("drm_mm_initialized unit");
-return NULL;
-}
+    printk("Szie is %d", size);
     if (size == 0) {
     printk("cannot alloc zero zeis");
         return NULL;

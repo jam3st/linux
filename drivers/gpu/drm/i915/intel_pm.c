@@ -1596,11 +1596,9 @@ void intel_sanitize_gt_powersave(struct drm_i915_private *dev_priv)
 	dev_priv->gt_pm.rps.enabled = true; /* force RPS disabling */
 	dev_priv->gt_pm.rc6.enabled = true; /* force RC6 disabling */
 	intel_disable_gt_powersave(dev_priv);
-
-	if (INTEL_GEN(dev_priv) < 11)
-		gen6_reset_rps_interrupts(dev_priv);
-	else
-		WARN_ON_ONCE(1);
+printk("intel_sanitize_gt_powersave before");
+    gen6_reset_rps_interrupts(dev_priv);
+printk("intel_sanitize_gt_powersave after");
 }
 
 static inline void intel_disable_llc_pstate(struct drm_i915_private *i915)

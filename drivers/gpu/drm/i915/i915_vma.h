@@ -93,8 +93,7 @@ struct i915_vma {
 #define I915_VMA_GGTT_WRITE	BIT(12)
 
 	unsigned int active;
-	struct i915_gem_active last_read[I915_NUM_ENGINES];
-	struct i915_gem_active last_fence;
+
 
 	/**
 	 * Support different GGTT views into the same object.
@@ -150,7 +149,6 @@ static inline bool i915_vma_has_ggtt_write(const struct i915_vma *vma)
 
 static inline void i915_vma_set_ggtt_write(struct i915_vma *vma)
 {
-	GEM_BUG_ON(!i915_vma_is_ggtt(vma));
 	vma->flags |= I915_VMA_GGTT_WRITE;
 }
 
@@ -173,7 +171,6 @@ static inline bool i915_vma_is_closed(const struct i915_vma *vma)
 
 static inline bool i915_vma_set_userfault(struct i915_vma *vma)
 {
-	GEM_BUG_ON(!i915_vma_is_map_and_fenceable(vma));
 	return __test_and_set_bit(I915_VMA_USERFAULT_BIT, &vma->flags);
 }
 
@@ -217,10 +214,7 @@ static inline bool i915_vma_has_active_engine(const struct i915_vma *vma,
 
 static inline u32 i915_ggtt_offset(const struct i915_vma *vma)
 {
-	GEM_BUG_ON(!i915_vma_is_ggtt(vma));
-	GEM_BUG_ON(!vma->node.allocated);
-	GEM_BUG_ON(upper_32_bits(vma->node.start));
-	GEM_BUG_ON(upper_32_bits(vma->node.start + vma->node.size - 1));
+
 	return lower_32_bits(vma->node.start);
 }
 
@@ -247,7 +241,6 @@ i915_vma_compare(struct i915_vma *vma,
 {
 	ptrdiff_t cmp;
 
-	GEM_BUG_ON(view && !i915_is_ggtt(vm));
 
 	cmp = ptrdiff(vma->vm, vm);
 	if (cmp)
@@ -304,8 +297,7 @@ printk("i915_vma_pin start");
 	 * our vma as we insert and bind.
 	 */
 	if (likely(((++vma->flags ^ flags) & I915_VMA_BIND_MASK) == 0)) {
-		GEM_BUG_ON(!drm_mm_node_allocated(&vma->node));
-		GEM_BUG_ON(i915_vma_misplaced(vma, size, alignment, flags));
+
         printk("Stupid alert");
 		return 0;
 	}
@@ -329,7 +321,6 @@ static inline void __i915_vma_pin(struct i915_vma *vma)
 printk("__i915_vma_pin start");
 	vma->flags++;
 printk("__i915_vma_pin end");
-	GEM_BUG_ON(vma->flags & I915_VMA_PIN_OVERFLOW);
 }
 
 static inline void __i915_vma_unpin(struct i915_vma *vma)
@@ -339,8 +330,7 @@ static inline void __i915_vma_unpin(struct i915_vma *vma)
 
 static inline void i915_vma_unpin(struct i915_vma *vma)
 {
-	GEM_BUG_ON(!i915_vma_is_pinned(vma));
-	GEM_BUG_ON(!drm_mm_node_allocated(&vma->node));
+
 	__i915_vma_unpin(vma);
 }
 
@@ -373,7 +363,6 @@ void i915_vma_unpin_iomap(struct i915_vma *vma);
 
 static inline struct page *i915_vma_first_page(struct i915_vma *vma)
 {
-	GEM_BUG_ON(!vma->pages);
 	return sg_page(vma->pages->sgl);
 }
 
@@ -397,7 +386,6 @@ int __must_check i915_vma_put_fence(struct i915_vma *vma);
 
 static inline void __i915_vma_unpin_fence(struct i915_vma *vma)
 {
-	GEM_BUG_ON(vma->fence->pin_count <= 0);
 	vma->fence->pin_count--;
 }
 

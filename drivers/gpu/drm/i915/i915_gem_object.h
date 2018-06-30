@@ -163,7 +163,6 @@ struct drm_i915_gem_object {
 
 	atomic_t frontbuffer_bits;
 	unsigned int frontbuffer_ggtt_origin; /* write once */
-	struct i915_gem_active frontbuffer_write;
 
 	/** Current tiling stride for the object, if it's tiled. */
 	unsigned int tiling_and_stride;
@@ -437,7 +436,6 @@ i915_gem_object_get_stride(struct drm_i915_gem_object *obj)
 static inline unsigned int
 i915_gem_tile_height(unsigned int tiling)
 {
-	GEM_BUG_ON(!tiling);
 	return tiling == I915_TILING_Y ? 32 : 8;
 }
 
@@ -457,22 +455,7 @@ i915_gem_object_get_tile_row_size(struct drm_i915_gem_object *obj)
 int i915_gem_object_set_tiling(struct drm_i915_gem_object *obj,
 			       unsigned int tiling, unsigned int stride);
 
-static inline struct intel_engine_cs *
-i915_gem_object_last_write_engine(struct drm_i915_gem_object *obj)
-{
-	struct intel_engine_cs *engine = NULL;
-	struct dma_fence *fence;
 
-	rcu_read_lock();
-	fence = reservation_object_get_excl_rcu(obj->resv);
-	rcu_read_unlock();
-
-	if (fence && dma_fence_is_i915(fence) && !dma_fence_is_signaled(fence))
-		engine = to_request(fence)->engine;
-	dma_fence_put(fence);
-
-	return engine;
-}
 
 void i915_gem_object_set_cache_coherency(struct drm_i915_gem_object *obj,
 					 unsigned int cache_level);

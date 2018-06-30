@@ -30,7 +30,6 @@ static DEFINE_SPINLOCK(clflush_lock);
 
 struct clflush {
 	struct dma_fence dma; /* Must be first for dma_fence_free() */
-	struct i915_sw_fence wait;
 	struct work_struct work;
 	struct drm_i915_gem_object *obj;
 };
@@ -50,22 +49,13 @@ static bool i915_clflush_enable_signaling(struct dma_fence *fence)
 	return true;
 }
 
-static void i915_clflush_release(struct dma_fence *fence)
-{
-	struct clflush *clflush = container_of(fence, typeof(*clflush), dma);
-
-	i915_sw_fence_fini(&clflush->wait);
-
-	BUILD_BUG_ON(offsetof(typeof(*clflush), dma));
-	dma_fence_free(&clflush->dma);
-}
 
 static const struct dma_fence_ops i915_clflush_ops = {
 	.get_driver_name = i915_clflush_get_driver_name,
 	.get_timeline_name = i915_clflush_get_timeline_name,
 	.enable_signaling = i915_clflush_enable_signaling,
 	.wait = dma_fence_default_wait,
-	.release = i915_clflush_release,
+    .release = NULL,
 };
 
 static void __i915_do_clflush(struct drm_i915_gem_object *obj)
@@ -92,24 +82,6 @@ out:
 	dma_fence_put(&clflush->dma);
 }
 
-static int __i915_sw_fence_call
-i915_clflush_notify(struct i915_sw_fence *fence,
-		    enum i915_sw_fence_notify state)
-{
-	struct clflush *clflush = container_of(fence, typeof(*clflush), wait);
-
-	switch (state) {
-	case FENCE_COMPLETE:
-		schedule_work(&clflush->work);
-		break;
-
-	case FENCE_FREE:
-		dma_fence_put(&clflush->dma);
-		break;
-	}
-
-	return NOTIFY_DONE;
-}
 
 bool i915_gem_clflush_object(struct drm_i915_gem_object *obj,
 			     unsigned int flags)
@@ -153,23 +125,17 @@ bool i915_gem_clflush_object(struct drm_i915_gem_object *obj,
 			       &clflush_lock,
 			       to_i915(obj->base.dev)->mm.unordered_timeline,
 			       0);
-		i915_sw_fence_init(&clflush->wait, i915_clflush_notify);
 
 		clflush->obj = i915_gem_object_get(obj);
 		INIT_WORK(&clflush->work, i915_clflush_work);
 
 		dma_fence_get(&clflush->dma);
 
-		i915_sw_fence_await_reservation(&clflush->wait,
-						obj->resv, NULL,
-						true, I915_FENCE_TIMEOUT,
-						I915_FENCE_GFP);
 
 		reservation_object_lock(obj->resv, NULL);
 		reservation_object_add_excl_fence(obj->resv, &clflush->dma);
 		reservation_object_unlock(obj->resv);
 
-		i915_sw_fence_commit(&clflush->wait);
 	} else if (obj->mm.pages) {
 		__i915_do_clflush(obj);
 	} else {

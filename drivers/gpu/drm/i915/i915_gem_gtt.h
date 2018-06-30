@@ -256,7 +256,6 @@ struct i915_pml4 {
 
 struct i915_address_space {
 	struct drm_mm mm;
-	struct i915_gem_timeline timeline;
 	struct drm_i915_private *i915;
 	struct device *dma;
 	/* Every address space belongs to a struct file - except for the global
@@ -541,7 +540,6 @@ i915_page_dir_dma_addr(const struct i915_hw_ppgtt *ppgtt, const unsigned n)
 static inline struct i915_ggtt *
 i915_vm_to_ggtt(struct i915_address_space *vm)
 {
-	GEM_BUG_ON(!i915_is_ggtt(vm));
 	return container_of(vm, struct i915_ggtt, base);
 }
 

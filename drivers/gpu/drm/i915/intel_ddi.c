@@ -1782,7 +1782,6 @@ static void intel_ddi_pre_enable(struct intel_encoder *encoder,
 				 const struct drm_connector_state *conn_state)
 {
 	struct intel_crtc *crtc = to_intel_crtc(crtc_state->base.crtc);
-	struct drm_i915_private *dev_priv = to_i915(crtc->base.dev);
 
 	/*
 	 * When called from DP MST code:
@@ -2448,7 +2447,7 @@ void intel_ddi_init(struct drm_i915_private *dev_priv, enum port port)
 	struct intel_digital_port *intel_dig_port;
 	struct intel_encoder *intel_encoder;
 	struct drm_encoder *encoder;
-	bool init_hdmi, init_dp, init_lspcon = false;
+        bool init_hdmi, init_dp = false;
 
 
 	init_hdmi = (dev_priv->vbt.ddi_port_info[port].supports_dvi ||

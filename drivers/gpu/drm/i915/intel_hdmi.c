@@ -71,36 +71,6 @@ static struct intel_hdmi *intel_attached_hdmi(struct drm_connector *connector)
 	return enc_to_intel_hdmi(&intel_attached_encoder(connector)->base);
 }
 
-static u32 g4x_infoframe_index(unsigned int type)
-{
-	switch (type) {
-	case HDMI_INFOFRAME_TYPE_AVI:
-		return VIDEO_DIP_SELECT_AVI;
-	case HDMI_INFOFRAME_TYPE_SPD:
-		return VIDEO_DIP_SELECT_SPD;
-	case HDMI_INFOFRAME_TYPE_VENDOR:
-		return VIDEO_DIP_SELECT_VENDOR;
-	default:
-		MISSING_CASE(type);
-		return 0;
-	}
-}
-
-static u32 g4x_infoframe_enable(unsigned int type)
-{
-	switch (type) {
-	case HDMI_INFOFRAME_TYPE_AVI:
-		return VIDEO_DIP_ENABLE_AVI;
-	case HDMI_INFOFRAME_TYPE_SPD:
-		return VIDEO_DIP_ENABLE_SPD;
-	case HDMI_INFOFRAME_TYPE_VENDOR:
-		return VIDEO_DIP_ENABLE_VENDOR;
-	default:
-		MISSING_CASE(type);
-		return 0;
-	}
-}
-
 static u32 hsw_infoframe_enable(unsigned int type)
 {
 	switch (type) {
@@ -298,68 +268,6 @@ intel_hdmi_set_hdmi_infoframe(struct drm_encoder *encoder,
 	intel_write_infoframe(encoder, crtc_state, &frame);
 }
 
-static void g4x_set_infoframes(struct drm_encoder *encoder,
-			       bool enable,
-			       const struct intel_crtc_state *crtc_state,
-			       const struct drm_connector_state *conn_state)
-{
-	struct drm_i915_private *dev_priv = to_i915(encoder->dev);
-	struct intel_digital_port *intel_dig_port = enc_to_dig_port(encoder);
-	struct intel_hdmi *intel_hdmi = &intel_dig_port->hdmi;
-	i915_reg_t reg = VIDEO_DIP_CTL;
-	u32 val = I915_READ(reg);
-	u32 port = VIDEO_DIP_PORT(intel_dig_port->base.port);
-
-	assert_hdmi_port_disabled(intel_hdmi);
-
-	/* If the registers were not initialized yet, they might be zeroes,
-	 * which means we're selecting the AVI DIP and we're setting its
-	 * frequency to once. This seems to really confuse the HW and make
-	 * things stop working (the register spec says the AVI always needs to
-	 * be sent every VSync). So here we avoid writing to the register more
-	 * than we need and also explicitly select the AVI DIP and explicitly
-	 * set its frequency to every VSync. Avoiding to write it twice seems to
-	 * be enough to solve the problem, but being defensive shouldn't hurt us
-	 * either. */
-	val |= VIDEO_DIP_SELECT_AVI | VIDEO_DIP_FREQ_VSYNC;
-
-	if (!enable) {
-		if (!(val & VIDEO_DIP_ENABLE))
-			return;
-		if (port != (val & VIDEO_DIP_PORT_MASK)) {
-			DRM_DEBUG_KMS("video DIP still enabled on port %c\n",
-				      (val & VIDEO_DIP_PORT_MASK) >> 29);
-			return;
-		}
-		val &= ~(VIDEO_DIP_ENABLE | VIDEO_DIP_ENABLE_AVI |
-			 VIDEO_DIP_ENABLE_VENDOR | VIDEO_DIP_ENABLE_SPD);
-		I915_WRITE(reg, val);
-		POSTING_READ(reg);
-		return;
-	}
-
-	if (port != (val & VIDEO_DIP_PORT_MASK)) {
-		if (val & VIDEO_DIP_ENABLE) {
-			DRM_DEBUG_KMS("video DIP already enabled on port %c\n",
-				      (val & VIDEO_DIP_PORT_MASK) >> 29);
-			return;
-		}
-		val &= ~VIDEO_DIP_PORT_MASK;
-		val |= port;
-	}
-
-	val |= VIDEO_DIP_ENABLE;
-	val &= ~(VIDEO_DIP_ENABLE_AVI |
-		 VIDEO_DIP_ENABLE_VENDOR | VIDEO_DIP_ENABLE_SPD);
-
-	I915_WRITE(reg, val);
-	POSTING_READ(reg);
-
-	intel_hdmi_set_avi_infoframe(encoder, crtc_state);
-	intel_hdmi_set_spd_infoframe(encoder, crtc_state);
-	intel_hdmi_set_hdmi_infoframe(encoder, crtc_state, conn_state);
-}
-
 static bool hdmi_sink_is_deep_color(const struct drm_connector_state *conn_state)
 {
 	struct drm_connector *connector = conn_state->connector;
@@ -448,154 +356,7 @@ static bool intel_hdmi_set_gcp_infoframe(struct drm_encoder *encoder,
 	return val != 0;
 }
 
-static void ibx_set_infoframes(struct drm_encoder *encoder,
-			       bool enable,
-			       const struct intel_crtc_state *crtc_state,
-			       const struct drm_connector_state *conn_state)
-{
-	struct drm_i915_private *dev_priv = to_i915(encoder->dev);
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc_state->base.crtc);
-	struct intel_digital_port *intel_dig_port = enc_to_dig_port(encoder);
-	struct intel_hdmi *intel_hdmi = &intel_dig_port->hdmi;
-	i915_reg_t reg = TVIDEO_DIP_CTL(intel_crtc->pipe);
-	u32 val = I915_READ(reg);
-	u32 port = VIDEO_DIP_PORT(intel_dig_port->base.port);
 
-	assert_hdmi_port_disabled(intel_hdmi);
-
-	/* See the big comment in g4x_set_infoframes() */
-	val |= VIDEO_DIP_SELECT_AVI | VIDEO_DIP_FREQ_VSYNC;
-
-	if (!enable) {
-		if (!(val & VIDEO_DIP_ENABLE))
-			return;
-		val &= ~(VIDEO_DIP_ENABLE | VIDEO_DIP_ENABLE_AVI |
-			 VIDEO_DIP_ENABLE_VENDOR | VIDEO_DIP_ENABLE_GAMUT |
-			 VIDEO_DIP_ENABLE_SPD | VIDEO_DIP_ENABLE_GCP);
-		I915_WRITE(reg, val);
-		POSTING_READ(reg);
-		return;
-	}
-
-	if (port != (val & VIDEO_DIP_PORT_MASK)) {
-		WARN(val & VIDEO_DIP_ENABLE,
-		     "DIP already enabled on port %c\n",
-		     (val & VIDEO_DIP_PORT_MASK) >> 29);
-		val &= ~VIDEO_DIP_PORT_MASK;
-		val |= port;
-	}
-
-	val |= VIDEO_DIP_ENABLE;
-	val &= ~(VIDEO_DIP_ENABLE_AVI |
-		 VIDEO_DIP_ENABLE_VENDOR | VIDEO_DIP_ENABLE_GAMUT |
-		 VIDEO_DIP_ENABLE_SPD | VIDEO_DIP_ENABLE_GCP);
-
-	if (intel_hdmi_set_gcp_infoframe(encoder, crtc_state, conn_state))
-		val |= VIDEO_DIP_ENABLE_GCP;
-
-	I915_WRITE(reg, val);
-	POSTING_READ(reg);
-
-	intel_hdmi_set_avi_infoframe(encoder, crtc_state);
-	intel_hdmi_set_spd_infoframe(encoder, crtc_state);
-	intel_hdmi_set_hdmi_infoframe(encoder, crtc_state, conn_state);
-}
-
-static void cpt_set_infoframes(struct drm_encoder *encoder,
-			       bool enable,
-			       const struct intel_crtc_state *crtc_state,
-			       const struct drm_connector_state *conn_state)
-{
-	struct drm_i915_private *dev_priv = to_i915(encoder->dev);
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc_state->base.crtc);
-	struct intel_hdmi *intel_hdmi = enc_to_intel_hdmi(encoder);
-	i915_reg_t reg = TVIDEO_DIP_CTL(intel_crtc->pipe);
-	u32 val = I915_READ(reg);
-
-	assert_hdmi_port_disabled(intel_hdmi);
-
-	/* See the big comment in g4x_set_infoframes() */
-	val |= VIDEO_DIP_SELECT_AVI | VIDEO_DIP_FREQ_VSYNC;
-
-	if (!enable) {
-		if (!(val & VIDEO_DIP_ENABLE))
-			return;
-		val &= ~(VIDEO_DIP_ENABLE | VIDEO_DIP_ENABLE_AVI |
-			 VIDEO_DIP_ENABLE_VENDOR | VIDEO_DIP_ENABLE_GAMUT |
-			 VIDEO_DIP_ENABLE_SPD | VIDEO_DIP_ENABLE_GCP);
-		I915_WRITE(reg, val);
-		POSTING_READ(reg);
-		return;
-	}
-
-	/* Set both together, unset both together: see the spec. */
-	val |= VIDEO_DIP_ENABLE | VIDEO_DIP_ENABLE_AVI;
-	val &= ~(VIDEO_DIP_ENABLE_VENDOR | VIDEO_DIP_ENABLE_GAMUT |
-		 VIDEO_DIP_ENABLE_SPD | VIDEO_DIP_ENABLE_GCP);
-
-	if (intel_hdmi_set_gcp_infoframe(encoder, crtc_state, conn_state))
-		val |= VIDEO_DIP_ENABLE_GCP;
-
-	I915_WRITE(reg, val);
-	POSTING_READ(reg);
-
-	intel_hdmi_set_avi_infoframe(encoder, crtc_state);
-	intel_hdmi_set_spd_infoframe(encoder, crtc_state);
-	intel_hdmi_set_hdmi_infoframe(encoder, crtc_state, conn_state);
-}
-
-static void vlv_set_infoframes(struct drm_encoder *encoder,
-			       bool enable,
-			       const struct intel_crtc_state *crtc_state,
-			       const struct drm_connector_state *conn_state)
-{
-	struct drm_i915_private *dev_priv = to_i915(encoder->dev);
-	struct intel_digital_port *intel_dig_port = enc_to_dig_port(encoder);
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc_state->base.crtc);
-	struct intel_hdmi *intel_hdmi = enc_to_intel_hdmi(encoder);
-	i915_reg_t reg = VLV_TVIDEO_DIP_CTL(intel_crtc->pipe);
-	u32 val = I915_READ(reg);
-	u32 port = VIDEO_DIP_PORT(intel_dig_port->base.port);
-
-	assert_hdmi_port_disabled(intel_hdmi);
-
-	/* See the big comment in g4x_set_infoframes() */
-	val |= VIDEO_DIP_SELECT_AVI | VIDEO_DIP_FREQ_VSYNC;
-
-	if (!enable) {
-		if (!(val & VIDEO_DIP_ENABLE))
-			return;
-		val &= ~(VIDEO_DIP_ENABLE | VIDEO_DIP_ENABLE_AVI |
-			 VIDEO_DIP_ENABLE_VENDOR | VIDEO_DIP_ENABLE_GAMUT |
-			 VIDEO_DIP_ENABLE_SPD | VIDEO_DIP_ENABLE_GCP);
-		I915_WRITE(reg, val);
-		POSTING_READ(reg);
-		return;
-	}
-
-	if (port != (val & VIDEO_DIP_PORT_MASK)) {
-		WARN(val & VIDEO_DIP_ENABLE,
-		     "DIP already enabled on port %c\n",
-		     (val & VIDEO_DIP_PORT_MASK) >> 29);
-		val &= ~VIDEO_DIP_PORT_MASK;
-		val |= port;
-	}
-
-	val |= VIDEO_DIP_ENABLE;
-	val &= ~(VIDEO_DIP_ENABLE_AVI |
-		 VIDEO_DIP_ENABLE_VENDOR | VIDEO_DIP_ENABLE_GAMUT |
-		 VIDEO_DIP_ENABLE_SPD | VIDEO_DIP_ENABLE_GCP);
-
-	if (intel_hdmi_set_gcp_infoframe(encoder, crtc_state, conn_state))
-		val |= VIDEO_DIP_ENABLE_GCP;
-
-	I915_WRITE(reg, val);
-	POSTING_READ(reg);
-
-	intel_hdmi_set_avi_infoframe(encoder, crtc_state);
-	intel_hdmi_set_spd_infoframe(encoder, crtc_state);
-	intel_hdmi_set_hdmi_infoframe(encoder, crtc_state, conn_state);
-}
 
 static void hsw_set_infoframes(struct drm_encoder *encoder,
 			       bool enable,
@@ -1050,7 +811,6 @@ intel_hdmi_ycbcr420_config(struct drm_connector *connector,
 			   struct intel_crtc_state *config,
 			   int *clock_12bpc, int *clock_8bpc)
 {
-	struct intel_crtc *intel_crtc = to_intel_crtc(config->base.crtc);
 
 	if (!connector->ycbcr_420_allowed) {
 		
@@ -1200,7 +960,6 @@ intel_hdmi_dp_dual_mode_detect(struct drm_connector *connector, bool has_edid)
 {
 	struct drm_i915_private *dev_priv = to_i915(connector->dev);
 	struct intel_hdmi *hdmi = intel_attached_hdmi(connector);
-	enum port port = hdmi_to_dig_port(hdmi)->base.port;
 	struct i2c_adapter *adapter =
 		intel_gmbus_get_adapter(dev_priv, hdmi->ddc_bus);
 	enum drm_dp_dual_mode_type type = drm_dp_dual_mode_detect(adapter);
@@ -1221,13 +980,9 @@ intel_hdmi_dp_dual_mode_detect(struct drm_connector *connector, bool has_edid)
 		/* An overridden EDID imply that we want this port for testing.
 		 * Make sure not to set limits for that port.
 		 */
-		if (has_edid && !connector->override_edid &&
-		    intel_bios_is_port_dp_dual_mode(dev_priv, port)) {
-			DRM_DEBUG_KMS("Assuming DP dual mode adaptor presence based on VBT\n");
-			type = DRM_DP_DUAL_MODE_TYPE1_DVI;
-		} else {
-			type = DRM_DP_DUAL_MODE_NONE;
-		}
+
+                    type = DRM_DP_DUAL_MODE_NONE;
+
 	}
 
 	if (type == DRM_DP_DUAL_MODE_NONE)

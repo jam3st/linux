@@ -393,8 +393,7 @@ struct i915_hw_ppgtt {
 
 	gen6_pte_t __iomem *pd_addr;
 
-	int (*switch_mm)(struct i915_hw_ppgtt *ppgtt,
-			 struct i915_request *rq);
+
 	void (*debug_dump)(struct i915_hw_ppgtt *ppgtt, struct seq_file *m);
 };
 
@@ -604,10 +603,7 @@ void i915_check_and_clear_faults(struct drm_i915_private *dev_priv);
 void i915_gem_suspend_gtt_mappings(struct drm_i915_private *dev_priv);
 void i915_gem_restore_gtt_mappings(struct drm_i915_private *dev_priv);
 
-int __must_check i915_gem_gtt_prepare_pages(struct drm_i915_gem_object *obj,
-					    struct sg_table *pages);
-void i915_gem_gtt_finish_pages(struct drm_i915_gem_object *obj,
-			       struct sg_table *pages);
+
 
 int i915_gem_gtt_reserve(struct i915_address_space *vm,
 			 struct drm_mm_node *node,

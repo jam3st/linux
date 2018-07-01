@@ -26,9 +26,7 @@
 
 int intel_crtc_compute_min_cdclk(const struct intel_crtc_state *crtc_state)
 {
-    struct drm_i915_private *dev_priv =
-        to_i915(crtc_state->base.crtc->dev);
-    int min_cdclk;
+
 
         return 0;
 }

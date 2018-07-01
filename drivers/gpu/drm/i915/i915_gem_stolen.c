@@ -247,7 +247,6 @@ int i915_gem_init_stolen(struct drm_i915_private *dev_priv)
     gen7_get_stolen_reserved(dev_priv,
 					 &reserved_base, &reserved_size);
 
-    printk("Stolen reserd %x %x", reserved_base, reserved_size);
 	/* It is possible for the reserved base to be zero, but the register
 	 * field for size doesn't have a zero option. */
 	if (reserved_base == 0) {
@@ -424,7 +423,6 @@ _i915_gem_object_create_stolen(struct drm_i915_private *dev_priv,
    i915_gem_object_pin_pages(obj);
 	return obj;
 
-cleanup:
 	return NULL;
 }
 
@@ -436,9 +434,8 @@ i915_gem_object_create_stolen(struct drm_i915_private *dev_priv,
 	struct drm_mm_node *stolen;
 	int ret;
 
-    printk("Szie is %d", size);
-    if (size == 0) {
-    printk("cannot alloc zero zeis");
+     if (size == 0) {
+         printk("cannot alloc zero zeis");
         return NULL;
     }
 

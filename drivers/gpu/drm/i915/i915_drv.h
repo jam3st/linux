@@ -2549,7 +2549,6 @@ intel_info(const struct drm_i915_private *dev_priv)
 
 #define IS_PLATFORM(dev_priv, p) ((dev_priv)->info.platform_mask & BIT(p))
 
-#define IS_I830(dev_priv)	IS_PLATFORM(dev_priv, INTEL_I830)
 #define IS_I845G(dev_priv)	IS_PLATFORM(dev_priv, INTEL_I845G)
 #define IS_I85X(dev_priv)	IS_PLATFORM(dev_priv, INTEL_I85X)
 #define IS_I865G(dev_priv)	IS_PLATFORM(dev_priv, INTEL_I865G)

@@ -545,7 +545,6 @@ intel_graphics_stolen(int num, int slot, int func,
 
 	size = early_ops->stolen_size(num, slot, func);
 	base = early_ops->stolen_base(num, slot, func, size);
-printk("size %d base %x", size, base);
 	if (!size || !base)
 		return;
 
@@ -570,7 +569,7 @@ static void __init intel_graphics_quirks(int num, int slot, int func)
 
 	device = read_pci_config_16(num, slot, func, PCI_DEVICE_ID);
 printk("intel_graphics_quirks %d xxxx", device);
-		intel_graphics_stolen(0, 2, 0, &gen6_early_ops);
+        intel_graphics_stolen(0, 2, 0, &gen6_early_ops);
         return;
 
 	for (i = 0; i < ARRAY_SIZE(intel_early_ids); i++) {

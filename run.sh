@@ -1,5 +1,6 @@
 rm -rf stag/
 mkdir -p stag/efi/boot
+make -j12 &&
 cp arch/x86/boot/bzImage stag/efi/boot/bootx64.efi &&
 /usr/bin/qemu-system-x86_64 -m 2048 -L /mnt/work/vm/etc/ \
     -vga none -device vfio-pci,host=00:00:02.0,x-vga=off,addr=0x2,x-igd-opregion=on -net none \

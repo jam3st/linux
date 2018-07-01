@@ -56,14 +56,6 @@ static void i915_gem_info_add_obj(struct drm_i915_private *dev_priv,
 
 
 
-static void
-flush_write_domain(struct drm_i915_gem_object *obj, unsigned int flush_domains)
-{
-	if (!(obj->write_domain & flush_domains))
-		return;
-
-}
-
  void i915_gem_stolen_remove_node(struct drm_i915_private *dev_priv,
                                   struct drm_mm_node *node)
  {
@@ -150,18 +142,12 @@ void *i915_gem_object_alloc(struct drm_i915_private *dev_priv)
 int i915_gem_object_set_cache_level(struct drm_i915_gem_object *obj,
                                     enum i915_cache_level cache_level)
 {
-        struct i915_vma *vma;
-        int ret;
-
         lockdep_assert_held(&obj->base.dev->struct_mutex);
 
         if (obj->cache_level == cache_level)
                 return 0;
-
-
         i915_gem_object_set_cache_coherency(obj, cache_level);
         obj->cache_dirty = true; /* Always invalidate stale cachelines */
-
         return 0;
 }
 
@@ -222,7 +208,6 @@ i915_gem_object_pin_to_display_plane(struct drm_i915_gem_object *obj,
 					       flags |
 					       PIN_MAPPABLE |
 					       PIN_NONBLOCK);
-    printk("i915_gem_object_pin_to_display_plane x2 %llx", vma);
 	if (IS_ERR(vma))
 		vma = i915_gem_object_ggtt_pin(obj, view, 0, alignment, flags);
 	if (IS_ERR(vma))
@@ -314,16 +299,12 @@ i915_gem_object_ggtt_pin(struct drm_i915_gem_object *obj,
         }
     }
 
- printk("instance obh");
     vma = i915_vma_instance(obj, vm, view);
- printk("instance obh %llx", vma);
     if (unlikely(IS_ERR(vma))) {
- printk("Is err %llx", vma);
         return vma;
         }
 
 
- printk("Is pinxxx %llx", vma);
     ret = i915_vma_pin(vma, size, alignment, flags | PIN_GLOBAL);
 
     if (ret) {
@@ -331,7 +312,6 @@ i915_gem_object_ggtt_pin(struct drm_i915_gem_object *obj,
         return ERR_PTR(ret);
         }
 
- printk("ret xxx %llx", vma);
     return vma;
 }
 
@@ -375,10 +355,8 @@ printk("i915_gem_load_init_fences start");
 //	/* Initialize fence registers to zero */
     for (i = 0; i < dev_priv->num_fence_regs; i++) {
         struct drm_i915_fence_reg *fence = &dev_priv->fence_regs[i];
-printk("F %d %x %x", i, fence, dev_priv);
         fence->i915 = dev_priv;
         fence->id = i;
-printk("F %d %x %x", i, fence->i915, dev_priv);
 
         list_add_tail(&fence->link, &dev_priv->mm.fence_list);
     }
@@ -387,20 +365,6 @@ printk("F %d %x %x", i, fence->i915, dev_priv);
 
 }
 
-static void i915_gem_init__mm(struct drm_i915_private *i915)
-{
-    spin_lock_init(&i915->mm.object_stat_lock);
-    spin_lock_init(&i915->mm.obj_lock);
-    spin_lock_init(&i915->mm.free_lock);
-
-    init_llist_head(&i915->mm.free_list);
-
-    INIT_LIST_HEAD(&i915->mm.unbound_list);
-    INIT_LIST_HEAD(&i915->mm.bound_list);
-    INIT_LIST_HEAD(&i915->mm.fence_list);
-    INIT_LIST_HEAD(&i915->mm.userfault_list);
-
-}
 
 static void __start_cpu_write(struct drm_i915_gem_object *obj)
 {

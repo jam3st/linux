@@ -283,51 +283,6 @@ static int i915_get_bridge_dev(struct drm_i915_private *dev_priv)
 	return 0;
 }
 
-/* Allocate space for the MCH regs if needed, return nonzero on error */
-static int
-intel_alloc_mchbar_resource(struct drm_i915_private *dev_priv)
-{
-	int reg = INTEL_GEN(dev_priv) >= 4 ? MCHBAR_I965 : MCHBAR_I915;
-	u32 temp_lo, temp_hi = 0;
-	u64 mchbar_addr;
-	int ret;
-
-	if (INTEL_GEN(dev_priv) >= 4)
-		pci_read_config_dword(dev_priv->bridge_dev, reg + 4, &temp_hi);
-	pci_read_config_dword(dev_priv->bridge_dev, reg, &temp_lo);
-	mchbar_addr = ((u64)temp_hi << 32) | temp_lo;
-
-	/* If ACPI doesn't have it, assume we need to allocate it ourselves */
-#ifdef CONFIG_PNP
-	if (mchbar_addr &&
-	    pnp_range_reserved(mchbar_addr, mchbar_addr + MCHBAR_SIZE))
-		return 0;
-#endif
-
-	/* Get some space for it */
-	dev_priv->mch_res.name = "i915 MCHBAR";
-	dev_priv->mch_res.flags = IORESOURCE_MEM;
-	ret = pci_bus_alloc_resource(dev_priv->bridge_dev->bus,
-				     &dev_priv->mch_res,
-				     MCHBAR_SIZE, MCHBAR_SIZE,
-				     PCIBIOS_MIN_MEM,
-				     0, pcibios_align_resource,
-				     dev_priv->bridge_dev);
-	if (ret) {
-		DRM_DEBUG_DRIVER("failed bus alloc: %d\n", ret);
-		dev_priv->mch_res.start = 0;
-		return ret;
-	}
-
-	if (INTEL_GEN(dev_priv) >= 4)
-		pci_write_config_dword(dev_priv->bridge_dev, reg + 4,
-				       upper_32_bits(dev_priv->mch_res.start));
-
-	pci_write_config_dword(dev_priv->bridge_dev, reg,
-			       lower_32_bits(dev_priv->mch_res.start));
-	return 0;
-}
-
 
 static int i915_load_modeset_init(struct drm_device *dev)
 {

@@ -37,7 +37,6 @@ vma_create(struct drm_i915_gem_object *obj,
 {
 	struct i915_vma *vma;
 	struct rb_node *rb, **p;
-	int i;
 
 	/* The aliasing_ppgtt should never be used directly! */
 	GEM_BUG_ON(vm == &vm->i915->mm.aliasing_ppgtt->base);
@@ -229,7 +228,6 @@ int i915_vma_bind(struct i915_vma *vma, enum i915_cache_level cache_level,
 
 	GEM_BUG_ON(!vma->pages);
 
-    printk("i915_vma_insert vma vm bind %llx", vma->vm->bind_vma);
 	ret = vma->vm->bind_vma(vma, cache_level, bind_flags);
     printk("i915_vma_insert vma vm bind %d", ret);
 	if (ret)
@@ -274,8 +272,7 @@ void __iomem *i915_vma_pin_iomap(struct i915_vma *vma)
 	i915_vma_set_ggtt_write(vma);
 	return ptr;
 
-err_unpin:
-	__i915_vma_unpin(vma);
+
 err:
 	return IO_ERR_PTR(err);
 }
@@ -451,9 +448,7 @@ i915_vma_insert(struct i915_vma *vma, u64 size, u64 alignment, u64 flags)
 
 	GEM_BUG_ON(vma->pages);
 
-    printk("i915_vma_insert searching for pre set vmapages %x %x", vma->pages, vma->obj->mm.pages);
 	ret = vma->vm->set_pages(vma);
-    printk("i915_vma_insert searching for post set %d vmapages %x", ret, vma->pages);
 	if (ret)
 		goto err_unpin;
 
@@ -573,7 +568,6 @@ int __i915_vma_do_pin(struct i915_vma *vma,
 
     printk("__i915_vma_do_pin pre bind ok");
 	ret = i915_vma_bind(vma, vma->obj->cache_level, flags);
-    printk("VMA BIND ret %d vma %llx", ret, vma);
 	if (ret)
 		goto err_remove;
 

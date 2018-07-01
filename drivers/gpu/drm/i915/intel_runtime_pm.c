@@ -242,7 +242,6 @@ __intel_display_power_get_domain(struct drm_i915_private *dev_priv,
 void intel_display_power_get(struct drm_i915_private *dev_priv,
 			     enum intel_display_power_domain domain)
 {
-	struct i915_power_domains *power_domains = &dev_priv->power_domains;
 	__intel_display_power_get_domain(dev_priv, domain);
 }
 

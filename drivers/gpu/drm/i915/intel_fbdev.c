@@ -140,20 +140,17 @@ static int intelfb_alloc(struct drm_fb_helper *helper,
 	 * features. */
 	obj = NULL;
     if (obj == NULL) {
-        printk("intelfb_alloc  stolen obj y %x size %d stolen size %d", obj, size,  dev_priv->stolen_usable_size);
+
 
         obj = i915_gem_object_create_stolen(dev_priv, size);
-        printk("intelfb_alloc  stolen obj y %x size %d", obj, size);
 
     }
 
-printk("intelfb_alloc  10 obj %x size %d", obj, size);
 	if (IS_ERR(obj)) {
 		DRM_ERROR("failed to allocate framebuffer\n");
 		ret = PTR_ERR(obj);
 		goto err;
-}
-printk("intelfb_alloc  20 %x", obj);
+	}
 	fb = intel_framebuffer_create(obj, &mode_cmd);
 printk("intelfb_alloc  24");
 	if (IS_ERR(fb)) {
@@ -203,7 +200,7 @@ static int intelfb_create(struct drm_fb_helper *helper,
 		intel_fb = ifbdev->fb = NULL;
 	}
 	if (!intel_fb || WARN_ON(!intel_fb->obj)) {
-		DRM_DEBUG_KMS("no BIOS fb, allocating a new one helper %x\n", helper);
+                DRM_DEBUG_KMS("no BIOS fb, allocating a new one helper");
 		ret = intelfb_alloc(helper, sizes);
         if (ret) {
             printk(" FRAME VBUFFEAWRDASD ASDA failed %d", ret);
@@ -282,8 +279,7 @@ static int intelfb_create(struct drm_fb_helper *helper,
 
 	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
 
-    DRM_DEBUG_KMS("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx allocated %dx%d fb: 0x%08x phys 0x%16x\n",
-              fb->width, fb->height, i915_ggtt_offset(vma), vma->node.start);
+
 
   //  memset(vma->node.start, 10000, 0xff);
     ifbdev->vma = vma;

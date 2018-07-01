@@ -488,8 +488,6 @@ static int i915_driver_init_early(struct drm_i915_private *dev_priv,
 	mutex_init(&dev_priv->wm.wm_mutex);
 	mutex_init(&dev_priv->pps_mutex);
 
-	i915_memcpy_init_early(dev_priv);
-
 	ret = i915_workqueues_init(dev_priv);
 
 	/* This must be called before any calls to HAS_PCH_* */

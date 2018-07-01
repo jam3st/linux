@@ -184,7 +184,6 @@ static void hsw_power_well_enable(struct drm_i915_private *dev_priv,
                   struct i915_power_well *power_well)
 {
     enum i915_power_well_id id = power_well->id;
-    bool wait_fuses = power_well->hsw.has_fuses;
     enum skl_power_gate uninitialized_var(pg);
     u32 val;
 
@@ -627,15 +626,6 @@ static const struct i915_power_well_ops chv_dpio_cmn_power_well_ops = {
     .is_enabled = NULL,
 };
 
-static struct i915_power_well i9xx_always_on_power_well[] = {
-	{
-		.name = "always-on",
-		.always_on = 1,
-		.domains = POWER_DOMAIN_MASK,
-		.ops = &i9xx_always_on_power_well_ops,
-		.id = I915_DISP_PW_ALWAYS_ON,
-	},
-};
 
 static const struct i915_power_well_ops i830_pipes_power_well_ops = {
     .sync_hw = NULL,
@@ -644,21 +634,7 @@ static const struct i915_power_well_ops i830_pipes_power_well_ops = {
     .is_enabled = NULL,
 };
 
-static struct i915_power_well i830_power_wells[] = {
-	{
-		.name = "always-on",
-		.always_on = 1,
-		.domains = POWER_DOMAIN_MASK,
-		.ops = &i9xx_always_on_power_well_ops,
-		.id = I915_DISP_PW_ALWAYS_ON,
-	},
-	{
-		.name = "pipes",
-		.domains = I830_PIPES_POWER_DOMAINS,
-		.ops = &i830_pipes_power_well_ops,
-		.id = I830_DISP_PW_PIPES,
-	},
-};
+
 
 static const struct i915_power_well_ops hsw_power_well_ops = {
     .sync_hw = NULL,

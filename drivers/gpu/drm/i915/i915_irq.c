@@ -263,15 +263,6 @@ static i915_reg_t gen6_pm_iir(struct drm_i915_private *dev_priv)
 	return INTEL_GEN(dev_priv) >= 8 ? GEN8_GT_IIR(2) : GEN6_PMIIR;
 }
 
-static i915_reg_t gen6_pm_imr(struct drm_i915_private *dev_priv)
-{
-	return INTEL_GEN(dev_priv) >= 8 ? GEN8_GT_IMR(2) : GEN6_PMIMR;
-}
-
-static i915_reg_t gen6_pm_ier(struct drm_i915_private *dev_priv)
-{
-	return INTEL_GEN(dev_priv) >= 8 ? GEN8_GT_IER(2) : GEN6_PMIER;
-}
 
 
 
@@ -528,8 +519,7 @@ static void ibx_hpd_irq_handler(struct drm_i915_private *dev_priv,
 				u32 hotplug_trigger,
 				const u32 hpd[HPD_NUM_PINS])
 {
-	u32 dig_hotplug_reg, pin_mask = 0, long_mask = 0;
-
+        u32 dig_hotplug_reg;
 	/*
 	 * Somehow the PCH doesn't seem to really ack the interrupt to the CPU
 	 * unless we touch the hotplug register, even if hotplug_trigger is
@@ -592,7 +582,6 @@ static void ivb_display_irq_handler(struct drm_i915_private *dev_priv,
 				    u32 de_iir)
 {
 	enum pipe pipe;
-	u32 hotplug_trigger = de_iir & DE_DP_A_HOTPLUG_IVB;
 
 
 
@@ -663,15 +652,12 @@ static irqreturn_t ironlake_irq_handler(int irq, void *arg)
 
 	de_iir = I915_READ(DEIIR);
 	if (de_iir) {
-		I915_WRITE(DEIIR, de_iir);
-		ret = IRQ_HANDLED;
-		if (INTEL_GEN(dev_priv) >= 7)
+            I915_WRITE(DEIIR, de_iir);
+            ret = IRQ_HANDLED;
             ivb_display_irq_handler(dev_priv, de_iir);
 	}
 
-	if (INTEL_GEN(dev_priv) >= 6) {
-		u32 pm_iir = I915_READ(GEN6_PMIIR);
-	}
+
 
 	I915_WRITE(DEIER, de_ier);
 	POSTING_READ(DEIER);

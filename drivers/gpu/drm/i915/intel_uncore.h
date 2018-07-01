@@ -155,7 +155,7 @@ const char *intel_uncore_forcewake_domain_to_str(const enum forcewake_domain_id 
 
 enum forcewake_domains
 intel_uncore_forcewake_for_reg(struct drm_i915_private *dev_priv,
-			       i915_reg_t reg, unsigned int op);
+                               i915_reg_t reg, unsigned int op);
 #define FW_REG_READ  (1)
 #define FW_REG_WRITE (2)
 

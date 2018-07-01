@@ -5232,89 +5232,6 @@ static void intel_encoders_post_pll_disable(struct drm_crtc *crtc,
 	}
 }
 
-static void ironlake_crtc_enable(struct intel_crtc_state *pipe_config,
-				 struct drm_atomic_state *old_state)
-{
-	struct drm_crtc *crtc = pipe_config->base.crtc;
-	struct drm_device *dev = crtc->dev;
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	int pipe = intel_crtc->pipe;
-	struct intel_atomic_state *old_intel_state =
-		to_intel_atomic_state(old_state);
-
-	if (WARN_ON(intel_crtc->active))
-		return;
-
-	/*
-	 * Sometimes spurious CPU pipe underruns happen during FDI
-	 * training, at least with VGA+HDMI cloning. Suppress them.
-	 *
-	 * On ILK we get an occasional spurious CPU pipe underruns
-	 * between eDP port A enable and vdd enable. Also PCH port
-	 * enable seems to result in the occasional CPU pipe underrun.
-	 *
-	 * Spurious PCH underruns also occur during PCH enabling.
-	 */
-
-	if (intel_crtc->config->has_pch_encoder)
-		intel_prepare_shared_dpll(intel_crtc);
-
-	if (intel_crtc_has_dp_encoder(intel_crtc->config))
-		intel_dp_set_m_n(intel_crtc, M1_N1);
-
-	intel_set_pipe_timings(intel_crtc);
-	intel_set_pipe_src_size(intel_crtc);
-
-	if (intel_crtc->config->has_pch_encoder) {
-		intel_cpu_transcoder_set_m_n(intel_crtc,
-				     &intel_crtc->config->fdi_m_n, NULL);
-	}
-
-	ironlake_set_pipeconf(crtc);
-
-	intel_crtc->active = true;
-
-	intel_encoders_pre_enable(crtc, pipe_config, old_state);
-
-	if (intel_crtc->config->has_pch_encoder) {
-		/* Note: FDI PLL enabling _must_ be done before we enable the
-		 * cpu pipes, hence this is separate from all the other fdi/pch
-		 * enabling. */
-		ironlake_fdi_pll_enable(intel_crtc);
-	} else {
-		assert_fdi_tx_disabled(dev_priv, pipe);
-		assert_fdi_rx_disabled(dev_priv, pipe);
-	}
-
-	ironlake_pfit_enable(intel_crtc);
-
-	/*
-	 * On ILK+ LUT must be loaded before the pipe is running but with
-	 * clocks enabled
-	 */
-	intel_color_load_luts(&pipe_config->base);
-
-	if (dev_priv->display.initial_watermarks != NULL)
-		dev_priv->display.initial_watermarks(old_intel_state, intel_crtc->config);
-	intel_enable_pipe(pipe_config);
-
-	if (intel_crtc->config->has_pch_encoder)
-		ironlake_pch_enable(pipe_config);
-
-	assert_vblank_disabled(crtc);
-	drm_crtc_vblank_on(crtc);
-
-	intel_encoders_enable(crtc, pipe_config, old_state);
-
-	if (HAS_PCH_CPT(dev_priv))
-		cpt_verify_modeset(dev, intel_crtc->pipe);
-
-	/* Must wait for vblank to avoid spurious PCH FIFO underruns */
-	if (intel_crtc->config->has_pch_encoder)
-		intel_wait_for_vblank(dev_priv, pipe);
-
-}
 
 /* IPS only exists on ULT machines and is tied to pipe A. */
 static bool hsw_crtc_supports_ips(struct intel_crtc *crtc)
@@ -5472,61 +5389,6 @@ static void ironlake_pfit_disable(struct intel_crtc *crtc, bool force)
 		I915_WRITE(PF_WIN_POS(pipe), 0);
 		I915_WRITE(PF_WIN_SZ(pipe), 0);
 	}
-}
-
-static void ironlake_crtc_disable(struct intel_crtc_state *old_crtc_state,
-				  struct drm_atomic_state *old_state)
-{
-	struct drm_crtc *crtc = old_crtc_state->base.crtc;
-	struct drm_device *dev = crtc->dev;
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	int pipe = intel_crtc->pipe;
-
-	/*
-	 * Sometimes spurious CPU pipe underruns happen when the
-	 * pipe is already disabled, but FDI RX/TX is still enabled.
-	 * Happens at least with VGA+HDMI cloning. Suppress them.
-	 */
-
-	intel_encoders_disable(crtc, old_crtc_state, old_state);
-
-	drm_crtc_vblank_off(crtc);
-	assert_vblank_disabled(crtc);
-
-	intel_disable_pipe(old_crtc_state);
-
-	ironlake_pfit_disable(intel_crtc, false);
-
-	if (intel_crtc->config->has_pch_encoder)
-		ironlake_fdi_disable(crtc);
-
-	intel_encoders_post_disable(crtc, old_crtc_state, old_state);
-
-	if (intel_crtc->config->has_pch_encoder) {
-		ironlake_disable_pch_transcoder(dev_priv, pipe);
-
-		if (HAS_PCH_CPT(dev_priv)) {
-			i915_reg_t reg;
-			u32 temp;
-
-			/* disable TRANS_DP_CTL */
-			reg = TRANS_DP_CTL(pipe);
-			temp = I915_READ(reg);
-			temp &= ~(TRANS_DP_OUTPUT_ENABLE |
-				  TRANS_DP_PORT_SEL_MASK);
-			temp |= TRANS_DP_PORT_SEL_NONE;
-			I915_WRITE(reg, temp);
-
-			/* disable DPLL_SEL */
-			temp = I915_READ(PCH_DPLL_SEL);
-			temp &= ~(TRANS_DPLL_ENABLE(pipe) | TRANS_DPLLB_SEL(pipe));
-			I915_WRITE(PCH_DPLL_SEL, temp);
-		}
-
-		ironlake_fdi_pll_disable(intel_crtc);
-	}
-
 }
 
 static void haswell_crtc_disable(struct intel_crtc_state *old_crtc_state,
@@ -5740,54 +5602,7 @@ static void i9xx_set_pll_dividers(struct intel_crtc *crtc)
 	I915_WRITE(FP1(crtc->pipe), crtc->config->dpll_hw_state.fp1);
 }
 
-static void i9xx_crtc_enable(struct intel_crtc_state *pipe_config,
-			     struct drm_atomic_state *old_state)
-{
-	struct intel_atomic_state *old_intel_state =
-		to_intel_atomic_state(old_state);
-	struct drm_crtc *crtc = pipe_config->base.crtc;
-	struct drm_device *dev = crtc->dev;
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	enum pipe pipe = intel_crtc->pipe;
 
-	if (WARN_ON(intel_crtc->active))
-		return;
-
-	i9xx_set_pll_dividers(intel_crtc);
-
-	if (intel_crtc_has_dp_encoder(intel_crtc->config))
-		intel_dp_set_m_n(intel_crtc, M1_N1);
-
-	intel_set_pipe_timings(intel_crtc);
-	intel_set_pipe_src_size(intel_crtc);
-
-	i9xx_set_pipeconf(intel_crtc);
-
-	intel_crtc->active = true;
-
-
-
-	intel_encoders_pre_enable(crtc, pipe_config, old_state);
-
-	i9xx_enable_pll(intel_crtc, pipe_config);
-
-	i9xx_pfit_enable(intel_crtc);
-
-	intel_color_load_luts(&pipe_config->base);
-
-	if (dev_priv->display.initial_watermarks != NULL)
-		dev_priv->display.initial_watermarks(old_intel_state,
-						     intel_crtc->config);
-	else
-		intel_update_watermarks(intel_crtc);
-	intel_enable_pipe(pipe_config);
-
-	assert_vblank_disabled(crtc);
-	drm_crtc_vblank_on(crtc);
-
-	intel_encoders_enable(crtc, pipe_config, old_state);
-}
 
 static void i9xx_pfit_disable(struct intel_crtc *crtc)
 {
@@ -10223,8 +10038,6 @@ static void intel_atomic_commit_tail(struct drm_atomic_state *state)
 		 * SKL workaround: bspec recommends we disable the SAGV when we
 		 * have more then one pipe enabled
 		 */
-		if (!intel_can_enable_sagv(state))
-			intel_disable_sagv(dev_priv);
 
 		intel_modeset_verify_disabled(dev, state);
 	}

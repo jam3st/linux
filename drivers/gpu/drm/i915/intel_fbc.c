@@ -877,10 +877,6 @@ static bool intel_fbc_can_enable(struct drm_i915_private *dev_priv)
 {
 	struct intel_fbc *fbc = &dev_priv->fbc;
 
-	if (intel_vgpu_active(dev_priv)) {
-		fbc->no_fbc_reason = "VGPU is active";
-		return false;
-	}
 
 	if (!i915_modparams.enable_fbc) {
 		fbc->no_fbc_reason = "disabled per module param or by default";

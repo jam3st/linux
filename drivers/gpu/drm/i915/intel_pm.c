@@ -216,21 +216,6 @@ static unsigned int intel_wm_method2(unsigned int pixel_rate,
 }
 
 
-static bool is_disabling(int old, int new, int threshold)
-{
-	return old >= threshold && new < threshold;
-}
-
-static bool is_enabling(int old, int new, int threshold)
-{
-	return old < threshold && new >= threshold;
-}
-
-static int intel_wm_num_levels(struct drm_i915_private *dev_priv)
-{
-	return dev_priv->wm.max_level + 1;
-}
-
 static bool intel_wm_plane_visible(const struct intel_crtc_state *crtc_state,
 				   const struct intel_plane_state *plane_state)
 {
@@ -659,11 +644,7 @@ static void ilk_setup_wm_latency(struct drm_i915_private *dev_priv)
 
 }
 
-static void skl_setup_wm_latency(struct drm_i915_private *dev_priv)
-{
-	intel_read_wm_latency(dev_priv, dev_priv->wm.skl_latency);
-	intel_print_wm_latency(dev_priv, "Gen9 Plane", dev_priv->wm.skl_latency);
-}
+
 
 static bool ilk_validate_pipe_wm(struct drm_device *dev,
 				 struct intel_pipe_wm *pipe_wm)
@@ -827,98 +808,6 @@ static int ilk_compute_intermediate_wm(struct drm_device *dev,
 	return 0;
 }
 
-/*
- * Merge the watermarks from all active pipes for a specific level.
- */
-static void ilk_merge_wm_level(struct drm_device *dev,
-			       int level,
-			       struct intel_wm_level *ret_wm)
-{
-	const struct intel_crtc *intel_crtc;
-
-	ret_wm->enable = true;
-
-	for_each_intel_crtc(dev, intel_crtc) {
-		const struct intel_pipe_wm *active = &intel_crtc->wm.active.ilk;
-		const struct intel_wm_level *wm = &active->wm[level];
-
-		if (!active->pipe_enabled)
-			continue;
-
-		/*
-		 * The watermark values may have been used in the past,
-		 * so we must maintain them in the registers for some
-		 * time even if the level is now disabled.
-		 */
-		if (!wm->enable)
-			ret_wm->enable = false;
-
-		ret_wm->pri_val = max(ret_wm->pri_val, wm->pri_val);
-		ret_wm->spr_val = max(ret_wm->spr_val, wm->spr_val);
-		ret_wm->cur_val = max(ret_wm->cur_val, wm->cur_val);
-		ret_wm->fbc_val = max(ret_wm->fbc_val, wm->fbc_val);
-	}
-}
-
-/*
- * Merge all low power watermarks for all active pipes.
- */
-static void ilk_wm_merge(struct drm_device *dev,
-			 const struct intel_wm_config *config,
-			 const struct ilk_wm_maximums *max,
-			 struct intel_pipe_wm *merged)
-{
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	int level, max_level = ilk_wm_max_level(dev_priv);
-	int last_enabled_level = max_level;
-
-	/* ILK/SNB/IVB: LP1+ watermarks only w/ single pipe */
-	if ((INTEL_GEN(dev_priv) <= 6 || IS_IVYBRIDGE(dev_priv)) &&
-	    config->num_pipes_active > 1)
-		last_enabled_level = 0;
-
-	/* ILK: FBC WM must be disabled always */
-	merged->fbc_wm_enabled = INTEL_GEN(dev_priv) >= 6;
-
-	/* merge each WM1+ level */
-	for (level = 1; level <= max_level; level++) {
-		struct intel_wm_level *wm = &merged->wm[level];
-
-		ilk_merge_wm_level(dev, level, wm);
-
-		if (level > last_enabled_level)
-			wm->enable = false;
-		else if (!ilk_validate_wm_level(level, max, wm))
-			/* make sure all following levels get disabled */
-			last_enabled_level = level - 1;
-
-		/*
-		 * The spec says it is preferred to disable
-		 * FBC WMs instead of disabling a WM level.
-		 */
-		if (wm->fbc_val > max->fbc) {
-			if (wm->enable)
-				merged->fbc_wm_enabled = false;
-			wm->fbc_val = 0;
-		}
-	}
-
-	/* ILK: LP2+ must be disabled when FBC WM is disabled but FBC enabled */
-	/*
-	 * FIXME this is racy. FBC might get enabled later.
-	 * What we should check here is whether FBC can be
-	 * enabled sometime later.
-	 */
-	if (IS_GEN5(dev_priv) && !merged->fbc_wm_enabled &&
-	    intel_fbc_is_active(dev_priv)) {
-		for (level = 2; level <= max_level; level++) {
-			struct intel_wm_level *wm = &merged->wm[level];
-
-			wm->enable = false;
-		}
-	}
-}
-
 static int ilk_wm_lp_to_level(int wm_lp, const struct intel_pipe_wm *pipe_wm)
 {
 	/* LP1,LP2,LP3 levels are either 1,2,3 or 1,3,4 */
@@ -936,73 +825,6 @@ static unsigned int ilk_wm_lp_latency(struct drm_device *dev, int level)
 		return dev_priv->wm.pri_latency[level];
 }
 
-static void ilk_compute_wm_results(struct drm_device *dev,
-				   const struct intel_pipe_wm *merged,
-				   enum intel_ddb_partitioning partitioning,
-				   struct ilk_wm_values *results)
-{
-	struct drm_i915_private *dev_priv = to_i915(dev);
-	struct intel_crtc *intel_crtc;
-	int level, wm_lp;
-
-	results->enable_fbc_wm = merged->fbc_wm_enabled;
-	results->partitioning = partitioning;
-
-	/* LP1+ register values */
-	for (wm_lp = 1; wm_lp <= 3; wm_lp++) {
-		const struct intel_wm_level *r;
-
-		level = ilk_wm_lp_to_level(wm_lp, merged);
-
-		r = &merged->wm[level];
-
-		/*
-		 * Maintain the watermark values even if the level is
-		 * disabled. Doing otherwise could cause underruns.
-		 */
-		results->wm_lp[wm_lp - 1] =
-			(ilk_wm_lp_latency(dev, level) << WM1_LP_LATENCY_SHIFT) |
-			(r->pri_val << WM1_LP_SR_SHIFT) |
-			r->cur_val;
-
-		if (r->enable)
-			results->wm_lp[wm_lp - 1] |= WM1_LP_SR_EN;
-
-		if (INTEL_GEN(dev_priv) >= 8)
-			results->wm_lp[wm_lp - 1] |=
-				r->fbc_val << WM1_LP_FBC_SHIFT_BDW;
-		else
-			results->wm_lp[wm_lp - 1] |=
-				r->fbc_val << WM1_LP_FBC_SHIFT;
-
-		/*
-		 * Always set WM1S_LP_EN when spr_val != 0, even if the
-		 * level is disabled. Doing otherwise could cause underruns.
-		 */
-		if (INTEL_GEN(dev_priv) <= 6 && r->spr_val) {
-			WARN_ON(wm_lp != 1);
-			results->wm_lp_spr[wm_lp - 1] = WM1S_LP_EN | r->spr_val;
-		} else
-			results->wm_lp_spr[wm_lp - 1] = r->spr_val;
-	}
-
-	/* LP0 register values */
-	for_each_intel_crtc(dev, intel_crtc) {
-		enum pipe pipe = intel_crtc->pipe;
-		const struct intel_wm_level *r =
-			&intel_crtc->wm.active.ilk.wm[0];
-
-		if (WARN_ON(!r->enable))
-			continue;
-
-		results->wm_linetime[pipe] = intel_crtc->wm.active.ilk.linetime;
-
-		results->wm_pipe[pipe] =
-			(r->pri_val << WM0_PIPE_PLANE_SHIFT) |
-			(r->spr_val << WM0_PIPE_SPRITE_SHIFT) |
-			r->cur_val;
-	}
-}
 
 
 /* dirty bits used to track which watermarks need changes */
@@ -1012,58 +834,6 @@ static void ilk_compute_wm_results(struct drm_device *dev,
 #define WM_DIRTY_LP_ALL (WM_DIRTY_LP(1) | WM_DIRTY_LP(2) | WM_DIRTY_LP(3))
 #define WM_DIRTY_FBC (1 << 24)
 #define WM_DIRTY_DDB (1 << 25)
-
-static unsigned int ilk_compute_wm_dirty(struct drm_i915_private *dev_priv,
-					 const struct ilk_wm_values *old,
-					 const struct ilk_wm_values *new)
-{
-	unsigned int dirty = 0;
-	enum pipe pipe;
-	int wm_lp;
-
-	for_each_pipe(dev_priv, pipe) {
-		if (old->wm_linetime[pipe] != new->wm_linetime[pipe]) {
-			dirty |= WM_DIRTY_LINETIME(pipe);
-			/* Must disable LP1+ watermarks too */
-			dirty |= WM_DIRTY_LP_ALL;
-		}
-
-		if (old->wm_pipe[pipe] != new->wm_pipe[pipe]) {
-			dirty |= WM_DIRTY_PIPE(pipe);
-			/* Must disable LP1+ watermarks too */
-			dirty |= WM_DIRTY_LP_ALL;
-		}
-	}
-
-	if (old->enable_fbc_wm != new->enable_fbc_wm) {
-		dirty |= WM_DIRTY_FBC;
-		/* Must disable LP1+ watermarks too */
-		dirty |= WM_DIRTY_LP_ALL;
-	}
-
-	if (old->partitioning != new->partitioning) {
-		dirty |= WM_DIRTY_DDB;
-		/* Must disable LP1+ watermarks too */
-		dirty |= WM_DIRTY_LP_ALL;
-	}
-
-	/* LP1+ watermarks already deemed dirty, no need to continue */
-	if (dirty & WM_DIRTY_LP_ALL)
-		return dirty;
-
-	/* Find the lowest numbered LP1+ watermark in need of an update... */
-	for (wm_lp = 1; wm_lp <= 3; wm_lp++) {
-		if (old->wm_lp[wm_lp - 1] != new->wm_lp[wm_lp - 1] ||
-		    old->wm_lp_spr[wm_lp - 1] != new->wm_lp_spr[wm_lp - 1])
-			break;
-	}
-
-	/* ...and mark it and all higher numbered LP1+ watermarks as dirty */
-	for (; wm_lp <= 3; wm_lp++)
-		dirty |= WM_DIRTY_LP(wm_lp);
-
-	return dirty;
-}
 
 static bool _ilk_disable_lp_wm(struct drm_i915_private *dev_priv,
 			       unsigned int dirty)
@@ -1095,84 +865,6 @@ static bool _ilk_disable_lp_wm(struct drm_i915_private *dev_priv,
 	return changed;
 }
 
-/*
- * The spec says we shouldn't write when we don't need, because every write
- * causes WMs to be re-evaluated, expending some power.
- */
-static void ilk_write_wm_values(struct drm_i915_private *dev_priv,
-				struct ilk_wm_values *results)
-{
-	struct ilk_wm_values *previous = &dev_priv->wm.hw;
-	unsigned int dirty;
-	uint32_t val;
-
-	dirty = ilk_compute_wm_dirty(dev_priv, previous, results);
-	if (!dirty)
-		return;
-
-	_ilk_disable_lp_wm(dev_priv, dirty);
-
-	if (dirty & WM_DIRTY_PIPE(PIPE_A))
-		I915_WRITE(WM0_PIPEA_ILK, results->wm_pipe[0]);
-	if (dirty & WM_DIRTY_PIPE(PIPE_B))
-		I915_WRITE(WM0_PIPEB_ILK, results->wm_pipe[1]);
-	if (dirty & WM_DIRTY_PIPE(PIPE_C))
-		I915_WRITE(WM0_PIPEC_IVB, results->wm_pipe[2]);
-
-	if (dirty & WM_DIRTY_LINETIME(PIPE_A))
-		I915_WRITE(PIPE_WM_LINETIME(PIPE_A), results->wm_linetime[0]);
-	if (dirty & WM_DIRTY_LINETIME(PIPE_B))
-		I915_WRITE(PIPE_WM_LINETIME(PIPE_B), results->wm_linetime[1]);
-	if (dirty & WM_DIRTY_LINETIME(PIPE_C))
-		I915_WRITE(PIPE_WM_LINETIME(PIPE_C), results->wm_linetime[2]);
-
-	if (dirty & WM_DIRTY_DDB) {
-		if (IS_HASWELL(dev_priv) || IS_BROADWELL(dev_priv)) {
-			val = I915_READ(WM_MISC);
-			if (results->partitioning == INTEL_DDB_PART_1_2)
-				val &= ~WM_MISC_DATA_PARTITION_5_6;
-			else
-				val |= WM_MISC_DATA_PARTITION_5_6;
-			I915_WRITE(WM_MISC, val);
-		} else {
-			val = I915_READ(DISP_ARB_CTL2);
-			if (results->partitioning == INTEL_DDB_PART_1_2)
-				val &= ~DISP_DATA_PARTITION_5_6;
-			else
-				val |= DISP_DATA_PARTITION_5_6;
-			I915_WRITE(DISP_ARB_CTL2, val);
-		}
-	}
-
-	if (dirty & WM_DIRTY_FBC) {
-		val = I915_READ(DISP_ARB_CTL);
-		if (results->enable_fbc_wm)
-			val &= ~DISP_FBC_WM_DIS;
-		else
-			val |= DISP_FBC_WM_DIS;
-		I915_WRITE(DISP_ARB_CTL, val);
-	}
-
-	if (dirty & WM_DIRTY_LP(1) &&
-	    previous->wm_lp_spr[0] != results->wm_lp_spr[0])
-		I915_WRITE(WM1S_LP_ILK, results->wm_lp_spr[0]);
-
-	if (INTEL_GEN(dev_priv) >= 7) {
-		if (dirty & WM_DIRTY_LP(2) && previous->wm_lp_spr[1] != results->wm_lp_spr[1])
-			I915_WRITE(WM2S_LP_IVB, results->wm_lp_spr[1]);
-		if (dirty & WM_DIRTY_LP(3) && previous->wm_lp_spr[2] != results->wm_lp_spr[2])
-			I915_WRITE(WM3S_LP_IVB, results->wm_lp_spr[2]);
-	}
-
-	if (dirty & WM_DIRTY_LP(1) && previous->wm_lp[0] != results->wm_lp[0])
-		I915_WRITE(WM1_LP_ILK, results->wm_lp[0]);
-	if (dirty & WM_DIRTY_LP(2) && previous->wm_lp[1] != results->wm_lp[1])
-		I915_WRITE(WM2_LP_ILK, results->wm_lp[1]);
-	if (dirty & WM_DIRTY_LP(3) && previous->wm_lp[2] != results->wm_lp[2])
-		I915_WRITE(WM3_LP_ILK, results->wm_lp[2]);
-
-	dev_priv->wm.hw = *results;
-}
 
 bool ilk_disable_lp_wm(struct drm_device *dev)
 {
@@ -1291,75 +983,6 @@ bool intel_can_enable_sagv(struct drm_atomic_state *state)
 }
 
 
-static void ilk_compute_wm_config(struct drm_device *dev,
-				  struct intel_wm_config *config)
-{
-	struct intel_crtc *crtc;
-
-	/* Compute the currently _active_ config */
-	for_each_intel_crtc(dev, crtc) {
-		const struct intel_pipe_wm *wm = &crtc->wm.active.ilk;
-
-		if (!wm->pipe_enabled)
-			continue;
-
-		config->sprites_enabled |= wm->sprites_enabled;
-		config->sprites_scaled |= wm->sprites_scaled;
-		config->num_pipes_active++;
-	}
-}
-
-static void ilk_program_watermarks(struct drm_i915_private *dev_priv)
-{
-	struct drm_device *dev = &dev_priv->drm;
-	struct intel_pipe_wm lp_wm_1_2 = {}, lp_wm_5_6 = {}, *best_lp_wm;
-	struct ilk_wm_maximums max;
-	struct intel_wm_config config = {};
-	struct ilk_wm_values results = {};
-	enum intel_ddb_partitioning partitioning;
-
-	ilk_compute_wm_config(dev, &config);
-
-	ilk_compute_wm_maximums(dev, 1, &config, INTEL_DDB_PART_1_2, &max);
-	ilk_wm_merge(dev, &config, &max, &lp_wm_1_2);
-
-
-    best_lp_wm = &lp_wm_1_2;
-
-	partitioning = (best_lp_wm == &lp_wm_1_2) ?
-		       INTEL_DDB_PART_1_2 : INTEL_DDB_PART_5_6;
-
-	ilk_compute_wm_results(dev, best_lp_wm, partitioning, &results);
-
-	ilk_write_wm_values(dev_priv, &results);
-}
-
-static void ilk_initial_watermarks(struct intel_atomic_state *state,
-				   struct intel_crtc_state *cstate)
-{
-	struct drm_i915_private *dev_priv = to_i915(cstate->base.crtc->dev);
-	struct intel_crtc *intel_crtc = to_intel_crtc(cstate->base.crtc);
-
-	mutex_lock(&dev_priv->wm.wm_mutex);
-	intel_crtc->wm.active.ilk = cstate->wm.ilk.intermediate;
-	ilk_program_watermarks(dev_priv);
-	mutex_unlock(&dev_priv->wm.wm_mutex);
-}
-
-static void ilk_optimize_watermarks(struct intel_atomic_state *state,
-				    struct intel_crtc_state *cstate)
-{
-	struct drm_i915_private *dev_priv = to_i915(cstate->base.crtc->dev);
-	struct intel_crtc *intel_crtc = to_intel_crtc(cstate->base.crtc);
-
-	mutex_lock(&dev_priv->wm.wm_mutex);
-	if (cstate->wm.need_postvbl_update) {
-		intel_crtc->wm.active.ilk = cstate->wm.ilk.optimal;
-		ilk_program_watermarks(dev_priv);
-	}
-	mutex_unlock(&dev_priv->wm.wm_mutex);
-}
-
 
 static void ilk_pipe_wm_get_hw_state(struct drm_crtc *crtc)
 {
@@ -1413,112 +1036,6 @@ static void ilk_pipe_wm_get_hw_state(struct drm_crtc *crtc)
 	intel_crtc->wm.active.ilk = *active;
 }
 
-#define _FW_WM(value, plane) \
-	(((value) & DSPFW_ ## plane ## _MASK) >> DSPFW_ ## plane ## _SHIFT)
-#define _FW_WM_VLV(value, plane) \
-	(((value) & DSPFW_ ## plane ## _MASK_VLV) >> DSPFW_ ## plane ## _SHIFT)
-
-static void g4x_read_wm_values(struct drm_i915_private *dev_priv,
-			       struct g4x_wm_values *wm)
-{
-	uint32_t tmp;
-
-	tmp = I915_READ(DSPFW1);
-	wm->sr.plane = _FW_WM(tmp, SR);
-	wm->pipe[PIPE_B].plane[PLANE_CURSOR] = _FW_WM(tmp, CURSORB);
-	wm->pipe[PIPE_B].plane[PLANE_PRIMARY] = _FW_WM(tmp, PLANEB);
-	wm->pipe[PIPE_A].plane[PLANE_PRIMARY] = _FW_WM(tmp, PLANEA);
-
-	tmp = I915_READ(DSPFW2);
-	wm->fbc_en = tmp & DSPFW_FBC_SR_EN;
-	wm->sr.fbc = _FW_WM(tmp, FBC_SR);
-	wm->hpll.fbc = _FW_WM(tmp, FBC_HPLL_SR);
-	wm->pipe[PIPE_B].plane[PLANE_SPRITE0] = _FW_WM(tmp, SPRITEB);
-	wm->pipe[PIPE_A].plane[PLANE_CURSOR] = _FW_WM(tmp, CURSORA);
-	wm->pipe[PIPE_A].plane[PLANE_SPRITE0] = _FW_WM(tmp, SPRITEA);
-
-	tmp = I915_READ(DSPFW3);
-	wm->hpll_en = tmp & DSPFW_HPLL_SR_EN;
-	wm->sr.cursor = _FW_WM(tmp, CURSOR_SR);
-	wm->hpll.cursor = _FW_WM(tmp, HPLL_CURSOR);
-	wm->hpll.plane = _FW_WM(tmp, HPLL_SR);
-}
-
-static void vlv_read_wm_values(struct drm_i915_private *dev_priv,
-			       struct vlv_wm_values *wm)
-{
-	enum pipe pipe;
-	uint32_t tmp;
-
-	for_each_pipe(dev_priv, pipe) {
-		tmp = I915_READ(VLV_DDL(pipe));
-
-		wm->ddl[pipe].plane[PLANE_PRIMARY] =
-			(tmp >> DDL_PLANE_SHIFT) & (DDL_PRECISION_HIGH | DRAIN_LATENCY_MASK);
-		wm->ddl[pipe].plane[PLANE_CURSOR] =
-			(tmp >> DDL_CURSOR_SHIFT) & (DDL_PRECISION_HIGH | DRAIN_LATENCY_MASK);
-		wm->ddl[pipe].plane[PLANE_SPRITE0] =
-			(tmp >> DDL_SPRITE_SHIFT(0)) & (DDL_PRECISION_HIGH | DRAIN_LATENCY_MASK);
-		wm->ddl[pipe].plane[PLANE_SPRITE1] =
-			(tmp >> DDL_SPRITE_SHIFT(1)) & (DDL_PRECISION_HIGH | DRAIN_LATENCY_MASK);
-	}
-
-	tmp = I915_READ(DSPFW1);
-	wm->sr.plane = _FW_WM(tmp, SR);
-	wm->pipe[PIPE_B].plane[PLANE_CURSOR] = _FW_WM(tmp, CURSORB);
-	wm->pipe[PIPE_B].plane[PLANE_PRIMARY] = _FW_WM_VLV(tmp, PLANEB);
-	wm->pipe[PIPE_A].plane[PLANE_PRIMARY] = _FW_WM_VLV(tmp, PLANEA);
-
-	tmp = I915_READ(DSPFW2);
-	wm->pipe[PIPE_A].plane[PLANE_SPRITE1] = _FW_WM_VLV(tmp, SPRITEB);
-	wm->pipe[PIPE_A].plane[PLANE_CURSOR] = _FW_WM(tmp, CURSORA);
-	wm->pipe[PIPE_A].plane[PLANE_SPRITE0] = _FW_WM_VLV(tmp, SPRITEA);
-
-	tmp = I915_READ(DSPFW3);
-	wm->sr.cursor = _FW_WM(tmp, CURSOR_SR);
-
-	if (IS_CHERRYVIEW(dev_priv)) {
-		tmp = I915_READ(DSPFW7_CHV);
-		wm->pipe[PIPE_B].plane[PLANE_SPRITE1] = _FW_WM_VLV(tmp, SPRITED);
-		wm->pipe[PIPE_B].plane[PLANE_SPRITE0] = _FW_WM_VLV(tmp, SPRITEC);
-
-		tmp = I915_READ(DSPFW8_CHV);
-		wm->pipe[PIPE_C].plane[PLANE_SPRITE1] = _FW_WM_VLV(tmp, SPRITEF);
-		wm->pipe[PIPE_C].plane[PLANE_SPRITE0] = _FW_WM_VLV(tmp, SPRITEE);
-
-		tmp = I915_READ(DSPFW9_CHV);
-		wm->pipe[PIPE_C].plane[PLANE_PRIMARY] = _FW_WM_VLV(tmp, PLANEC);
-		wm->pipe[PIPE_C].plane[PLANE_CURSOR] = _FW_WM(tmp, CURSORC);
-
-		tmp = I915_READ(DSPHOWM);
-		wm->sr.plane |= _FW_WM(tmp, SR_HI) << 9;
-		wm->pipe[PIPE_C].plane[PLANE_SPRITE1] |= _FW_WM(tmp, SPRITEF_HI) << 8;
-		wm->pipe[PIPE_C].plane[PLANE_SPRITE0] |= _FW_WM(tmp, SPRITEE_HI) << 8;
-		wm->pipe[PIPE_C].plane[PLANE_PRIMARY] |= _FW_WM(tmp, PLANEC_HI) << 8;
-		wm->pipe[PIPE_B].plane[PLANE_SPRITE1] |= _FW_WM(tmp, SPRITED_HI) << 8;
-		wm->pipe[PIPE_B].plane[PLANE_SPRITE0] |= _FW_WM(tmp, SPRITEC_HI) << 8;
-		wm->pipe[PIPE_B].plane[PLANE_PRIMARY] |= _FW_WM(tmp, PLANEB_HI) << 8;
-		wm->pipe[PIPE_A].plane[PLANE_SPRITE1] |= _FW_WM(tmp, SPRITEB_HI) << 8;
-		wm->pipe[PIPE_A].plane[PLANE_SPRITE0] |= _FW_WM(tmp, SPRITEA_HI) << 8;
-		wm->pipe[PIPE_A].plane[PLANE_PRIMARY] |= _FW_WM(tmp, PLANEA_HI) << 8;
-	} else {
-		tmp = I915_READ(DSPFW7);
-		wm->pipe[PIPE_B].plane[PLANE_SPRITE1] = _FW_WM_VLV(tmp, SPRITED);
-		wm->pipe[PIPE_B].plane[PLANE_SPRITE0] = _FW_WM_VLV(tmp, SPRITEC);
-
-		tmp = I915_READ(DSPHOWM);
-		wm->sr.plane |= _FW_WM(tmp, SR_HI) << 9;
-		wm->pipe[PIPE_B].plane[PLANE_SPRITE1] |= _FW_WM(tmp, SPRITED_HI) << 8;
-		wm->pipe[PIPE_B].plane[PLANE_SPRITE0] |= _FW_WM(tmp, SPRITEC_HI) << 8;
-		wm->pipe[PIPE_B].plane[PLANE_PRIMARY] |= _FW_WM(tmp, PLANEB_HI) << 8;
-		wm->pipe[PIPE_A].plane[PLANE_SPRITE1] |= _FW_WM(tmp, SPRITEB_HI) << 8;
-		wm->pipe[PIPE_A].plane[PLANE_SPRITE0] |= _FW_WM(tmp, SPRITEA_HI) << 8;
-		wm->pipe[PIPE_A].plane[PLANE_PRIMARY] |= _FW_WM(tmp, PLANEA_HI) << 8;
-	}
-}
-
-#undef _FW_WM
-#undef _FW_WM_VLV
 
 
 
@@ -1740,10 +1257,7 @@ void intel_init_pm(struct drm_i915_private *dev_priv)
         dev_priv->display.compute_pipe_wm = ilk_compute_pipe_wm;
         dev_priv->display.compute_intermediate_wm =
             ilk_compute_intermediate_wm;
-        dev_priv->display.initial_watermarks =
-            ilk_initial_watermarks;
-        dev_priv->display.optimize_watermarks =
-            ilk_optimize_watermarks;
+
 
 }
 

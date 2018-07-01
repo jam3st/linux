@@ -2965,10 +2965,6 @@ int intel_irq_install(struct drm_i915_private *dev_priv);
 void intel_irq_uninstall(struct drm_i915_private *dev_priv);
 
 
-static inline bool intel_vgpu_active(struct drm_i915_private *dev_priv)
-{
-	return dev_priv->vgpu.active;
-}
 
 u32 i915_pipestat_enable_mask(struct drm_i915_private *dev_priv,
 			      enum pipe pipe);

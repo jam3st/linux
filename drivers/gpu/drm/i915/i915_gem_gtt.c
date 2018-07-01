@@ -153,20 +153,13 @@ enum intel_engine_id {
 
 static void gen7_ppgtt_enable(struct drm_i915_private *dev_priv)
 {
-    struct intel_engine_cs *engine;
     u32 ecochk, ecobits;
-    enum intel_engine_id id;
 
     ecobits = I915_READ(GAC_ECO_BITS);
     I915_WRITE(GAC_ECO_BITS, ecobits | ECOBITS_PPGTT_CACHE64B);
 
     ecochk = I915_READ(GAM_ECOCHK);
-    if (IS_HASWELL(dev_priv)) {
-        ecochk |= ECOCHK_PPGTT_WB_HSW;
-    } else {
-        ecochk |= ECOCHK_PPGTT_LLC_IVB;
-        ecochk &= ~ECOCHK_PPGTT_GFDT_IVB;
-    }
+    ecochk |= ECOCHK_PPGTT_WB_HSW;
     I915_WRITE(GAM_ECOCHK, ecochk);
 
 
@@ -174,6 +167,7 @@ static void gen7_ppgtt_enable(struct drm_i915_private *dev_priv)
 
 int i915_ppgtt_init_hw(struct drm_i915_private *dev_priv) {
     gen7_ppgtt_enable(dev_priv);
+    return 0;
 }
 
 static int
@@ -368,7 +362,6 @@ static int ggtt_bind_vma(struct i915_vma *vma,
     struct drm_i915_private *i915;
 	struct drm_i915_gem_object *obj;
 	u32 pte_flags;
-    printk("ggtt_bind_vma  pages %x", vma->pages);
     i915 = vma->vm->i915;
 	obj = vma->obj;
 
@@ -399,7 +392,6 @@ static int ggtt_set_pages(struct i915_vma *vma)
 	int ret;
 
 	GEM_BUG_ON(vma->pages);
- printk("ggtt_bind_set  pages %x                 xxxxxxxxxxxxxxxxxxxxxxxxx", vma->pages);
 
       ret = i915_get_ggtt_vma_pages(vma);
     if (ret)
@@ -408,7 +400,6 @@ static int ggtt_set_pages(struct i915_vma *vma)
     vma->page_sizes = vma->obj->mm.page_sizes;
 
 
-   printk("ggtt_bind_set  pages %x                 xxxxxxxxxxxxxxxxxxxxxxxxx", vma->pages);
 
 	return 0;
 }
@@ -622,7 +613,6 @@ int i915_ggtt_enable_hw(struct drm_i915_private *dev_priv)
 static int
 i915_get_ggtt_vma_pages(struct i915_vma *vma)
 {
-	int ret;
 
 	/* The vma->pages are only valid within the lifespan of the borrowed
 	 * obj->mm.pages. When the obj->mm.pages sg_table is regenerated, so
@@ -641,7 +631,6 @@ int i915_gem_gtt_insert(struct i915_address_space *vm,
 			u64 start, u64 end, unsigned int flags)
 {
 	enum drm_mm_insert_mode mode;
-	u64 offset;
 	int err;
 
 	lockdep_assert_held(&vm->i915->drm.struct_mutex);

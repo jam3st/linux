@@ -328,45 +328,6 @@ intel_alloc_mchbar_resource(struct drm_i915_private *dev_priv)
 	return 0;
 }
 
-/* Setup MCHBAR if possible, return true if we should disable it again */
-static void
-intel_setup_mchbar(struct drm_i915_private *dev_priv)
-{
-	int mchbar_reg = INTEL_GEN(dev_priv) >= 4 ? MCHBAR_I965 : MCHBAR_I915;
-	u32 temp;
-	bool enabled;
-
-	if (IS_VALLEYVIEW(dev_priv) || IS_CHERRYVIEW(dev_priv))
-		return;
-
-	dev_priv->mchbar_need_disable = false;
-
-	if (IS_I915G(dev_priv) || IS_I915GM(dev_priv)) {
-		pci_read_config_dword(dev_priv->bridge_dev, DEVEN, &temp);
-		enabled = !!(temp & DEVEN_MCHBAR_EN);
-	} else {
-		pci_read_config_dword(dev_priv->bridge_dev, mchbar_reg, &temp);
-		enabled = temp & 1;
-	}
-
-	/* If it's already enabled, don't have to do anything */
-	if (enabled)
-		return;
-
-	if (intel_alloc_mchbar_resource(dev_priv))
-		return;
-
-	dev_priv->mchbar_need_disable = true;
-
-	/* Space is allocated or reserved, so enable it. */
-	if (IS_I915G(dev_priv) || IS_I915GM(dev_priv)) {
-		pci_write_config_dword(dev_priv->bridge_dev, DEVEN,
-				       temp | DEVEN_MCHBAR_EN);
-	} else {
-		pci_read_config_dword(dev_priv->bridge_dev, mchbar_reg, &temp);
-		pci_write_config_dword(dev_priv->bridge_dev, mchbar_reg, temp | 1);
-	}
-}
 
 static int i915_load_modeset_init(struct drm_device *dev)
 {
@@ -505,11 +466,6 @@ out_err:
 }
 
 
-static void i915_workqueues_cleanup(struct drm_i915_private *dev_priv)
-{
-        destroy_workqueue(dev_priv->hotplug.dp_wq);
-        destroy_workqueue(dev_priv->wq);
-}
 
 /*
  * We don't keep the workarounds for pre-production hardware, so we expect our
@@ -627,7 +583,7 @@ static int i915_mmio_setup(struct drm_i915_private *dev_priv)
 	}
 
 	/* Try to make sure MCHBAR is enabled before poking at it */
-	intel_setup_mchbar(dev_priv);
+        //intel_setup_mchbar(dev_priv);
 
 	return 0;
 }
@@ -810,28 +766,6 @@ static void i915_driver_register(struct drm_i915_private *dev_priv)
 		drm_kms_helper_poll_init(dev);
 }
 
-/**
- * i915_driver_unregister - cleanup the registration done in i915_driver_regiser()
- * @dev_priv: device private
- */
-static void i915_driver_unregister(struct drm_i915_private *dev_priv)
-{
-        intel_fbdev_unregister(dev_priv);
-
-        /*
-         * After flushing the fbdev (incl. a late async config which will
-         * have delayed queuing of a hotplug event), then flush the hotplug
-         * events.
-         */
-        drm_kms_helper_poll_fini(&dev_priv->drm);
-
-        intel_gpu_ips_teardown();
-
-
-        drm_dev_unregister(&dev_priv->drm);
-
-        i915_gem_shrinker_unregister(dev_priv);
-}
 
 /**
  * i915_driver_load - setup chip and create an initial config
@@ -846,8 +780,7 @@ static void i915_driver_unregister(struct drm_i915_private *dev_priv)
  */
 int i915_driver_load(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
-        const struct intel_device_info *match_info =
-                (struct intel_device_info *)ent->driver_data;
+
 	struct drm_i915_private *dev_priv;
 	int ret;
     printk(" MMIO FAULED TO LOAD Why??????????????????????????????????????????");

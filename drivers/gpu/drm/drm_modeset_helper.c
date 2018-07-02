@@ -65,7 +65,8 @@ void drm_helper_move_panel_connectors_to_head(struct drm_device *dev)
 }
 EXPORT_SYMBOL(drm_helper_move_panel_connectors_to_head);
 
-/**
+/**    printk("AF FBDEV is dev %x ", dev );
+
  * drm_helper_mode_fill_fb_struct - fill out framebuffer metadata
  * @dev: DRM device
  * @fb: drm_framebuffer object to fill out
@@ -80,9 +81,7 @@ void drm_helper_mode_fill_fb_struct(struct drm_device *dev,
 {
 	int i;
 
-    printk("B4 FBDEV %x %x", dev, fb);
 	fb->dev = dev;
-    printk("AF FBDEV is dev %x ", dev );
 	fb->format = drm_get_format_info(dev, mode_cmd);
     printk("AF FORMAT");
 	fb->width = mode_cmd->width;

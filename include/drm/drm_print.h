@@ -287,7 +287,7 @@ void drm_err(const char *format, ...);
 #define DRM_DEV_DEBUG_KMS(dev, fmt, ...)				\
 	drm_dev_dbg(dev, DRM_UT_KMS, fmt, ##__VA_ARGS__)
 #define DRM_DEBUG_KMS(fmt, ...)						\
-	drm_dbg(DRM_UT_KMS, fmt, ##__VA_ARGS__)
+        drm_dbg(DRM_UT_KMS, fmt, ##__VA_ARGS__)
 
 #define DRM_DEV_DEBUG_PRIME(dev, fmt, ...)				\
 	drm_dev_dbg(dev, DRM_UT_PRIME, fmt, ##__VA_ARGS__)

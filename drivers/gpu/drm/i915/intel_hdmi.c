@@ -1312,9 +1312,6 @@ static u8 intel_hdmi_ddc_pin(struct drm_i915_private *dev_priv,
 
 void intel_infoframe_init(struct intel_digital_port *intel_dig_port)
 {
-	struct drm_i915_private *dev_priv =
-		to_i915(intel_dig_port->base.base.dev);
-
     intel_dig_port->write_infoframe = hsw_write_infoframe;
     intel_dig_port->set_infoframes = hsw_set_infoframes;
     intel_dig_port->infoframe_enabled = hsw_infoframe_enabled;

@@ -220,12 +220,10 @@ drm_get_format_info(struct drm_device *dev,
 		    const struct drm_mode_fb_cmd2 *mode_cmd)
 {
 	const struct drm_format_info *info = NULL;
-printk("drm_get_format_info 0 %x", dev);
 	if (dev->mode_config.funcs->get_format_info) {
 printk("drm_get_format_info 1");
 		info = dev->mode_config.funcs->get_format_info(mode_cmd);
 }
-printk("drm_get_format_info 20");
 	if (!info) {
 printk("drm_get_format_info 2");
 		info = drm_format_info(mode_cmd->pixel_format);

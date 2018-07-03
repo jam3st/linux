@@ -2654,9 +2654,9 @@ __drm_fb_helper_initial_config_and_unlock(struct drm_fb_helper *fb_helper,
 	 * register the fbdev emulation instance in kernel_fb_helper_list. */
 	mutex_unlock(&fb_helper->lock);
 
-	ret = register_framebuffer(info);
-	if (ret < 0)
-		return ret;
+//	ret = register_framebuffer(info);
+//	if (ret < 0)
+//		return ret;
 
 	dev_info(dev->dev, "fb%d: %s frame buffer device\n",
 		 info->node, info->fix.id);
@@ -2728,8 +2728,8 @@ printk("THIS IS GB EMUL\n");
 printk("THIS IS GB EMUL\n");
 	mutex_lock(&fb_helper->lock);
 	ret = __drm_fb_helper_initial_config_and_unlock(fb_helper, bpp_sel);
-    printk("Created fb0 of %d x %d at %x xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", fb_helper->fb->width, fb_helper->fb->height, fb_helper->fb->width, fb_helper->fbdev->screen_base);
-    memset(fb_helper->fbdev->screen_base, 0xff, 100000);
+    printk("Created fb0 of %d x %d of zie %d at %x xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", fb_helper->fb->width, fb_helper->fb->height, fb_helper->fb->width, fb_helper->fbdev->screen_size, fb_helper->fbdev->screen_base);
+    memset_io(fb_helper->fbdev->screen_base, 0xff, fb_helper->fbdev->screen_size);
     return ret;
 }
 EXPORT_SYMBOL(drm_fb_helper_initial_config);

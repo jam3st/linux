@@ -584,84 +584,6 @@ TRACE_EVENT(i915_gem_evict_vm,
 	    TP_printk("dev=%d, vm=%p", __entry->dev, __entry->vm)
 );
 
-TRACE_EVENT(i915_gem_ring_sync_to,
-	    TP_PROTO(struct i915_request *to, struct i915_request *from),
-	    TP_ARGS(to, from),
-
-	    TP_STRUCT__entry(
-			     __field(u32, dev)
-			     __field(u32, sync_from)
-			     __field(u32, sync_to)
-			     __field(u32, seqno)
-			     ),
-
-	    TP_fast_assign(
-			   __entry->dev = from->i915->drm.primary->index;
-			   __entry->sync_from = from->engine->id;
-			   __entry->sync_to = to->engine->id;
-			   __entry->seqno = from->global_seqno;
-			   ),
-
-	    TP_printk("dev=%u, sync-from=%u, sync-to=%u, seqno=%u",
-		      __entry->dev,
-		      __entry->sync_from, __entry->sync_to,
-		      __entry->seqno)
-);
-
-TRACE_EVENT(i915_request_queue,
-	    TP_PROTO(struct i915_request *rq, u32 flags),
-	    TP_ARGS(rq, flags),
-
-	    TP_STRUCT__entry(
-			     __field(u32, dev)
-			     __field(u32, hw_id)
-			     __field(u32, ring)
-			     __field(u32, ctx)
-			     __field(u32, seqno)
-			     __field(u32, flags)
-			     ),
-
-	    TP_fast_assign(
-			   __entry->dev = rq->i915->drm.primary->index;
-			   __entry->hw_id = rq->ctx->hw_id;
-			   __entry->ring = rq->engine->id;
-			   __entry->ctx = rq->fence.context;
-			   __entry->seqno = rq->fence.seqno;
-			   __entry->flags = flags;
-			   ),
-
-	    TP_printk("dev=%u, hw_id=%u, ring=%u, ctx=%u, seqno=%u, flags=0x%x",
-		      __entry->dev, __entry->hw_id, __entry->ring, __entry->ctx,
-		      __entry->seqno, __entry->flags)
-);
-
-DECLARE_EVENT_CLASS(i915_request,
-	    TP_PROTO(struct i915_request *rq),
-	    TP_ARGS(rq),
-
-	    TP_STRUCT__entry(
-			     __field(u32, dev)
-			     __field(u32, hw_id)
-			     __field(u32, ring)
-			     __field(u32, ctx)
-			     __field(u32, seqno)
-			     __field(u32, global)
-			     ),
-
-	    TP_fast_assign(
-			   __entry->dev = rq->i915->drm.primary->index;
-			   __entry->hw_id = rq->ctx->hw_id;
-			   __entry->ring = rq->engine->id;
-			   __entry->ctx = rq->fence.context;
-			   __entry->seqno = rq->fence.seqno;
-			   __entry->global = rq->global_seqno;
-			   ),
-
-	    TP_printk("dev=%u, hw_id=%u, ring=%u, ctx=%u, seqno=%u, global=%u",
-		      __entry->dev, __entry->hw_id, __entry->ring, __entry->ctx,
-		      __entry->seqno, __entry->global)
-);
-
 DEFINE_EVENT(i915_request, i915_request_add,
 	    TP_PROTO(struct i915_request *rq),
 	    TP_ARGS(rq)
@@ -741,29 +663,6 @@ trace_i915_request_out(struct i915_request *rq)
 #endif
 #endif
 
-TRACE_EVENT(intel_engine_notify,
-	    TP_PROTO(struct intel_engine_cs *engine, bool waiters),
-	    TP_ARGS(engine, waiters),
-
-	    TP_STRUCT__entry(
-			     __field(u32, dev)
-			     __field(u32, ring)
-			     __field(u32, seqno)
-			     __field(bool, waiters)
-			     ),
-
-	    TP_fast_assign(
-			   __entry->dev = engine->i915->drm.primary->index;
-			   __entry->ring = engine->id;
-			   __entry->seqno = intel_engine_get_seqno(engine);
-			   __entry->waiters = waiters;
-			   ),
-
-	    TP_printk("dev=%u, ring=%u, seqno=%u, waiters=%u",
-		      __entry->dev, __entry->ring, __entry->seqno,
-		      __entry->waiters)
-);
-
 DEFINE_EVENT(i915_request, i915_request_retire,
 	    TP_PROTO(struct i915_request *rq),
 	    TP_ARGS(rq)
@@ -802,7 +701,7 @@ TRACE_EVENT(i915_request_wait_begin,
 	    TP_printk("dev=%u, hw_id=%u, ring=%u, ctx=%u, seqno=%u, global=%u, blocking=%u, flags=0x%x",
 		      __entry->dev, __entry->hw_id, __entry->ring, __entry->ctx,
 		      __entry->seqno, __entry->global,
-		      !!(__entry->flags & I915_WAIT_LOCKED), __entry->flags)
+		      !!(__entry->flags & 0xf), __entry->flags)
 );
 
 DEFINE_EVENT(i915_request, i915_request_wait_end,
@@ -811,24 +710,6 @@ DEFINE_EVENT(i915_request, i915_request_wait_end,
 );
 
 TRACE_EVENT(i915_flip_request,
-	    TP_PROTO(int plane, struct drm_i915_gem_object *obj),
-
-	    TP_ARGS(plane, obj),
-
-	    TP_STRUCT__entry(
-		    __field(int, plane)
-		    __field(struct drm_i915_gem_object *, obj)
-		    ),
-
-	    TP_fast_assign(
-		    __entry->plane = plane;
-		    __entry->obj = obj;
-		    ),
-
-	    TP_printk("plane=%d, obj=%p", __entry->plane, __entry->obj)
-);
-
-TRACE_EVENT(i915_flip_complete,
 	    TP_PROTO(int plane, struct drm_i915_gem_object *obj),
 
 	    TP_ARGS(plane, obj),
@@ -972,29 +853,6 @@ DEFINE_EVENT(i915_context, i915_context_free,
  * in the lifetime of the vm in the legacy submission path. This tracepoint is
  * called only if full ppgtt is enabled.
  */
-TRACE_EVENT(switch_mm,
-	TP_PROTO(struct intel_engine_cs *engine, struct i915_gem_context *to),
-
-	TP_ARGS(engine, to),
-
-	TP_STRUCT__entry(
-			__field(u32, ring)
-			__field(struct i915_gem_context *, to)
-			__field(struct i915_address_space *, vm)
-			__field(u32, dev)
-	),
-
-	TP_fast_assign(
-			__entry->ring = engine->id;
-			__entry->to = to;
-			__entry->vm = to->ppgtt? &to->ppgtt->base : NULL;
-			__entry->dev = engine->i915->drm.primary->index;
-	),
-
-	TP_printk("dev=%u, ring=%u, ctx=%p, ctx_vm=%p",
-		  __entry->dev, __entry->ring, __entry->to, __entry->vm)
-);
-
 #endif /* _I915_TRACE_H_ */
 
 /* This part must be outside protection */

@@ -668,26 +668,11 @@ static const struct pci_device_id pciidlist[] = {
 };
 MODULE_DEVICE_TABLE(pci, pciidlist);
 
-static void i915_pci_remove(struct pci_dev *pdev)
-{
-	struct drm_device *dev = pci_get_drvdata(pdev);
-
-	i915_driver_unload(dev);
-	drm_dev_put(dev);
-}
-
 static int i915_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
 	struct intel_device_info *intel_info =
 		(struct intel_device_info *) ent->driver_data;
 	int err;
-
-	if (IS_ALPHA_SUPPORT(intel_info) && !i915_modparams.alpha_support) {
-		DRM_INFO("The driver support for your hardware in this kernel version is alpha quality\n"
-			 "See CONFIG_DRM_I915_ALPHA_SUPPORT or i915.alpha_support module parameter\n"
-			 "to enable support in this kernel version, or check for kernel updates.\n");
-		return -ENODEV;
-	}
 
 	/* Only bind to function 0 of the device. Early generations
 	 * used function 1 as a placeholder for multi-head. This causes
@@ -709,7 +694,7 @@ static struct pci_driver i915_pci_driver = {
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
 	.probe = i915_pci_probe,
-	.remove = i915_pci_remove,
+	.remove = NULL,
     .driver.pm = NULL,
 };
 

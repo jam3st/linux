@@ -475,42 +475,42 @@ int drm_dev_init(struct drm_device *dev,
 	mutex_init(&dev->ctxlist_mutex);
 	mutex_init(&dev->master_mutex);
 
-	dev->anon_inode = drm_fs_inode_new();
-	if (IS_ERR(dev->anon_inode)) {
-		ret = PTR_ERR(dev->anon_inode);
-		DRM_ERROR("Cannot allocate anonymous inode: %d\n", ret);
-		goto err_free;
-	}
+//	dev->anon_inode = drm_fs_inode_new();
+//	if (IS_ERR(dev->anon_inode)) {
+//		ret = PTR_ERR(dev->anon_inode);
+//		DRM_ERROR("Cannot allocate anonymous inode: %d\n", ret);
+//		goto err_free;
+//	}
 
-	if (drm_core_check_feature(dev, DRIVER_RENDER)) {
-		ret = drm_minor_alloc(dev, DRM_MINOR_RENDER);
-		if (ret)
-			goto err_minors;
-	}
+//	if (drm_core_check_feature(dev, DRIVER_RENDER)) {
+//		ret = drm_minor_alloc(dev, DRM_MINOR_RENDER);
+//		if (ret)
+//			goto err_minors;
+//	}
 
-	ret = drm_minor_alloc(dev, DRM_MINOR_PRIMARY);
-	if (ret)
-		goto err_minors;
+//	ret = drm_minor_alloc(dev, DRM_MINOR_PRIMARY);
+//	if (ret)
+//		goto err_minors;
 
-	ret = drm_ht_create(&dev->map_hash, 12);
-	if (ret)
-		goto err_minors;
+//	ret = drm_ht_create(&dev->map_hash, 12);
+//	if (ret)
+//		goto err_minors;
 
-	drm_legacy_ctxbitmap_init(dev);
+//	drm_legacy_ctxbitmap_init(dev);
 
-	if (drm_core_check_feature(dev, DRIVER_GEM)) {
-		ret = drm_gem_init(dev);
-		if (ret) {
-			DRM_ERROR("Cannot initialize graphics execution manager (GEM)\n");
-			goto err_ctxbitmap;
-		}
-	}
+//	if (drm_core_check_feature(dev, DRIVER_GEM)) {
+//		ret = drm_gem_init(dev);
+//		if (ret) {
+//			DRM_ERROR("Cannot initialize graphics execution manager (GEM)\n");
+//			goto err_ctxbitmap;
+//		}
+//	}
 
-	/* Use the parent device name as DRM device unique identifier, but fall
-	 * back to the driver name for virtual devices like vgem. */
-	ret = drm_dev_set_unique(dev, parent ? dev_name(parent) : driver->name);
-	if (ret)
-		goto err_setunique;
+//	/* Use the parent device name as DRM device unique identifier, but fall
+//	 * back to the driver name for virtual devices like vgem. */
+//	ret = drm_dev_set_unique(dev, parent ? dev_name(parent) : driver->name);
+//	if (ret)
+//		goto err_setunique;
 
 	return 0;
 
@@ -862,110 +862,38 @@ int drm_dev_set_unique(struct drm_device *dev, const char *name)
 }
 EXPORT_SYMBOL(drm_dev_set_unique);
 
-/*
- * DRM Core
- * The DRM core module initializes all global DRM objects and makes them
- * available to drivers. Once setup, drivers can probe their respective
- * devices.
- * Currently, core management includes:
- *  - The "DRM-Global" key/value database
- *  - Global ID management for connectors
- *  - DRM major number allocation
- *  - DRM minor management
- *  - DRM sysfs class
- *  - DRM debugfs root
- *
- * Furthermore, the DRM core provides dynamic char-dev lookups. For each
- * interface registered on a DRM device, you can request minor numbers from DRM
- * core. DRM core takes care of major-number management and char-dev
- * registration. A stub ->open() callback forwards any open() requests to the
- * registered minor.
- */
-
-static int drm_stub_open(struct inode *inode, struct file *filp)
-{
-	const struct file_operations *new_fops;
-	struct drm_minor *minor;
-	int err;
-
-	DRM_DEBUG("\n");
-
-	mutex_lock(&drm_global_mutex);
-	minor = drm_minor_acquire(iminor(inode));
-	if (IS_ERR(minor)) {
-		err = PTR_ERR(minor);
-		goto out_unlock;
-	}
-
-	new_fops = fops_get(minor->dev->driver->fops);
-	if (!new_fops) {
-		err = -ENODEV;
-		goto out_release;
-	}
-
-	replace_fops(filp, new_fops);
-	if (filp->f_op->open)
-		err = filp->f_op->open(inode, filp);
-	else
-		err = 0;
-
-out_release:
-	drm_minor_release(minor);
-out_unlock:
-	mutex_unlock(&drm_global_mutex);
-	return err;
-}
-
-static const struct file_operations drm_stub_fops = {
-	.owner = THIS_MODULE,
-	.open = drm_stub_open,
-	.llseek = noop_llseek,
-};
-
-static void drm_core_exit(void)
-{
-	unregister_chrdev(DRM_MAJOR, "drm");
-	debugfs_remove(drm_debugfs_root);
-	drm_sysfs_destroy();
-	idr_destroy(&drm_minors_idr);
-	drm_connector_ida_destroy();
-	drm_global_release();
-}
 
 static int __init drm_core_init(void)
 {
 	int ret;
 
-	drm_global_init();
-	drm_connector_ida_init();
-	idr_init(&drm_minors_idr);
+//	drm_global_init();
+        drm_connector_ida_init();
+//	idr_init(&drm_minors_idr);
 
-	ret = drm_sysfs_init();
-	if (ret < 0) {
-		DRM_ERROR("Cannot create DRM class: %d\n", ret);
-		goto error;
-	}
+//	ret = drm_sysfs_init();
+//	if (ret < 0) {
+//		DRM_ERROR("Cannot create DRM class: %d\n", ret);
+//		goto error;
+//	}
 
-	drm_debugfs_root = debugfs_create_dir("dri", NULL);
-	if (!drm_debugfs_root) {
-		ret = -ENOMEM;
-		DRM_ERROR("Cannot create debugfs-root: %d\n", ret);
-		goto error;
-	}
+//	drm_debugfs_root = debugfs_create_dir("dri", NULL);
+//	if (!drm_debugfs_root) {
+//		ret = -ENOMEM;
+//		DRM_ERROR("Cannot create debugfs-root: %d\n", ret);
+//		goto error;
+//	}
 
-	ret = register_chrdev(DRM_MAJOR, "drm", &drm_stub_fops);
-	if (ret < 0)
-		goto error;
+//	ret = register_chrdev(DRM_MAJOR, "drm", &drm_stub_fops);
+//	if (ret < 0)
+//		goto error;
 
 	drm_core_init_complete = true;
 
 	DRM_DEBUG("Initialized\n");
 	return 0;
 
-error:
-	drm_core_exit();
-	return ret;
 }
 
 module_init(drm_core_init);
-module_exit(drm_core_exit);
+//module_exit(drm_core_exit);

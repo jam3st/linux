@@ -280,13 +280,12 @@ static int intelfb_create(struct drm_fb_helper *helper,
 	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
 
 
+	memset_io(info->screen_base, 0xff, info->screen_size);
 
-  //  memset(vma->node.start, 10000, 0xff);
     ifbdev->vma = vma;
 	ifbdev->vma_flags = flags;
 
 	mutex_unlock(&dev->struct_mutex);
-	vga_switcheroo_client_fb_set(pdev, info);
 	return 0;
 
 out_unpin:

@@ -291,18 +291,6 @@ static int i915_load_modeset_init(struct drm_device *dev)
 
 	intel_bios_init(dev_priv);
 
-	/* If we have > 1 VGA cards, then we need to arbitrate access
-	 * to the common VGA resources.
-	 *
-	 * If we are a secondary display controller (!PCI_DISPLAY_CLASS_VGA),
-	 * then we do not take part in VGA arbitration and the
-	 * vga_client_register() fails with -ENODEV.
-	 */
-//	ret = vga_client_register(pdev, dev_priv, NULL, i915_vga_set_decode);
-//	if (ret && ret != -ENODEV)
-//		goto out;
-
-
 	/* must happen before intel_power_domains_init_hw() on VLV/CHV */
 	intel_update_rawclk(dev_priv);
 
@@ -692,13 +680,7 @@ static void i915_driver_register(struct drm_i915_private *dev_priv)
 	struct drm_device *dev = &dev_priv->drm;
 
 
-	/* Reveal our presence to userspace */
-	if (drm_dev_register(dev, 0) == 0) {
-
-
-		/* Depends on sysfs having been initialized */
-	} else
-		DRM_ERROR("Failed to register driver for userspace access!\n");
+	DRM_ERROR("Failed to register driver for userspace access!\n");
 
 
 
@@ -715,8 +697,10 @@ static void i915_driver_register(struct drm_i915_private *dev_priv)
 	 * We need to coordinate the hotplugs with the asynchronous fbdev
 	 * configuration, for which we use the fbdev->async_cookie.
 	 */
-	if (INTEL_INFO(dev_priv)->num_pipes)
+	if (INTEL_INFO(dev_priv)->num_pipes) {
+        printk("fbdev->async_cookie is doing what?");
 		drm_kms_helper_poll_init(dev);
+    }
 }
 
 
@@ -775,8 +759,6 @@ int i915_driver_load(struct pci_dev *pdev, const struct pci_device_id *ent)
     printk("before init early Why??????????????????????????????????????????");
 
     ret = i915_driver_init_early(dev_priv, ent);
-	if (ret < 0)
-		goto out_pci_disable;
     printk("i915_driver_init_early was ok");
 
 	ret = i915_driver_init_mmio(dev_priv);
@@ -815,8 +797,6 @@ int i915_driver_load(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 out_cleanup_hw:
 out_cleanup_mmio:
-out_pci_disable:
-	pci_disable_device(pdev);
 out_fini:
 	i915_load_error(dev_priv, "Device initialization failed (%d)\n", ret);
 	drm_dev_fini(&dev_priv->drm);

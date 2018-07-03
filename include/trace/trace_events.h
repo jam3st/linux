@@ -730,7 +730,6 @@ trace_event_raw_event_##call(void *__data, proto)			\
 #define DEFINE_EVENT(template, call, proto, args)			\
 static inline void ftrace_test_probe_##call(void)			\
 {									\
-	check_trace_callback_type_##call(trace_event_raw_event_##template); \
 }
 
 #undef DEFINE_EVENT_PRINT

@@ -4,7 +4,7 @@
 mount -t debugfs none /sys/kernel/debug
 /bin/busybox mount -t devtmpfs -o "exec,noatime,nodiratime,nosuid,mode=0755,size=1M" udev /dev
 
-sleep 15
+sleep 1
 echo Disabling printk
 echo 0 0 0 0 > /proc/sys/kernel/printk
 cp -a /sys/kernel/debug/gcov/mnt/data/kernel /kernel

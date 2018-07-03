@@ -360,6 +360,153 @@ int drm_fb_helper_debug_leave(struct fb_info *info)
 	return 0;
 }
 EXPORT_SYMBOL(drm_fb_helper_debug_leave);
+
+static int restore_fbdev_mode_atomic(struct drm_fb_helper *fb_helper, bool active)
+{
+	struct drm_device *dev = fb_helper->dev;
+	struct drm_plane_state *plane_state;
+	struct drm_plane *plane;
+	struct drm_atomic_state *state;
+	int i, ret;
+	unsigned int plane_mask;
+	struct drm_modeset_acquire_ctx ctx;
+
+	drm_modeset_acquire_init(&ctx, 0);
+
+	state = drm_atomic_state_alloc(dev);
+	if (!state) {
+		ret = -ENOMEM;
+		goto out_ctx;
+	}
+
+	state->acquire_ctx = &ctx;
+retry:
+	plane_mask = 0;
+	drm_for_each_plane(plane, dev) {
+		plane_state = drm_atomic_get_plane_state(state, plane);
+		if (IS_ERR(plane_state)) {
+			ret = PTR_ERR(plane_state);
+			goto out_state;
+		}
+
+		plane_state->rotation = DRM_MODE_ROTATE_0;
+
+		plane->old_fb = plane->fb;
+		plane_mask |= 1 << drm_plane_index(plane);
+
+		/* disable non-primary: */
+		if (plane->type == DRM_PLANE_TYPE_PRIMARY)
+			continue;
+
+		ret = __drm_atomic_helper_disable_plane(plane, plane_state);
+		if (ret != 0)
+			goto out_state;
+	}
+
+	for (i = 0; i < fb_helper->crtc_count; i++) {
+		struct drm_mode_set *mode_set = &fb_helper->crtc_info[i].mode_set;
+		struct drm_plane *primary = mode_set->crtc->primary;
+
+		/* Cannot fail as we've already gotten the plane state above */
+		plane_state = drm_atomic_get_new_plane_state(state, primary);
+		plane_state->rotation = fb_helper->crtc_info[i].rotation;
+
+		ret = __drm_atomic_helper_set_config(mode_set, state);
+		if (ret != 0)
+			goto out_state;
+
+		/*
+		 * __drm_atomic_helper_set_config() sets active when a
+		 * mode is set, unconditionally clear it if we force DPMS off
+		 */
+		if (!active) {
+			struct drm_crtc *crtc = mode_set->crtc;
+			struct drm_crtc_state *crtc_state = drm_atomic_get_new_crtc_state(state, crtc);
+
+			crtc_state->active = false;
+		}
+	}
+
+	ret = drm_atomic_commit(state);
+
+out_state:
+	drm_atomic_clean_old_fb(dev, plane_mask, ret);
+
+	if (ret == -EDEADLK)
+		goto backoff;
+
+	drm_atomic_state_put(state);
+out_ctx:
+	drm_modeset_drop_locks(&ctx);
+	drm_modeset_acquire_fini(&ctx);
+
+	return ret;
+
+backoff:
+	drm_atomic_state_clear(state);
+	drm_modeset_backoff(&ctx);
+
+	goto retry;
+}
+
+static int restore_fbdev_mode_legacy(struct drm_fb_helper *fb_helper)
+{
+	struct drm_device *dev = fb_helper->dev;
+	struct drm_plane *plane;
+	int i, ret = 0;
+
+	drm_modeset_lock_all(fb_helper->dev);
+	drm_for_each_plane(plane, dev) {
+		
+
+	
+	}
+
+	for (i = 0; i < fb_helper->crtc_count; i++) {
+		struct drm_mode_set *mode_set = &fb_helper->crtc_info[i].mode_set;
+		struct drm_crtc *crtc = mode_set->crtc;
+
+		if (crtc->funcs->cursor_set2) {
+			ret = crtc->funcs->cursor_set2(crtc, NULL, 0, 0, 0, 0, 0);
+			if (ret)
+				goto out;
+		} else if (crtc->funcs->cursor_set) {
+			ret = crtc->funcs->cursor_set(crtc, NULL, 0, 0, 0);
+			if (ret)
+				goto out;
+		}
+
+		ret = drm_mode_set_config_internal(mode_set);
+		if (ret)
+			goto out;
+	}
+out:
+	drm_modeset_unlock_all(fb_helper->dev);
+
+	return ret;
+}
+
+static int restore_fbdev_mode(struct drm_fb_helper *fb_helper)
+{
+	struct drm_device *dev = fb_helper->dev;
+
+	if (drm_drv_uses_atomic_modeset(dev))
+		return restore_fbdev_mode_atomic(fb_helper, true);
+	else
+		return restore_fbdev_mode_legacy(fb_helper);
+}
+
+/**
+ * drm_fb_helper_restore_fbdev_mode_unlocked - restore fbdev configuration
+ * @fb_helper: driver-allocated fbdev helper, can be NULL
+ *
+ * This should be called from driver's drm &drm_driver.lastclose callback
+ * when implementing an fbcon on top of kms using this helper. This ensures that
+ * the user isn't greeted with a black screen when e.g. X dies.
+ *
+ * RETURNS:
+ * Zero if everything went ok, negative error code otherwise.
+ */
 int drm_fb_helper_restore_fbdev_mode_unlocked(struct drm_fb_helper *fb_helper)
 {
 	bool do_delayed;
@@ -372,6 +519,7 @@ int drm_fb_helper_restore_fbdev_mode_unlocked(struct drm_fb_helper *fb_helper)
 		return 0;
 
 	mutex_lock(&fb_helper->lock);
+	ret = restore_fbdev_mode(fb_helper);
 
 	do_delayed = fb_helper->delayed_hotplug;
 	if (do_delayed)
@@ -1520,7 +1668,6 @@ static int drm_fb_helper_single_fb_probe(struct drm_fb_helper *fb_helper,
 	strcpy(fb_helper->fb->comm, "[fbcon]");
 	return 0;
 }
-
 
 /**
  * drm_fb_helper_fill_fix - initializes fixed fbdev information

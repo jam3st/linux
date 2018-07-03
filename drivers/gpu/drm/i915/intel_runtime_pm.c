@@ -711,7 +711,7 @@ static uint32_t get_allowed_dc_mask(const struct drm_i915_private *dev_priv,
 		mask = 0;
 	}
 
-
+max_dc = 0;
 	if (enable_dc >= 0 && enable_dc <= max_dc) {
 		requested_dc = enable_dc;
 	} else if (enable_dc == -1) {
@@ -766,7 +766,8 @@ static void assert_power_well_ids_unique(struct drm_i915_private *dev_priv)
 int intel_power_domains_init(struct drm_i915_private *dev_priv)
 {
 	struct i915_power_domains *power_domains = &dev_priv->power_domains;
-
+dev_priv->csr.allowed_dc_mask =
+		get_allowed_dc_mask(dev_priv, 0u);
 	BUILD_BUG_ON(POWER_DOMAIN_NUM > 64);
 
 	mutex_init(&power_domains->lock);

@@ -7249,7 +7249,7 @@ static const struct drm_crtc_funcs intel_crtc_funcs = {
 	.page_flip = drm_atomic_helper_page_flip,
 	.atomic_duplicate_state = intel_crtc_duplicate_state,
 	.atomic_destroy_state = intel_crtc_destroy_state,
-	.set_crc_source = intel_crtc_set_crc_source,
+	.set_crc_source = NULL
 };
 
 struct wait_rps_boost {

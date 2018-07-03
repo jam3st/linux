@@ -135,3 +135,4 @@ all.config
 kern.creator.user
 stdio.log
 stag/*
+cov/*

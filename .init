@@ -1,6 +1,15 @@
 #!/bin/sh
 /bin/busybox mount -n -t proc /proc /proc
 /bin/busybox mount -t sysfs /sys /sys
+mount -t debugfs none /sys/kernel/debug
 /bin/busybox mount -t devtmpfs -o "exec,noatime,nodiratime,nosuid,mode=0755,size=1M" udev /dev
-#cat /dev/urandom > /dev/fb0
-exec /bin/sh
+
+sleep 15
+echo Disabling printk
+echo 0 0 0 0 > /proc/sys/kernel/printk
+cp -a /sys/kernel/debug/gcov/mnt/data/kernel /kernel
+cd /kernel
+echo "--------------- CUT HERE -----------------"
+tar -cf - ./ | bzip2 -9 | base64
+echo "--------------- CUT HERE -----------------"
+exit

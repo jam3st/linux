@@ -175,52 +175,12 @@ static int drm_minor_register(struct drm_device *dev, unsigned int type)
 	unsigned long flags;
 	int ret;
 
-	DRM_DEBUG("\n");
-
-	minor = *drm_minor_get_slot(dev, type);
-	if (!minor)
-		return 0;
-
-	ret = drm_debugfs_init(minor, minor->index, drm_debugfs_root);
-	if (ret) {
-		DRM_ERROR("DRM: Failed to initialize /sys/kernel/debug/dri.\n");
-		goto err_debugfs;
-	}
-
-	ret = device_add(minor->kdev);
-	if (ret)
-		goto err_debugfs;
-
-	/* replace NULL with @minor so lookups will succeed from now on */
-	spin_lock_irqsave(&drm_minor_lock, flags);
-	idr_replace(&drm_minors_idr, minor, minor->index);
-	spin_unlock_irqrestore(&drm_minor_lock, flags);
-
-	DRM_DEBUG("new minor registered %d\n", minor->index);
 	return 0;
 
-err_debugfs:
-	drm_debugfs_cleanup(minor);
-	return ret;
 }
 
 static void drm_minor_unregister(struct drm_device *dev, unsigned int type)
 {
-	struct drm_minor *minor;
-	unsigned long flags;
-
-	minor = *drm_minor_get_slot(dev, type);
-	if (!minor || !device_is_registered(minor->kdev))
-		return;
-
-	/* replace @minor with NULL so lookups will fail from now on */
-	spin_lock_irqsave(&drm_minor_lock, flags);
-	idr_replace(&drm_minors_idr, NULL, minor->index);
-	spin_unlock_irqrestore(&drm_minor_lock, flags);
-
-	device_del(minor->kdev);
-	dev_set_drvdata(minor->kdev, NULL); /* safety belt */
-	drm_debugfs_cleanup(minor);
 }
 
 /*
@@ -337,11 +297,9 @@ void drm_dev_unplug(struct drm_device *dev)
 {
 	drm_dev_unregister(dev);
 
-	mutex_lock(&drm_global_mutex);
 	drm_device_set_unplugged(dev);
 	if (dev->open_count == 0)
 		drm_dev_put(dev);
-	mutex_unlock(&drm_global_mutex);
 }
 EXPORT_SYMBOL(drm_dev_unplug);
 
@@ -515,16 +473,8 @@ int drm_dev_init(struct drm_device *dev,
 	return 0;
 
 err_setunique:
-	if (drm_core_check_feature(dev, DRIVER_GEM))
-		drm_gem_destroy(dev);
 err_ctxbitmap:
-	drm_legacy_ctxbitmap_cleanup(dev);
-	drm_ht_remove(&dev->map_hash);
 err_minors:
-	drm_minor_free(dev, DRM_MINOR_PRIMARY);
-	drm_minor_free(dev, DRM_MINOR_RENDER);
-	drm_minor_free(dev, DRM_MINOR_CONTROL);
-	drm_fs_inode_free(dev->anon_inode);
 err_free:
 	mutex_destroy(&dev->master_mutex);
 	mutex_destroy(&dev->ctxlist_mutex);
@@ -548,24 +498,6 @@ EXPORT_SYMBOL(drm_dev_init);
  */
 void drm_dev_fini(struct drm_device *dev)
 {
-	drm_vblank_cleanup(dev);
-
-	if (drm_core_check_feature(dev, DRIVER_GEM))
-		drm_gem_destroy(dev);
-
-	drm_legacy_ctxbitmap_cleanup(dev);
-	drm_ht_remove(&dev->map_hash);
-	drm_fs_inode_free(dev->anon_inode);
-
-	drm_minor_free(dev, DRM_MINOR_PRIMARY);
-	drm_minor_free(dev, DRM_MINOR_RENDER);
-	drm_minor_free(dev, DRM_MINOR_CONTROL);
-
-	mutex_destroy(&dev->master_mutex);
-	mutex_destroy(&dev->ctxlist_mutex);
-	mutex_destroy(&dev->filelist_mutex);
-	mutex_destroy(&dev->struct_mutex);
-	kfree(dev->unique);
 }
 EXPORT_SYMBOL(drm_dev_fini);
 
@@ -750,7 +682,6 @@ int drm_dev_register(struct drm_device *dev, unsigned long flags)
 	struct drm_driver *driver = dev->driver;
 	int ret;
 
-	mutex_lock(&drm_global_mutex);
 
 	ret = drm_minor_register(dev, DRM_MINOR_CONTROL);
 	if (ret)
@@ -776,8 +707,6 @@ int drm_dev_register(struct drm_device *dev, unsigned long flags)
 			goto err_minors;
 	}
 
-	if (drm_core_check_feature(dev, DRIVER_MODESET))
-		drm_modeset_register_all(dev);
 
 	ret = 0;
 
@@ -795,7 +724,6 @@ err_minors:
 	drm_minor_unregister(dev, DRM_MINOR_RENDER);
 	drm_minor_unregister(dev, DRM_MINOR_CONTROL);
 out_unlock:
-	mutex_unlock(&drm_global_mutex);
 	return ret;
 }
 EXPORT_SYMBOL(drm_dev_register);
@@ -816,29 +744,6 @@ EXPORT_SYMBOL(drm_dev_register);
  */
 void drm_dev_unregister(struct drm_device *dev)
 {
-	struct drm_map_list *r_list, *list_temp;
-
-	if (drm_core_check_feature(dev, DRIVER_LEGACY))
-		drm_lastclose(dev);
-
-	dev->registered = false;
-
-	if (drm_core_check_feature(dev, DRIVER_MODESET))
-		drm_modeset_unregister_all(dev);
-
-	if (dev->driver->unload)
-		dev->driver->unload(dev);
-
-	if (dev->agp)
-		drm_pci_agp_destroy(dev);
-
-	list_for_each_entry_safe(r_list, list_temp, &dev->maplist, head)
-		drm_legacy_rmmap(dev, r_list->map);
-
-	remove_compat_control_link(dev);
-	drm_minor_unregister(dev, DRM_MINOR_PRIMARY);
-	drm_minor_unregister(dev, DRM_MINOR_RENDER);
-	drm_minor_unregister(dev, DRM_MINOR_CONTROL);
 }
 EXPORT_SYMBOL(drm_dev_unregister);
 

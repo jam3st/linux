@@ -52,37 +52,6 @@
  * A struct drm_gem_cma_object * on success or an ERR_PTR()-encoded negative
  * error code on failure.
  */
-static struct drm_gem_cma_object *
-__drm_gem_cma_create(struct drm_device *drm, size_t size)
-{
-	struct drm_gem_cma_object *cma_obj;
-	struct drm_gem_object *gem_obj;
-	int ret;
-
-	if (drm->driver->gem_create_object)
-		gem_obj = drm->driver->gem_create_object(drm, size);
-	else
-		gem_obj = kzalloc(sizeof(*cma_obj), GFP_KERNEL);
-	if (!gem_obj)
-		return ERR_PTR(-ENOMEM);
-	cma_obj = container_of(gem_obj, struct drm_gem_cma_object, base);
-
-	ret = drm_gem_object_init(drm, gem_obj, size);
-	if (ret)
-		goto error;
-
-	ret = drm_gem_create_mmap_offset(gem_obj);
-	if (ret) {
-		drm_gem_object_release(gem_obj);
-		goto error;
-	}
-
-	return cma_obj;
-
-error:
-	kfree(cma_obj);
-	return ERR_PTR(ret);
-}
 
 /**
  * drm_gem_cma_create - allocate an object with the given size
@@ -97,34 +66,6 @@ error:
  * A struct drm_gem_cma_object * on success or an ERR_PTR()-encoded negative
  * error code on failure.
  */
-struct drm_gem_cma_object *drm_gem_cma_create(struct drm_device *drm,
-					      size_t size)
-{
-	struct drm_gem_cma_object *cma_obj;
-	int ret;
-
-	size = round_up(size, PAGE_SIZE);
-
-	cma_obj = __drm_gem_cma_create(drm, size);
-	if (IS_ERR(cma_obj))
-		return cma_obj;
-
-	cma_obj->vaddr = dma_alloc_wc(drm->dev, size, &cma_obj->paddr,
-				      GFP_KERNEL | __GFP_NOWARN);
-	if (!cma_obj->vaddr) {
-		dev_dbg(drm->dev, "failed to allocate buffer with size %zu\n",
-			size);
-		ret = -ENOMEM;
-		goto error;
-	}
-
-	return cma_obj;
-
-error:
-	drm_gem_object_put_unlocked(&cma_obj->base);
-	return ERR_PTR(ret);
-}
-EXPORT_SYMBOL_GPL(drm_gem_cma_create);
 
 /**
  * drm_gem_cma_create_with_handle - allocate an object with the given size and

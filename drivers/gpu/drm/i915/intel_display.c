@@ -2612,9 +2612,6 @@ void intel_prepare_reset(struct drm_i915_private *dev_priv)
 
 
 	/* reset doesn't touch the display */
-	if (!i915_modparams.force_reset_modeset_test &&
-	    !gpu_reset_clobbers_display(dev_priv))
-		return;
 
 	/* We have a modeset vs reset deadlock, defensively unbreak it. */
 	set_bit(I915_RESET_MODESET, &dev_priv->gpu_error.flags);
@@ -2667,9 +2664,6 @@ void intel_finish_reset(struct drm_i915_private *dev_priv)
 	int ret;
 
 	/* reset doesn't touch the display */
-	if (!i915_modparams.force_reset_modeset_test &&
-	    !gpu_reset_clobbers_display(dev_priv))
-		return;
 
 	if (!state)
 		goto unlock;
@@ -3566,41 +3560,6 @@ static void ironlake_pfit_disable(struct intel_crtc *crtc, bool force)
 	}
 }
 
-static void haswell_crtc_disable(struct intel_crtc_state *old_crtc_state,
-				 struct drm_atomic_state *old_state)
-{
-	struct drm_crtc *crtc = old_crtc_state->base.crtc;
-	struct drm_i915_private *dev_priv = to_i915(crtc->dev);
-	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	enum transcoder cpu_transcoder = intel_crtc->config->cpu_transcoder;
-
-	intel_encoders_disable(crtc, old_crtc_state, old_state);
-
-	drm_crtc_vblank_off(crtc);
-	assert_vblank_disabled(crtc);
-
-	/* XXX: Do the pipe assertions at the right place for BXT DSI. */
-	if (!transcoder_is_dsi(cpu_transcoder))
-		intel_disable_pipe(old_crtc_state);
-
-	if (intel_crtc_has_type(intel_crtc->config, INTEL_OUTPUT_DP_MST))
-		intel_ddi_set_vc_payload_alloc(intel_crtc->config, false);
-
-	if (!transcoder_is_dsi(cpu_transcoder))
-		intel_ddi_disable_transcoder_func(dev_priv, cpu_transcoder);
-
-	if (INTEL_GEN(dev_priv) >= 9)
-		skylake_scaler_disable(intel_crtc);
-	else
-		ironlake_pfit_disable(intel_crtc, false);
-
-	if (!transcoder_is_dsi(cpu_transcoder))
-		intel_ddi_disable_pipe_clock(intel_crtc->config);
-
-	intel_encoders_post_disable(crtc, old_crtc_state, old_state);
-}
-
-
 enum intel_display_power_domain intel_port_to_power_domain(enum port port)
 {
 	switch (port) {
@@ -4017,8 +3976,6 @@ bool hsw_crtc_state_ips_capable(const struct intel_crtc_state *crtc_state)
 	if (!hsw_crtc_supports_ips(crtc))
 		return false;
 
-	if (!i915_modparams.enable_ips)
-		return false;
 
 	if (crtc_state->pipe_bpp > 24)
 		return false;
@@ -4220,8 +4177,6 @@ intel_link_compute_m_n(int bits_per_pixel, int nlanes,
 
 static inline bool intel_panel_use_ssc(struct drm_i915_private *dev_priv)
 {
-	if (i915_modparams.panel_use_ssc >= 0)
-		return i915_modparams.panel_use_ssc != 0;
 	return dev_priv->vbt.lvds_use_ssc
 		&& !(dev_priv->quirks & QUIRK_LVDS_SSC_DISABLE);
 }
@@ -6860,7 +6815,7 @@ static int intel_atomic_check(struct drm_device *dev,
 			return ret;
 		}
 
-		if (i915_modparams.fastboot &&
+		if (
 		    intel_pipe_config_compare(dev_priv,
 					to_intel_crtc_state(old_crtc_state),
 					pipe_config, true)) {
@@ -7008,24 +6963,7 @@ static void intel_atomic_commit_tail(struct drm_atomic_state *state)
 				       to_intel_crtc_state(new_crtc_state));
 
 		if (old_crtc_state->active) {
-			intel_crtc_disable_planes(crtc, old_crtc_state->plane_mask);
-			dev_priv->display.crtc_disable(to_intel_crtc_state(old_crtc_state), state);
-			intel_crtc->active = false;
-			intel_fbc_disable(intel_crtc);
-
-
-
-			if (!new_crtc_state->active) {
-				/*
-				 * Make sure we don't call initial_watermarks
-				 * for ILK-style watermark updates.
-				 *
-				 * No clue what this is supposed to achieve.
-				 */
-				if (INTEL_GEN(dev_priv) >= 9)
-					dev_priv->display.initial_watermarks(intel_state,
-									     to_intel_crtc_state(new_crtc_state));
-			}
+        printk("Was never active");
 		}
 	}
 
@@ -7052,9 +6990,6 @@ static void intel_atomic_commit_tail(struct drm_atomic_state *state)
 
 		/* Complete events for now disable pipes here. */
 		if (modeset && !new_crtc_state->active && new_crtc_state->event) {
-			spin_lock_irq(&dev->event_lock);
-			drm_crtc_send_vblank_event(crtc, new_crtc_state->event);
-			spin_unlock_irq(&dev->event_lock);
 
 			new_crtc_state->event = NULL;
 		}
@@ -7072,7 +7007,7 @@ static void intel_atomic_commit_tail(struct drm_atomic_state *state)
 	 * - switch over to the vblank wait helper in the core after that since
 	 *   we don't need out special handling any more.
 	 */
-	drm_atomic_helper_wait_for_flip_done(dev, state);
+	//drm_crtc_vblank_off/ drm_atomic_helper_wait_for_flip_done(dev, state);
 
 	/*
 	 * Now that the vblank has passed, we can go ahead and program the
@@ -8553,7 +8488,7 @@ void intel_init_display_hooks(struct drm_i915_private *dev_priv)
     dev_priv->display.crtc_compute_clock =
         haswell_crtc_compute_clock;
     dev_priv->display.crtc_enable = haswell_crtc_enable;
-    dev_priv->display.crtc_disable = haswell_crtc_disable;
+    dev_priv->display.crtc_disable = NULL;
     dev_priv->display.fdi_link_train = hsw_fdi_link_train;
     dev_priv->display.update_crtcs = intel_update_crtcs;
 }

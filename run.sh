@@ -8,11 +8,5 @@ cp arch/x86/boot/bzImage stag/efi/boot/bootx64.efi &&
     -drive if=pflash,format=raw,readonly,file=/mnt/work/vm/etc/OVMF.fd -cpu host -display none -monitor none \
     -drive id=d0,if=none,file.driver=vvfat,readonly,file.dir=./stag \
     -device virtio-scsi-pci -device scsi-hd,drive=d0,bootindex=0 \
-     -chardev stdio,id=qemudbg -device isa-debugcon,iobase=0x402,chardev=qemudbg \
-    -serial file:stdio.log
-
-cd cov 
-find . -maxdepth 1 -type d | xargs rm -rf
-./a.py | base64 -d | bzip2 -dc | tar -xf -
-lcov -o kern.info -d . -c
-genhtml kern.info
+    -chardev file,path=debugcon.log,id=qemudbg -device isa-debugcon,iobase=0x402,chardev=qemudbg \
+    -serial stdio

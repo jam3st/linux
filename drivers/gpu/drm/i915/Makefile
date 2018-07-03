@@ -32,9 +32,7 @@ subdir-ccflags-y += \
 # core driver code
 i915-y := i915_drv.o \
 	  i915_irq.o \
-	  i915_params.o \
 	  i915_pci.o \
-	  i915_sw_fence.o \
 	  intel_device_info.o \
 	  intel_pm.o \
 	  intel_runtime_pm.o

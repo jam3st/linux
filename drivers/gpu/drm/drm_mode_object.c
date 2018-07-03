@@ -136,8 +136,7 @@ struct drm_mode_object *__drm_mode_object_find(struct drm_device *dev,
 	if (obj && obj->id != id)
 		obj = NULL;
 
-	if (obj && drm_mode_object_lease_required(obj->type) &&
-	    !_drm_lease_held(file_priv, obj->id))
+	if (obj && drm_mode_object_lease_required(obj->type))
 		obj = NULL;
 
 	if (obj && obj->free_cb) {
@@ -419,36 +418,7 @@ struct drm_property *drm_mode_obj_find_prop_id(struct drm_mode_object *obj,
 	return NULL;
 }
 
-static int set_property_legacy(struct drm_mode_object *obj,
-			       struct drm_property *prop,
-			       uint64_t prop_value)
-{
-	struct drm_device *dev = prop->dev;
-	struct drm_mode_object *ref;
-	int ret = -EINVAL;
 
-	if (!drm_property_change_valid_get(prop, prop_value, &ref))
-		return -EINVAL;
-
-	drm_modeset_lock_all(dev);
-	switch (obj->type) {
-	case DRM_MODE_OBJECT_CONNECTOR:
-		ret = drm_mode_connector_set_obj_prop(obj, prop,
-						      prop_value);
-		break;
-	case DRM_MODE_OBJECT_CRTC:
-		ret = drm_mode_crtc_set_obj_prop(obj, prop, prop_value);
-		break;
-	case DRM_MODE_OBJECT_PLANE:
-		ret = drm_mode_plane_set_obj_prop(obj_to_plane(obj),
-						  prop, prop_value);
-		break;
-	}
-	drm_property_change_valid_put(prop, ref);
-	drm_modeset_unlock_all(dev);
-
-	return ret;
-}
 
 static int set_property_atomic(struct drm_mode_object *obj,
 			       struct drm_property *prop,
@@ -493,37 +463,5 @@ out:
 	drm_modeset_drop_locks(&ctx);
 	drm_modeset_acquire_fini(&ctx);
 
-	return ret;
-}
-
-int drm_mode_obj_set_property_ioctl(struct drm_device *dev, void *data,
-				    struct drm_file *file_priv)
-{
-	struct drm_mode_obj_set_property *arg = data;
-	struct drm_mode_object *arg_obj;
-	struct drm_property *property;
-	int ret = -EINVAL;
-
-	if (!drm_core_check_feature(dev, DRIVER_MODESET))
-		return -EINVAL;
-
-	arg_obj = drm_mode_object_find(dev, file_priv, arg->obj_id, arg->obj_type);
-	if (!arg_obj)
-		return -ENOENT;
-
-	if (!arg_obj->properties)
-		goto out_unref;
-
-	property = drm_mode_obj_find_prop_id(arg_obj, arg->prop_id);
-	if (!property)
-		goto out_unref;
-
-	if (drm_drv_uses_atomic_modeset(property->dev))
-		ret = set_property_atomic(arg_obj, property, arg->value);
-	else
-		ret = set_property_legacy(arg_obj, property, arg->value);
-
-out_unref:
-	drm_mode_object_put(arg_obj);
 	return ret;
 }

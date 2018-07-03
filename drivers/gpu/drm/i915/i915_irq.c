@@ -589,11 +589,6 @@ static void ivb_display_irq_handler(struct drm_i915_private *dev_priv,
 		dp_aux_irq_handler(dev_priv);
 
 
-	for_each_pipe(dev_priv, pipe) {
-		if (de_iir & (DE_PIPE_VBLANK_IVB(pipe)))
-			drm_handle_vblank(&dev_priv->drm, pipe);
-	}
-
 	/* check event from PCH */
 	if (!HAS_PCH_NOP(dev_priv) && (de_iir & DE_PCH_EVENT_IVB)) {
 		u32 pch_iir = I915_READ(SDEIIR);

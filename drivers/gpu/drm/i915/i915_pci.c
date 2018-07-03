@@ -708,18 +708,6 @@ static int __init i915_init(void)
 	 * vga_text_mode_force boot option.
 	 */
 
-	if (i915_modparams.modeset == 0)
-		use_kms = false;
-
-	if (vgacon_text_force() && i915_modparams.modeset == -1)
-		use_kms = false;
-
-	if (!use_kms) {
-		/* Silently fail loading to not upset userspace. */
-		DRM_DEBUG_DRIVER("KMS disabled.\n");
-		return 0;
-	}
-
 	return pci_register_driver(&i915_pci_driver);
 }
 

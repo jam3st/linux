@@ -1914,53 +1914,6 @@ static void intel_enable_ddi_hdmi(struct intel_encoder *encoder,
 	struct intel_digital_port *dig_port = enc_to_dig_port(&encoder->base);
 	enum port port = encoder->port;
 
-	intel_hdmi_handle_sink_scrambling(encoder,
-					  conn_state->connector,
-					  crtc_state->hdmi_high_tmds_clock_ratio,
-					  crtc_state->hdmi_scrambling);
-
-	/* Display WA #1143: skl,kbl,cfl */
-	if (IS_GEN9_BC(dev_priv)) {
-		/*
-		 * For some reason these chicken bits have been
-		 * stuffed into a transcoder register, event though
-		 * the bits affect a specific DDI port rather than
-		 * a specific transcoder.
-		 */
-		static const enum transcoder port_to_transcoder[] = {
-			[PORT_A] = TRANSCODER_EDP,
-			[PORT_B] = TRANSCODER_A,
-			[PORT_C] = TRANSCODER_B,
-			[PORT_D] = TRANSCODER_C,
-			[PORT_E] = TRANSCODER_A,
-		};
-		enum transcoder transcoder = port_to_transcoder[port];
-		u32 val;
-
-		val = I915_READ(CHICKEN_TRANS(transcoder));
-
-		if (port == PORT_E)
-			val |= DDIE_TRAINING_OVERRIDE_ENABLE |
-				DDIE_TRAINING_OVERRIDE_VALUE;
-		else
-			val |= DDI_TRAINING_OVERRIDE_ENABLE |
-				DDI_TRAINING_OVERRIDE_VALUE;
-
-		I915_WRITE(CHICKEN_TRANS(transcoder), val);
-		POSTING_READ(CHICKEN_TRANS(transcoder));
-
-		udelay(1);
-
-		if (port == PORT_E)
-			val &= ~(DDIE_TRAINING_OVERRIDE_ENABLE |
-				 DDIE_TRAINING_OVERRIDE_VALUE);
-		else
-			val &= ~(DDI_TRAINING_OVERRIDE_ENABLE |
-				 DDI_TRAINING_OVERRIDE_VALUE);
-
-		I915_WRITE(CHICKEN_TRANS(transcoder), val);
-	}
-
 	/* In HDMI/DVI mode, the port width, and swing/emphasis values
 	 * are ignored so nothing special needs to be done besides
 	 * enabling the port.
@@ -1986,9 +1939,6 @@ static void intel_disable_ddi_hdmi(struct intel_encoder *encoder,
 				   const struct intel_crtc_state *old_crtc_state,
 				   const struct drm_connector_state *old_conn_state)
 {
-	intel_hdmi_handle_sink_scrambling(encoder,
-					  old_conn_state->connector,
-					  false, false);
 }
 
 static void intel_disable_ddi(struct intel_encoder *encoder,
@@ -2264,107 +2214,6 @@ static int modeset_pipe(struct drm_crtc *crtc,
 	return ret;
 }
 
-static int intel_hdmi_reset_link(struct intel_encoder *encoder,
-				 struct drm_modeset_acquire_ctx *ctx)
-{
-	struct drm_i915_private *dev_priv = to_i915(encoder->base.dev);
-	struct intel_hdmi *hdmi = enc_to_intel_hdmi(&encoder->base);
-	struct intel_connector *connector = hdmi->attached_connector;
-	struct i2c_adapter *adapter =
-		intel_gmbus_get_adapter(dev_priv, hdmi->ddc_bus);
-	struct drm_connector_state *conn_state;
-	struct intel_crtc_state *crtc_state;
-	struct intel_crtc *crtc;
-	u8 config;
-	int ret;
-
-	if (!connector || connector->base.status != connector_status_connected)
-		return 0;
-
-	ret = drm_modeset_lock(&dev_priv->drm.mode_config.connection_mutex,
-			       ctx);
-	if (ret)
-		return ret;
-
-	conn_state = connector->base.state;
-
-	crtc = to_intel_crtc(conn_state->crtc);
-	if (!crtc)
-		return 0;
-
-	ret = drm_modeset_lock(&crtc->base.mutex, ctx);
-	if (ret)
-		return ret;
-
-	crtc_state = to_intel_crtc_state(crtc->base.state);
-
-	WARN_ON(!intel_crtc_has_type(crtc_state, INTEL_OUTPUT_HDMI));
-
-	if (!crtc_state->base.active)
-		return 0;
-
-	if (!crtc_state->hdmi_high_tmds_clock_ratio &&
-	    !crtc_state->hdmi_scrambling)
-		return 0;
-
-	if (conn_state->commit &&
-	    !try_wait_for_completion(&conn_state->commit->hw_done))
-		return 0;
-
-	ret = drm_scdc_readb(adapter, SCDC_TMDS_CONFIG, &config);
-	if (ret < 0) {
-		DRM_ERROR("Failed to read TMDS config: %d\n", ret);
-		return 0;
-	}
-
-	if (!!(config & SCDC_TMDS_BIT_CLOCK_RATIO_BY_40) ==
-	    crtc_state->hdmi_high_tmds_clock_ratio &&
-	    !!(config & SCDC_SCRAMBLING_ENABLE) ==
-	    crtc_state->hdmi_scrambling)
-		return 0;
-
-	/*
-	 * HDMI 2.0 says that one should not send scrambled data
-	 * prior to configuring the sink scrambling, and that
-	 * TMDS clock/data transmission should be suspended when
-	 * changing the TMDS clock rate in the sink. So let's
-	 * just do a full modeset here, even though some sinks
-	 * would be perfectly happy if were to just reconfigure
-	 * the SCDC settings on the fly.
-	 */
-	return modeset_pipe(&crtc->base, ctx);
-}
-
-static bool intel_ddi_hotplug(struct intel_encoder *encoder,
-			      struct intel_connector *connector)
-{
-	struct drm_modeset_acquire_ctx ctx;
-	bool changed;
-	int ret;
-
-	changed = intel_encoder_hotplug(encoder, connector);
-
-	drm_modeset_acquire_init(&ctx, 0);
-
-	for (;;) {
-		if (connector->base.connector_type == DRM_MODE_CONNECTOR_HDMIA)
-			ret = intel_hdmi_reset_link(encoder, &ctx);
-
-		if (ret == -EDEADLK) {
-			drm_modeset_backoff(&ctx);
-			continue;
-		}
-
-		break;
-	}
-
-	drm_modeset_drop_locks(&ctx);
-	drm_modeset_acquire_fini(&ctx);
-	WARN(ret, "Acquiring modeset locks failed with %i\n", ret);
-
-	return changed;
-}
-
 static struct intel_connector *
 intel_ddi_init_hdmi_connector(struct intel_digital_port *intel_dig_port)
 {
@@ -2469,7 +2318,7 @@ void intel_ddi_init(struct drm_i915_private *dev_priv, enum port port)
 	drm_encoder_init(&dev_priv->drm, encoder, &intel_ddi_funcs,
 			 DRM_MODE_ENCODER_TMDS, "DDI %c", port_name(port));
 
-	intel_encoder->hotplug = intel_ddi_hotplug;
+	intel_encoder->hotplug = NULL;
 	intel_encoder->compute_output_type = intel_ddi_compute_output_type;
 	intel_encoder->compute_config = intel_ddi_compute_config;
 	intel_encoder->enable = intel_enable_ddi;

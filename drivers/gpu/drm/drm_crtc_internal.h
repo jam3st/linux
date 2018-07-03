@@ -56,20 +56,9 @@ int drm_mode_setcrtc(struct drm_device *dev,
 int drm_modeset_register_all(struct drm_device *dev);
 void drm_modeset_unregister_all(struct drm_device *dev);
 
-/* IOCTLs */
-int drm_mode_getresources(struct drm_device *dev,
-			  void *data, struct drm_file *file_priv);
-
 
 /* drm_dumb_buffers.c */
 /* IOCTLs */
-int drm_mode_create_dumb_ioctl(struct drm_device *dev,
-			       void *data, struct drm_file *file_priv);
-int drm_mode_mmap_dumb_ioctl(struct drm_device *dev,
-			     void *data, struct drm_file *file_priv);
-int drm_mode_destroy_dumb_ioctl(struct drm_device *dev,
-				void *data, struct drm_file *file_priv);
-
 /* drm_color_mgmt.c */
 const char *drm_get_color_encoding_name(enum drm_color_encoding encoding);
 const char *drm_get_color_range_name(enum drm_color_range range);
@@ -171,16 +160,10 @@ int drm_mode_addfb2(struct drm_device *dev,
 		    void *data, struct drm_file *file_priv);
 int drm_mode_rmfb(struct drm_device *dev,
 		  void *data, struct drm_file *file_priv);
-int drm_mode_getfb(struct drm_device *dev,
-		   void *data, struct drm_file *file_priv);
+
 int drm_mode_dirtyfb_ioctl(struct drm_device *dev,
 			   void *data, struct drm_file *file_priv);
 
-/* drm_atomic.c */
-#ifdef CONFIG_DEBUG_FS
-struct drm_minor;
-int drm_atomic_debugfs_init(struct drm_minor *minor);
-#endif
 
 int drm_atomic_connector_commit_dpms(struct drm_atomic_state *state,
 				     struct drm_connector *connector,
@@ -204,19 +187,7 @@ int drm_plane_check_pixel_format(struct drm_plane *plane,
 /* drm_bridge.c */
 void drm_bridge_detach(struct drm_bridge *bridge);
 
-/* IOCTL */
-int drm_mode_getplane_res(struct drm_device *dev, void *data,
-			  struct drm_file *file_priv);
-int drm_mode_getplane(struct drm_device *dev,
-		      void *data, struct drm_file *file_priv);
-int drm_mode_setplane(struct drm_device *dev,
-		      void *data, struct drm_file *file_priv);
-int drm_mode_cursor_ioctl(struct drm_device *dev,
-			  void *data, struct drm_file *file_priv);
-int drm_mode_cursor2_ioctl(struct drm_device *dev,
-			   void *data, struct drm_file *file_priv);
-int drm_mode_page_flip_ioctl(struct drm_device *dev,
-			     void *data, struct drm_file *file_priv);
+
 
 /* drm_edid.c */
 void drm_mode_fixup_1366x768(struct drm_display_mode *mode);

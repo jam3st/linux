@@ -68,34 +68,6 @@ static int intel_fbdev_set_par(struct fb_info *info)
 	return ret;
 }
 
-static int intel_fbdev_blank(int blank, struct fb_info *info)
-{
-	struct drm_fb_helper *fb_helper = info->par;
-	struct intel_fbdev *ifbdev =
-		container_of(fb_helper, struct intel_fbdev, helper);
-	int ret;
-
-	ret = drm_fb_helper_blank(blank, info);
-	if (ret == 0)
-		intel_fbdev_invalidate(ifbdev);
-
-	return ret;
-}
-
-static int intel_fbdev_pan_display(struct fb_var_screeninfo *var,
-				   struct fb_info *info)
-{
-	struct drm_fb_helper *fb_helper = info->par;
-	struct intel_fbdev *ifbdev =
-		container_of(fb_helper, struct intel_fbdev, helper);
-	int ret;
-
-	ret = drm_fb_helper_pan_display(var, info);
-	if (ret == 0)
-		intel_fbdev_invalidate(ifbdev);
-
-	return ret;
-}
 
 static struct fb_ops intelfb_ops = {
 	.owner = THIS_MODULE,
@@ -104,8 +76,8 @@ static struct fb_ops intelfb_ops = {
 	.fb_fillrect = drm_fb_helper_cfb_fillrect,
 	.fb_copyarea = drm_fb_helper_cfb_copyarea,
 	.fb_imageblit = drm_fb_helper_cfb_imageblit,
-	.fb_pan_display = intel_fbdev_pan_display,
-	.fb_blank = intel_fbdev_blank,
+        .fb_pan_display = NULL,
+        .fb_blank = NULL,
 };
 
 static int intelfb_alloc(struct drm_fb_helper *helper,
@@ -749,12 +721,6 @@ void intel_fbdev_unregister(struct drm_i915_private *dev_priv)
 
 void intel_fbdev_fini(struct drm_i915_private *dev_priv)
 {
-	struct intel_fbdev *ifbdev = fetch_and_zero(&dev_priv->fbdev);
-
-	if (!ifbdev)
-		return;
-
-	intel_fbdev_destroy(ifbdev);
 }
 
 void intel_fbdev_set_suspend(struct drm_device *dev, int state, bool synchronous)

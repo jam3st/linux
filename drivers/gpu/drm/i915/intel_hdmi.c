@@ -833,57 +833,6 @@ intel_hdmi_add_properties(struct intel_hdmi *intel_hdmi, struct drm_connector *c
 	connector->state->picture_aspect_ratio = HDMI_PICTURE_ASPECT_NONE;
 }
 
-/*
- * intel_hdmi_handle_sink_scrambling: handle sink scrambling/clock ratio setup
- * @encoder: intel_encoder
- * @connector: drm_connector
- * @high_tmds_clock_ratio = bool to indicate if the function needs to set
- *  or reset the high tmds clock ratio for scrambling
- * @scrambling: bool to Indicate if the function needs to set or reset
- *  sink scrambling
- *
- * This function handles scrambling on HDMI 2.0 capable sinks.
- * If required clock rate is > 340 Mhz && scrambling is supported by sink
- * it enables scrambling. This should be called before enabling the HDMI
- * 2.0 port, as the sink can choose to disable the scrambling if it doesn't
- * detect a scrambled clock within 100 ms.
- */
-void intel_hdmi_handle_sink_scrambling(struct intel_encoder *encoder,
-				       struct drm_connector *connector,
-				       bool high_tmds_clock_ratio,
-				       bool scrambling)
-{
-	struct intel_hdmi *intel_hdmi = enc_to_intel_hdmi(&encoder->base);
-	struct drm_i915_private *dev_priv = connector->dev->dev_private;
-	struct drm_scrambling *sink_scrambling =
-				&connector->display_info.hdmi.scdc.scrambling;
-	struct i2c_adapter *adptr = intel_gmbus_get_adapter(dev_priv,
-							   intel_hdmi->ddc_bus);
-	bool ret;
-
-	if (!sink_scrambling->supported)
-		return;
-
-	DRM_DEBUG_KMS("Setting sink scrambling for enc:%s connector:%s\n",
-		      encoder->base.name, connector->name);
-
-	/* Set TMDS bit clock ratio to 1/40 or 1/10 */
-	ret = drm_scdc_set_high_tmds_clock_ratio(adptr, high_tmds_clock_ratio);
-	if (!ret) {
-		DRM_ERROR("Set TMDS ratio failed\n");
-		return;
-	}
-
-	/* Enable/disable sink scrambling */
-	ret = drm_scdc_set_scrambling(adptr, scrambling);
-	if (!ret) {
-		DRM_ERROR("Set sink scrambling failed\n");
-		return;
-	}
-
-	DRM_DEBUG_KMS("sink scrambling handled\n");
-}
-
 static u8 chv_port_to_ddc_pin(struct drm_i915_private *dev_priv, enum port port)
 {
 	u8 ddc_pin;

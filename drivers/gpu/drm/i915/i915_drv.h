@@ -52,7 +52,6 @@
 #include <drm/drm_auth.h>
 #include <drm/drm_cache.h>
 
-#include "i915_params.h"
 #include "i915_reg.h"
 #include "i915_utils.h"
 
@@ -89,7 +88,7 @@
 #define I915_STATE_WARN(condition, format...) ({			\
 	int __ret_warn_on = !!(condition);				\
 	if (unlikely(__ret_warn_on))					\
-		if (!WARN(i915_modparams.verbose_state_checks, format))	\
+		if (!WARN(1, format))	\
 			DRM_ERROR(format);				\
 	unlikely(__ret_warn_on);					\
 })
@@ -466,7 +465,6 @@ struct i915_gpu_state {
 	u32 suspend_count;
 	struct intel_device_info device_info;
 	struct intel_driver_caps driver_caps;
-	struct i915_params params;
 
 	/* Generic register state */
 	u32 eir;
@@ -2727,9 +2725,9 @@ intel_info(const struct drm_i915_private *dev_priv)
 
 #define HAS_EXECLISTS(dev_priv) HAS_LOGICAL_RING_CONTEXTS(dev_priv)
 
-#define USES_PPGTT(dev_priv)		(i915_modparams.enable_ppgtt)
-#define USES_FULL_PPGTT(dev_priv)	(i915_modparams.enable_ppgtt >= 2)
-#define USES_FULL_48BIT_PPGTT(dev_priv)	(i915_modparams.enable_ppgtt == 3)
+#define USES_PPGTT(dev_priv)		(0)
+#define USES_FULL_PPGTT(dev_priv)	(0 >= 2)
+#define USES_FULL_48BIT_PPGTT(dev_priv)	(0 == 3)
 #define HAS_PAGE_SIZES(dev_priv, sizes) ({ \
 	GEM_BUG_ON((sizes) == 0); \
 	((sizes) & ~(dev_priv)->info.page_sizes) == 0; \
@@ -2939,9 +2937,6 @@ void intel_hpd_enable(struct drm_i915_private *dev_priv, enum hpd_pin pin);
 static inline void i915_queue_hangcheck(struct drm_i915_private *dev_priv)
 {
 	unsigned long delay;
-
-	if (unlikely(!i915_modparams.enable_hangcheck))
-		return;
 
 	/* Don't continually defer the hangcheck so that it is always run at
 	 * least once after work has been scheduled on any ring. Otherwise,

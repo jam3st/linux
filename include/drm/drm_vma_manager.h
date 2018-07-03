@@ -48,17 +48,14 @@ struct drm_vma_offset_manager {
 	struct drm_mm vm_addr_space_mm;
 };
 
-void drm_vma_offset_manager_init(struct drm_vma_offset_manager *mgr,
-				 unsigned long page_offset, unsigned long size);
-void drm_vma_offset_manager_destroy(struct drm_vma_offset_manager *mgr);
+
 
 struct drm_vma_offset_node *drm_vma_offset_lookup_locked(struct drm_vma_offset_manager *mgr,
 							   unsigned long start,
 							   unsigned long pages);
 int drm_vma_offset_add(struct drm_vma_offset_manager *mgr,
 		       struct drm_vma_offset_node *node, unsigned long pages);
-void drm_vma_offset_remove(struct drm_vma_offset_manager *mgr,
-			   struct drm_vma_offset_node *node);
+
 
 int drm_vma_node_allow(struct drm_vma_offset_node *node, struct drm_file *tag);
 void drm_vma_node_revoke(struct drm_vma_offset_node *node,
